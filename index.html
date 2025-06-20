@@ -6,6 +6,8 @@
     <title>Laporan Penjualan & Return - infinithree.id</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Litepicker CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css"/>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -121,14 +123,13 @@
             <!-- View Data Section -->
             <div id="viewSection" class="hidden">
                 <!-- Filters -->
-                <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4 p-4 border rounded-lg bg-gray-50">
-                    <input type="search" id="searchCustomer" placeholder="Cari Nama Customer..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500 col-span-1 md:col-span-3 lg:col-span-2">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 p-4 border rounded-lg bg-gray-50">
+                    <input type="search" id="searchCustomer" placeholder="Cari Nama Customer..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
                     <select id="filterShift" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="">Semua Shift</option></select>
                     <select id="filterHost" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="">Semua Host</option></select>
                     <select id="filterAdmin" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="">Semua Admin</option></select>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div><label for="startDate" class="text-xs text-gray-500">Dari Tanggal</label><input type="date" id="startDate" class="w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
-                        <div><label for="endDate" class="text-xs text-gray-500">Sampai Tanggal</label><input type="date" id="endDate" class="w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                    <div class="col-span-1 md:col-span-2 lg:col-span-4">
+                        <input type="text" id="dateRangePicker" placeholder="Pilih rentang tanggal" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
                     </div>
                 </div>
 
@@ -162,7 +163,11 @@
             </div>
         </div>
     </div>
-
+    
+    <!-- Litepicker JS -->
+    <script src="https://cdn.jsdelivr.net/npm/moment/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
+    
     <script>
     // --- Elemen Global ---
     const tabInputBtn = document.getElementById('tabInputBtn');
@@ -180,8 +185,9 @@
     
     // --- VIEW SECTION ---
     const dataLoader = document.getElementById('dataLoader'), dataError = document.getElementById('dataError'), dataTableContainer = document.getElementById('dataTableContainer'), dataTableBody = document.getElementById('dataTableBody');
-    const searchCustomer = document.getElementById('searchCustomer'), filterShift = document.getElementById('filterShift'), filterHost = document.getElementById('filterHost'), filterAdmin = document.getElementById('filterAdmin'), startDateInput = document.getElementById('startDate'), endDateInput = document.getElementById('endDate');
+    const searchCustomer = document.getElementById('searchCustomer'), filterShift = document.getElementById('filterShift'), filterHost = document.getElementById('filterHost'), filterAdmin = document.getElementById('filterAdmin');
     const statPcsPenjualan = document.getElementById('statPcsPenjualan'), statOmzetPenjualan = document.getElementById('statOmzetPenjualan'), statPcsReturn = document.getElementById('statPcsReturn'), statOmzetReturn = document.getElementById('statOmzetReturn');
+    let datePicker;
 
     // --- DATA & CONFIG ---
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzpSVOHsYuDXUoJqHJ4mi2bHiHVT7tqSgD1Q6iq2RKHhwIqszVCfczZUMrNB7zzoFn/exec';
@@ -304,8 +310,8 @@
         const selectedShift = filterShift.value;
         const selectedHost = filterHost.value;
         const selectedAdmin = filterAdmin.value;
-        const startDate = startDateInput.value ? new Date(startDateInput.value) : null;
-        const endDate = endDateInput.value ? new Date(endDateInput.value) : null;
+        const startDate = datePicker.getStartDate() ? datePicker.getStartDate().toJSDate() : null;
+        const endDate = datePicker.getEndDate() ? datePicker.getEndDate().toJSDate() : null;
         if(startDate) startDate.setHours(0,0,0,0);
         if(endDate) endDate.setHours(23,59,59,999);
 
@@ -329,6 +335,30 @@
         populateDropdown(adminNameReturnSelect, adminList);
         populateDropdown(treatmentNameSelect, treatmentList);
         updateFormState();
+        
+        // Initialize Litepicker
+        datePicker = new Litepicker({
+            element: document.getElementById('dateRangePicker'),
+            singleMode: false,
+            format: 'DD MMM YYYY',
+            lang: 'id-ID',
+            numberOfMonths: 2,
+            dropdowns: {
+                minYear: 2020,
+                maxYear: null,
+                months: true,
+                years: true,
+            },
+            buttonText: {
+                'previousMonth': `<!--! Font Awesome Pro 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="chevron-left" class="svg-inline--fa fa-chevron-left" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentColor" d="M224 480c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25l192-192c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25L77.25 256l169.4 169.4c12.5 12.5 12.5 32.75 0 45.25C240.4 476.9 232.2 480 224 480z"></path></svg>`,
+                'nextMonth': `<!--! Font Awesome Pro 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="chevron-right" class="svg-inline--fa fa-chevron-right" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentColor" d="M96 480c-8.188 0-16.38-3.125-22.62-9.375c-12.5-12.5-12.5-32.75 0-45.25L242.8 256L73.38 86.63c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0l192 192c12.5 12.5 12.5 32.75 0 45.25l-192 192C112.4 476.9 104.2 480 96 480z"></path></svg>`,
+            },
+            setup: (picker) => {
+                picker.on('selected', (date1, date2) => {
+                    applyFilters();
+                });
+            }
+        });
     });
     
     reportForm.addEventListener('change', updateFormState);
@@ -344,7 +374,7 @@
         fetchData();
     });
 
-    [searchCustomer, startDateInput, endDateInput].forEach(el => el.addEventListener('input', applyFilters));
+    [searchCustomer].forEach(el => el.addEventListener('input', applyFilters));
     [filterShift, filterHost, filterAdmin].forEach(el => el.addEventListener('change', applyFilters));
 
     omzetInput.addEventListener('input', (e) => { e.target.value = formatCurrency(parseCurrency(e.target.value)); });
