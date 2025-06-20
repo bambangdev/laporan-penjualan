@@ -9,6 +9,7 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
         }
         .loader {
             border-top-color: #EC4899; /* Pink color */
@@ -35,269 +36,364 @@
         .form-container {
             transition: all 0.3s ease-in-out;
         }
+        input:invalid, select:invalid {
+            border-color: #f87171; /* red-400 */
+        }
+        .tab-button {
+            padding: 10px 20px;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        .tab-button.active {
+            color: #db2777; /* pink-600 */
+            border-bottom-color: #db2777;
+        }
+        .table-responsive {
+            display: block;
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .stat-card {
+            background-color: #f9fafb;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid #e5e7eb;
+        }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen py-12">
-    <div class="w-full max-w-md mx-auto bg-white rounded-xl shadow-lg p-8">
-        <div class="text-center mb-8">
-            <h1 class="text-2xl font-bold text-gray-800">Laporan Penjualan & Return</h1>
-            <p class="text-sm font-medium text-gray-500 mt-1">infinithree.id</p>
+<body class="py-12">
+    <div class="w-full max-w-6xl mx-auto bg-white rounded-xl shadow-lg">
+        <!-- Header -->
+        <div class="p-6 border-b border-gray-200">
+             <div class="text-center">
+                <h1 class="text-2xl font-bold text-gray-800">Laporan Penjualan & Return</h1>
+                <p class="text-sm font-medium text-gray-500 mt-1">infinithree.id</p>
+            </div>
+             <!-- Tab Buttons -->
+            <div class="mt-6 flex justify-center border-b">
+                <button id="tabInputBtn" class="tab-button active">Input Laporan</button>
+                <button id="tabViewBtn" class="tab-button">Lihat Data</button>
+            </div>
         </div>
 
-        <form id="reportForm">
-            <!-- Pilihan Jenis Transaksi -->
-            <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Transaksi</label>
-                <div class="flex space-x-4">
-                    <div class="flex items-center">
-                        <input type="radio" id="typePenjualan" name="transactionType" value="Penjualan" class="hidden" checked>
-                        <label for="typePenjualan" class="radio-label">Penjualan</label>
+        <!-- Content -->
+        <div class="p-8">
+            <!-- Form Section -->
+            <div id="formSection">
+                <form id="reportForm" novalidate class="max-w-md mx-auto">
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Transaksi</label>
+                        <div class="flex space-x-4"><div class="flex items-center"><input type="radio" id="typePenjualan" name="transactionType" value="Penjualan" class="hidden" checked><label for="typePenjualan" class="radio-label">Penjualan</label></div><div class="flex items-center"><input type="radio" id="typeReturn" name="transactionType" value="Return" class="hidden"><label for="typeReturn" class="radio-label">Return</label></div></div>
                     </div>
-                    <div class="flex items-center">
-                        <input type="radio" id="typeReturn" name="transactionType" value="Return" class="hidden">
-                        <label for="typeReturn" class="radio-label">Return</label>
+                    <div id="input-fields" class="space-y-4">
+                        <div id="shiftContainer" class="form-container"><label for="shift" class="block text-sm font-medium text-gray-700 mb-1">Shift</label><select id="shift" name="shift" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="" disabled selected>-- Pilih Shift --</option><option value="Shift Pagi">Shift Pagi</option><option value="Shift Siang">Shift Siang</option></select></div>
+                        <div class="form-container"><label for="host" class="block text-sm font-medium text-gray-700 mb-1">Nama Host</label><select id="host" name="host" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="" disabled selected>-- Pilih Host --</option></select></div>
+                        <div id="backupHostContainer" class="hidden form-container"><label for="backupHostName" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Host Backup</label><input type="text" id="backupHostName" placeholder="Ketik nama host pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                        
+                        <div id="penjualanFields" class="space-y-4 form-container">
+                            <div><label for="adminNamePenjualan" class="block text-sm font-medium text-gray-700 mb-1">Nama Admin</label><select id="adminNamePenjualan" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="" disabled selected>-- Pilih Admin --</option></select></div>
+                            <div id="backupAdminPenjualanContainer" class="hidden form-container"><label for="backupAdminNamePenjualan" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Admin Backup</label><input type="text" id="backupAdminNamePenjualan" placeholder="Ketik nama admin pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                            <div><label for="customerName" class="block text-sm font-medium text-gray-700 mb-1">Nama Customer</label><input type="text" id="customerName" placeholder="Ketik nama customer" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                        </div>
+
+                        <div id="returnFields" class="hidden space-y-4 form-container">
+                            <div><label for="adminNameReturn" class="block text-sm font-medium text-gray-700 mb-1">Nama Admin</label><select id="adminNameReturn" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="" disabled selected>-- Pilih Admin --</option></select></div>
+                            <div id="backupAdminReturnContainer" class="hidden form-container"><label for="backupAdminNameReturn" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Admin Backup</label><input type="text" id="backupAdminNameReturn" placeholder="Ketik nama admin pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                            <div><label for="treatmentName" class="block text-sm font-medium text-gray-700 mb-1">Nama Orang Treatment</label><select id="treatmentName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="" disabled selected>-- Pilih Orang Treatment --</option></select></div>
+                            <div id="backupTreatmentContainer" class="hidden form-container"><label for="backupTreatmentName" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Treatment Backup</label><input type="text" id="backupTreatmentName" placeholder="Ketik nama pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                        </div>
+                        
+                        <div class="form-container"><label for="pcs" class="block text-sm font-medium text-gray-700 mb-1">Total Pcs</label><input type="number" id="pcs" name="pcs" placeholder="Contoh: 50" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                        <div class="form-container"><label for="omzet" class="block text-sm font-medium text-gray-700 mb-1">Total Omzet (Rp)</label><input type="text" id="omzet" name="omzet" placeholder="Contoh: 1.500.000" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                        
+                        <div id="penjualanFields2" class="hidden space-y-4 form-container">
+                            <div><label for="ppn" class="block text-sm font-medium text-gray-700 mb-1">PPN (Rp)</label><input type="text" id="ppn" placeholder="Contoh: 150.000" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                            <div><label for="totalBersih" class="block text-sm font-medium text-gray-700 mb-1">Total Bersih (Rp)</label><input type="text" id="totalBersih" readonly class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100"></div>
+                        </div>
                     </div>
-                </div>
+                    <button type="submit" id="submitButton" class="w-full bg-pink-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 transition duration-150 ease-in-out flex items-center justify-center mt-6"><span id="buttonText">Kirim Laporan</span><div id="buttonLoader" class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 ml-3 hidden"></div></button>
+                </form>
+                <div id="statusMessage" class="mt-6 text-center text-sm"></div>
             </div>
 
-            <!-- Input Fields -->
-            <div id="input-fields" class="space-y-4">
-                <!-- Shift (hanya untuk penjualan) -->
-                 <div id="shiftContainer" class="form-container">
-                    <label for="shift" class="block text-sm font-medium text-gray-700 mb-1">Shift</label>
-                    <select id="shift" name="shift" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
-                        <option value="" disabled selected>-- Pilih Shift --</option>
-                        <option value="Shift Pagi">Shift Pagi</option>
-                        <option value="Shift Siang">Shift Siang</option>
-                    </select>
-                </div>
-                
-                <!-- Nama Host -->
-                <div class="form-container">
-                    <label for="host" class="block text-sm font-medium text-gray-700 mb-1">Nama Host</label>
-                    <select id="host" name="host" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
-                        <option value="" disabled selected>-- Pilih Host --</option>
-                    </select>
-                </div>
-                 <div id="backupHostContainer" class="hidden form-container">
-                    <label for="backupHostName" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Host Backup</label>
-                    <input type="text" id="backupHostName" placeholder="Ketik nama host pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
-                </div>
-
-
-                <!-- Fields for Return -->
-                <div id="returnFields" class="hidden space-y-4 form-container">
-                     <div>
-                        <label for="adminName" class="block text-sm font-medium text-gray-700 mb-1">Nama Admin</label>
-                        <select id="adminName" name="adminName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
-                            <option value="" disabled selected>-- Pilih Admin --</option>
-                        </select>
-                    </div>
-                     <div id="backupAdminContainer" class="hidden form-container">
-                        <label for="backupAdminName" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Admin Backup</label>
-                        <input type="text" id="backupAdminName" placeholder="Ketik nama admin pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
-                    </div>
-
-                    <div>
-                        <label for="treatmentName" class="block text-sm font-medium text-gray-700 mb-1">Nama Orang Treatment</label>
-                         <select id="treatmentName" name="treatmentName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
-                            <option value="" disabled selected>-- Pilih Orang Treatment --</option>
-                        </select>
-                    </div>
-                    <div id="backupTreatmentContainer" class="hidden form-container">
-                        <label for="backupTreatmentName" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Treatment Backup</label>
-                        <input type="text" id="backupTreatmentName" placeholder="Ketik nama pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
+            <!-- View Data Section -->
+            <div id="viewSection" class="hidden">
+                <!-- Filters -->
+                <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4 p-4 border rounded-lg bg-gray-50">
+                    <input type="search" id="searchCustomer" placeholder="Cari Nama Customer..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500 col-span-1 md:col-span-3 lg:col-span-2">
+                    <select id="filterShift" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="">Semua Shift</option></select>
+                    <select id="filterHost" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="">Semua Host</option></select>
+                    <select id="filterAdmin" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="">Semua Admin</option></select>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div><label for="startDate" class="text-xs text-gray-500">Dari Tanggal</label><input type="date" id="startDate" class="w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                        <div><label for="endDate" class="text-xs text-gray-500">Sampai Tanggal</label><input type="date" id="endDate" class="w-full px-3 py-1 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
                     </div>
                 </div>
 
-                <!-- Total Pcs -->
-                <div class="form-container">
-                    <label for="pcs" class="block text-sm font-medium text-gray-700 mb-1">Total Pcs</label>
-                    <input type="number" id="pcs" name="pcs" placeholder="Contoh: 50" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
+                <!-- Statistics -->
+                <div id="statsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="stat-card"><p class="text-sm text-gray-500">Total PCS Penjualan</p><p id="statPcsPenjualan" class="text-2xl font-bold text-gray-900">0</p></div>
+                    <div class="stat-card"><p class="text-sm text-gray-500">Total Omzet Penjualan</p><p id="statOmzetPenjualan" class="text-2xl font-bold text-green-600">Rp 0</p></div>
+                    <div class="stat-card"><p class="text-sm text-gray-500">Total PCS Return</p><p id="statPcsReturn" class="text-2xl font-bold text-gray-900">0</p></div>
+                    <div class="stat-card"><p class="text-sm text-gray-500">Total Omzet Return</p><p id="statOmzetReturn" class="text-2xl font-bold text-red-600">Rp 0</p></div>
                 </div>
 
-                <!-- Total Omzet -->
-                <div class="form-container">
-                    <label for="omzet" class="block text-sm font-medium text-gray-700 mb-1">Total Omzet (Rp)</label>
-                    <input type="text" id="omzet" name="omzet" placeholder="Contoh: 1.500.000" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
+                <!-- Data Table -->
+                <div id="dataLoader" class="flex justify-center items-center h-40"><div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-32 w-32"></div></div>
+                <p id="dataError" class="text-center text-red-500 hidden"></p>
+                <div id="dataTableContainer" class="table-responsive">
+                    <table class="min-w-full bg-white">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Host</th>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shift</th>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Omzet</th>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Bersih</th>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody" class="bg-white divide-y divide-gray-200"></tbody>
+                    </table>
                 </div>
             </div>
-
-            <!-- Tombol Submit -->
-            <button type="submit" id="submitButton" class="w-full bg-pink-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 transition duration-150 ease-in-out flex items-center justify-center mt-6">
-                <span id="buttonText">Kirim Laporan</span>
-                <div id="buttonLoader" class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 ml-3 hidden"></div>
-            </button>
-        </form>
-
-        <div id="statusMessage" class="mt-6 text-center text-sm"></div>
+        </div>
     </div>
 
     <script>
-        // --- Referensi Elemen DOM ---
-        const reportForm = document.getElementById('reportForm');
-        const transactionTypeRadios = document.querySelectorAll('input[name="transactionType"]');
-        
-        // Containers
-        const shiftContainer = document.getElementById('shiftContainer');
-        const returnFieldsContainer = document.getElementById('returnFields');
-        const backupHostContainer = document.getElementById('backupHostContainer');
-        const backupAdminContainer = document.getElementById('backupAdminContainer');
-        const backupTreatmentContainer = document.getElementById('backupTreatmentContainer');
+    // --- Elemen Global ---
+    const tabInputBtn = document.getElementById('tabInputBtn');
+    const tabViewBtn = document.getElementById('tabViewBtn');
+    const formSection = document.getElementById('formSection');
+    const viewSection = document.getElementById('viewSection');
 
-        // Selects
-        const hostSelect = document.getElementById('host');
-        const adminNameSelect = document.getElementById('adminName');
-        const treatmentNameSelect = document.getElementById('treatmentName');
+    // --- FORM SECTION ---
+    const reportForm = document.getElementById('reportForm');
+    const shiftContainer = document.getElementById('shiftContainer'), returnFieldsContainer = document.getElementById('returnFields'), penjualanFieldsContainer = document.getElementById('penjualanFields'), penjualanFieldsContainer2 = document.getElementById('penjualanFields2'), backupHostContainer = document.getElementById('backupHostContainer'), backupAdminPenjualanContainer = document.getElementById('backupAdminPenjualanContainer'), backupAdminReturnContainer = document.getElementById('backupAdminReturnContainer'), backupTreatmentContainer = document.getElementById('backupTreatmentContainer');
+    const shiftSelect = document.getElementById('shift'), hostSelect = document.getElementById('host'), adminNamePenjualanSelect = document.getElementById('adminNamePenjualan'), adminNameReturnSelect = document.getElementById('adminNameReturn'), treatmentNameSelect = document.getElementById('treatmentName');
+    const pcsInput = document.getElementById('pcs'), omzetInput = document.getElementById('omzet'), customerNameInput = document.getElementById('customerName'), ppnInput = document.getElementById('ppn'), totalBersihInput = document.getElementById('totalBersih');
+    const backupHostNameInput = document.getElementById('backupHostName'), backupAdminNamePenjualanInput = document.getElementById('backupAdminNamePenjualan'), backupAdminNameReturnInput = document.getElementById('backupAdminNameReturn'), backupTreatmentNameInput = document.getElementById('backupTreatmentName');
+    const submitButton = document.getElementById('submitButton'), buttonText = document.getElementById('buttonText'), buttonLoader = document.getElementById('buttonLoader'), statusMessage = document.getElementById('statusMessage');
+    
+    // --- VIEW SECTION ---
+    const dataLoader = document.getElementById('dataLoader'), dataError = document.getElementById('dataError'), dataTableContainer = document.getElementById('dataTableContainer'), dataTableBody = document.getElementById('dataTableBody');
+    const searchCustomer = document.getElementById('searchCustomer'), filterShift = document.getElementById('filterShift'), filterHost = document.getElementById('filterHost'), filterAdmin = document.getElementById('filterAdmin'), startDateInput = document.getElementById('startDate'), endDateInput = document.getElementById('endDate');
+    const statPcsPenjualan = document.getElementById('statPcsPenjualan'), statOmzetPenjualan = document.getElementById('statOmzetPenjualan'), statPcsReturn = document.getElementById('statPcsReturn'), statOmzetReturn = document.getElementById('statOmzetReturn');
 
-        // Inputs
-        const omzetInput = document.getElementById('omzet');
-        const backupHostNameInput = document.getElementById('backupHostName');
-        const backupAdminNameInput = document.getElementById('backupAdminName');
-        const backupTreatmentNameInput = document.getElementById('backupTreatmentName');
+    // --- DATA & CONFIG ---
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzpSVOHsYuDXUoJqHJ4mi2bHiHVT7tqSgD1Q6iq2RKHhwIqszVCfczZUMrNB7zzoFn/exec';
+    const hostList = ['wafa', 'debi', 'bunga'];
+    const adminList = ['Bunga', 'Teh Ros'];
+    const treatmentList = ['Bunda'];
+    let allData = [];
+    let isDataFetched = false;
 
-        // Button & Status
-        const submitButton = document.getElementById('submitButton');
-        const buttonText = document.getElementById('buttonText');
-        const buttonLoader = document.getElementById('buttonLoader');
-        const statusMessage = document.getElementById('statusMessage');
+    // --- FUNGSI ---
+    const parseCurrency = (value) => Number(String(value).replace(/[^0-9]/g, '')) || 0;
+    const formatCurrency = (value) => `Rp ${new Intl.NumberFormat('id-ID').format(value || 0)}`;
+    
+    function populateDropdown(selectElement, listItems) {
+        while (selectElement.options.length > 1) selectElement.remove(1);
+        listItems.forEach(item => selectElement.add(new Option(item, item)));
+        selectElement.add(new Option('Backup (Isi Manual)', 'Backup'));
+    }
 
-        // --- Data & Konfigurasi ---
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzpSVOHsYuDXUoJqHJ4mi2bHiHVT7tqSgD1Q6iq2RKHhwIqszVCfczZUMrNB7zzoFn/exec';
-        const hostList = ['wafa', 'debi', 'bunga'];
-        const adminList = ['Bunga', 'Teh Ros'];
-        const treatmentList = ['Bunda'];
-
-        // --- Fungsi ---
-        function populateDropdown(selectElement, listItems) {
-            // Clear existing options except the first one (placeholder)
-            while (selectElement.options.length > 1) {
-                selectElement.remove(1);
-            }
-            listItems.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item;
-                option.textContent = item;
-                selectElement.appendChild(option);
-            });
-            // Add backup option
-            const backupOption = document.createElement('option');
-            backupOption.value = 'Backup';
-            backupOption.textContent = 'Backup (Isi Manual)';
-            selectElement.appendChild(backupOption);
+    function updateFormState() {
+        const isPenjualan = document.querySelector('input[name="transactionType"]:checked').value === 'Penjualan';
+        shiftContainer.classList.toggle('hidden', !isPenjualan);
+        penjualanFields.classList.toggle('hidden', !isPenjualan);
+        penjualanFields2.classList.add('hidden'); // Selalu sembunyikan PPN dan Total Bersih
+        returnFields.classList.toggle('hidden', isPenjualan);
+        backupHostContainer.classList.toggle('hidden', hostSelect.value !== 'Backup');
+        if (isPenjualan) {
+             backupAdminPenjualanContainer.classList.toggle('hidden', adminNamePenjualanSelect.value !== 'Backup');
+             backupAdminReturnContainer.classList.add('hidden');
+             backupTreatmentContainer.classList.add('hidden');
+        } else {
+             backupAdminReturnContainer.classList.toggle('hidden', adminNameReturnSelect.value !== 'Backup');
+             backupTreatmentContainer.classList.toggle('hidden', treatmentNameSelect.value !== 'Backup');
+             backupAdminPenjualanContainer.classList.add('hidden');
         }
+        [hostSelect, pcsInput, omzetInput].forEach(el => el.required = true);
+        [shiftSelect, customerNameInput, adminNamePenjualanSelect].forEach(el => el.required = isPenjualan);
+        [adminNameReturnSelect, treatmentNameSelect].forEach(el => el.required = !isPenjualan);
+        backupHostNameInput.required = hostSelect.value === 'Backup';
+        backupAdminNamePenjualanInput.required = isPenjualan && adminNamePenjualanSelect.value === 'Backup';
+        backupAdminNameReturnInput.required = !isPenjualan && adminNameReturnSelect.value === 'Backup';
+        backupTreatmentNameInput.required = !isPenjualan && treatmentNameSelect.value === 'Backup';
+    }
 
-        function updateFormVisibility() {
-            const selectedType = document.querySelector('input[name="transactionType"]:checked').value;
-            const isReturn = selectedType === 'Return';
-
-            // Show/hide main containers
-            shiftContainer.classList.toggle('hidden', isReturn);
-            returnFieldsContainer.classList.toggle('hidden', !isReturn);
-
-            // Show/hide backup fields based on selections
-            backupHostContainer.classList.toggle('hidden', hostSelect.value !== 'Backup');
-            if(isReturn) {
-                 backupAdminContainer.classList.toggle('hidden', adminNameSelect.value !== 'Backup');
-                 backupTreatmentContainer.classList.toggle('hidden', treatmentNameSelect.value !== 'Backup');
-            } else {
-                 backupAdminContainer.classList.add('hidden');
-                 backupTreatmentContainer.classList.add('hidden');
-            }
+    async function fetchData() {
+        if (isDataFetched) return;
+        dataLoader.style.display = 'flex';
+        dataError.classList.add('hidden');
+        dataTableContainer.style.display = 'none';
+        try {
+            const response = await fetch(SCRIPT_URL);
+            const result = await response.json();
+            if (result.status !== 'success') throw new Error(result.message);
+            allData = result.data.sort((a, b) => new Date(b['Tanggal Input']) - new Date(a['Tanggal Input']));
+            isDataFetched = true;
+            applyFilters();
+            populateFilters();
+        } catch (error) {
+            dataError.textContent = `Gagal memuat data: ${error.message}. Pastikan skrip Google sudah di-deploy ulang.`;
+            dataError.classList.remove('hidden');
+        } finally {
+            dataLoader.style.display = 'none';
         }
+    }
+    
+    function calculateAndRenderStats(data) {
+        const penjualanData = data.filter(row => row['Jenis Transaksi'] === 'Penjualan');
+        const returnData = data.filter(row => row['Jenis Transaksi'] === 'Return');
 
-        // --- Event Listeners ---
-        document.addEventListener('DOMContentLoaded', () => {
-            populateDropdown(hostSelect, hostList);
-            populateDropdown(adminNameSelect, adminList);
-            populateDropdown(treatmentNameSelect, treatmentList);
-            updateFormVisibility();
-        });
+        const pcsPenjualan = penjualanData.reduce((sum, row) => sum + Number(row['Total Pcs'] || 0), 0);
+        const omzetPenjualan = penjualanData.reduce((sum, row) => sum + Number(row['Total Omzet'] || 0), 0);
         
-        // Listen to all relevant changes to update visibility
-        ['change', 'input'].forEach(evt => {
-            reportForm.addEventListener(evt, updateFormVisibility);
+        const pcsReturn = returnData.reduce((sum, row) => sum + Number(row['Total Pcs'] || 0), 0);
+        const omzetReturn = returnData.reduce((sum, row) => sum + Number(row['Total Omzet'] || 0), 0);
+
+        statPcsPenjualan.textContent = pcsPenjualan.toLocaleString('id-ID');
+        statOmzetPenjualan.textContent = formatCurrency(omzetPenjualan);
+        statPcsReturn.textContent = pcsReturn.toLocaleString('id-ID');
+        statOmzetReturn.textContent = formatCurrency(omzetReturn);
+    }
+
+    function renderTable(data) {
+        dataTableContainer.style.display = 'block';
+        dataTableBody.innerHTML = '';
+        if (data.length === 0) {
+            dataTableBody.innerHTML = `<tr><td colspan="7" class="text-center py-10 text-gray-500">Tidak ada data yang cocok.</td></tr>`;
+            return;
+        }
+        data.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-900">${new Date(row['Tanggal Input']).toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'numeric'})}</td>
+                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Nama Customer'] || '-'}</td>
+                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Nama Host']}</td>
+                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Shift'] || '-'}</td>
+                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${formatCurrency(row['Total Omzet'])}</td>
+                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${formatCurrency(row['Total Bersih'])}</td>
+                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Jenis Transaksi']}</td>
+            `;
+            dataTableBody.appendChild(tr);
         });
+    }
+    
+    function populateFilters() {
+        const shifts = [...new Set(allData.map(item => item.Shift).filter(Boolean))];
+        filterShift.innerHTML = '<option value="">Semua Shift</option>';
+        shifts.forEach(shift => filterShift.add(new Option(shift, shift)));
 
-        omzetInput.addEventListener('input', (e) => {
-            let value = e.target.value.replace(/[^0-9]/g, '');
-            e.target.value = value ? `Rp ${new Intl.NumberFormat('id-ID').format(value)}` : '';
+        const hosts = [...new Set(allData.map(item => item['Nama Host']).filter(Boolean))];
+        filterHost.innerHTML = '<option value="">Semua Host</option>';
+        hosts.forEach(host => filterHost.add(new Option(host, host)));
+        
+        const admins = [...new Set(allData.map(item => item['Nama Admin']).filter(Boolean))];
+        filterAdmin.innerHTML = '<option value="">Semua Admin</option>';
+        admins.forEach(admin => filterAdmin.add(new Option(admin, admin)));
+    }
+
+    function applyFilters() {
+        const searchTerm = searchCustomer.value.toLowerCase();
+        const selectedShift = filterShift.value;
+        const selectedHost = filterHost.value;
+        const selectedAdmin = filterAdmin.value;
+        const startDate = startDateInput.value ? new Date(startDateInput.value) : null;
+        const endDate = endDateInput.value ? new Date(endDateInput.value) : null;
+        if(startDate) startDate.setHours(0,0,0,0);
+        if(endDate) endDate.setHours(23,59,59,999);
+
+        const filteredData = allData.filter(row => {
+            const rowDate = new Date(row['Tanggal Input']);
+            const customerMatch = row['Nama Customer'] ? row['Nama Customer'].toLowerCase().includes(searchTerm) : searchTerm === '';
+            const shiftMatch = selectedShift ? row.Shift === selectedShift : true;
+            const hostMatch = selectedHost ? row['Nama Host'] === selectedHost : true;
+            const adminMatch = selectedAdmin ? row['Nama Admin'] === selectedAdmin : true;
+            const dateMatch = (!startDate || rowDate >= startDate) && (!endDate || rowDate <= endDate);
+            return customerMatch && shiftMatch && hostMatch && adminMatch && dateMatch;
         });
+        renderTable(filteredData);
+        calculateAndRenderStats(filteredData);
+    }
 
-        reportForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            statusMessage.textContent = '';
+    // --- EVENT LISTENERS ---
+    document.addEventListener('DOMContentLoaded', () => {
+        populateDropdown(hostSelect, hostList);
+        populateDropdown(adminNamePenjualanSelect, adminList);
+        populateDropdown(adminNameReturnSelect, adminList);
+        populateDropdown(treatmentNameSelect, treatmentList);
+        updateFormState();
+    });
+    
+    reportForm.addEventListener('change', updateFormState);
+    reportForm.addEventListener('input', updateFormState);
+    
+    tabInputBtn.addEventListener('click', () => {
+        formSection.classList.remove('hidden'); viewSection.classList.add('hidden');
+        tabInputBtn.classList.add('active'); tabViewBtn.classList.remove('active');
+    });
+    tabViewBtn.addEventListener('click', () => {
+        formSection.classList.add('hidden'); viewSection.classList.remove('hidden');
+        tabInputBtn.classList.remove('active'); tabViewBtn.classList.add('active');
+        fetchData();
+    });
 
-            // --- Get Final Values ---
-            const transactionType = document.querySelector('input[name="transactionType"]:checked').value;
-            
-            const finalHost = hostSelect.value === 'Backup' ? backupHostNameInput.value.trim() : hostSelect.value;
-            const finalAdmin = adminNameSelect.value === 'Backup' ? backupAdminNameInput.value.trim() : adminNameSelect.value;
-            const finalTreatment = treatmentNameSelect.value === 'Backup' ? backupTreatmentNameInput.value.trim() : treatmentNameSelect.value;
+    [searchCustomer, startDateInput, endDateInput].forEach(el => el.addEventListener('input', applyFilters));
+    [filterShift, filterHost, filterAdmin].forEach(el => el.addEventListener('change', applyFilters));
 
-            const shift = document.getElementById('shift').value;
-            const pcs = document.getElementById('pcs').value;
-            const omzet = omzetInput.value.replace(/[^0-9]/g, '');
+    omzetInput.addEventListener('input', (e) => { e.target.value = formatCurrency(parseCurrency(e.target.value)); });
 
-            // --- Validation ---
-            let errorMessage = '';
-            if (!finalHost) errorMessage = 'Nama Host wajib diisi.';
-            else if (!pcs) errorMessage = 'Total Pcs wajib diisi.';
-            else if (!omzet) errorMessage = 'Total Omzet wajib diisi.';
-            
-            if (transactionType === 'Penjualan' && !shift) {
-                errorMessage = 'Shift wajib dipilih untuk Penjualan.';
-            } else if (transactionType === 'Return') {
-                if (!finalAdmin) errorMessage = 'Nama Admin wajib diisi.';
-                else if (!finalTreatment) errorMessage = 'Nama Orang Treatment wajib diisi.';
-            }
-
-            if (errorMessage) {
-                statusMessage.textContent = `Error: ${errorMessage}`;
-                statusMessage.className = 'mt-6 text-center text-sm text-red-600';
-                return;
-            }
-
-            // --- Submission ---
-            buttonText.classList.add('hidden');
-            buttonLoader.classList.remove('hidden');
-            submitButton.disabled = true;
-
-            const formData = {
-                transactionType,
-                shift: transactionType === 'Penjualan' ? shift : '',
-                host: finalHost,
-                pcs,
-                omzet,
-                adminName: transactionType === 'Return' ? finalAdmin : '',
-                treatmentName: transactionType === 'Return' ? finalTreatment : ''
-            };
-            
-            try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(formData)
-                });
-                const result = await response.json();
-                if (result.status !== 'success') throw new Error(result.message);
-                
-                statusMessage.textContent = 'Laporan berhasil dikirim!';
-                statusMessage.className = 'mt-6 text-center text-sm text-green-600';
-                reportForm.reset();
-                updateFormVisibility();
-
-            } catch (error) {
-                console.error('Error submitting data:', error);
-                statusMessage.textContent = `Error: ${error.message}. Pastikan URL & setup Sheet sudah benar.`;
-                statusMessage.className = 'mt-6 text-center text-sm text-red-600';
-            } finally {
-                buttonText.classList.remove('hidden');
-                buttonLoader.classList.add('hidden');
-                submitButton.disabled = false;
-            }
-        });
+    reportForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        statusMessage.textContent = '';
+        if (!reportForm.checkValidity()) {
+            statusMessage.textContent = 'Error: Mohon isi semua kolom yang wajib diisi.';
+            statusMessage.className = 'mt-6 text-center text-sm text-red-600';
+            reportForm.querySelector(':invalid')?.focus();
+            return;
+        }
+        buttonText.classList.add('hidden'); buttonLoader.classList.remove('hidden'); submitButton.disabled = true;
+        const transactionType = document.querySelector('input[name="transactionType"]:checked').value;
+        const isPenjualan = transactionType === 'Penjualan';
+        
+        const finalHost = hostSelect.value === 'Backup' ? backupHostNameInput.value.trim() : hostSelect.value;
+        let finalAdmin = '';
+        if(isPenjualan) finalAdmin = adminNamePenjualanSelect.value === 'Backup' ? backupAdminNamePenjualanInput.value.trim() : adminNamePenjualanSelect.value;
+        else finalAdmin = adminNameReturnSelect.value === 'Backup' ? backupAdminNameReturnInput.value.trim() : adminNameReturnSelect.value;
+        const finalTreatment = treatmentNameSelect.value === 'Backup' ? backupTreatmentNameInput.value.trim() : treatmentNameSelect.value;
+        
+        const omzetValue = parseCurrency(omzetInput.value);
+        const formData = {
+            transactionType,
+            shift: isPenjualan ? shiftSelect.value : '',
+            host: finalHost,
+            pcs: pcsInput.value,
+            omzet: omzetValue,
+            adminName: finalAdmin,
+            treatmentName: !isPenjualan ? finalTreatment : '',
+            customerName: isPenjualan ? customerNameInput.value : '',
+            ppn: 0, // Set PPN to 0 since it's hidden
+            totalBersih: omzetValue // Total bersih is same as Omzet
+        };
+        try {
+            const response = await fetch(SCRIPT_URL, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(formData) });
+            const result = await response.json();
+            if (result.status !== 'success') throw new Error(result.message);
+            statusMessage.textContent = 'Laporan berhasil dikirim!'; statusMessage.className = 'mt-6 text-center text-sm text-green-600';
+            reportForm.reset(); updateFormState(); isDataFetched = false;
+        } catch (error) {
+            console.error('Error submitting data:', error);
+            statusMessage.textContent = `Error: ${error.message}.`; statusMessage.className = 'mt-6 text-center text-sm text-red-600';
+        } finally {
+            buttonText.classList.remove('hidden'); buttonLoader.classList.add('hidden'); submitButton.disabled = false;
+        }
+    });
     </script>
 </body>
 </html>
