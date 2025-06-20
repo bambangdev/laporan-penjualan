@@ -141,20 +141,63 @@
                     <div class="stat-card"><p class="text-sm text-gray-500">Total Omzet Return</p><p id="statOmzetReturn" class="text-2xl font-bold text-red-600">Rp 0</p></div>
                 </div>
 
+                <!-- Scoreboard Section -->
+                <div id="scoreboardSection" class="mt-8">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Scoreboard Estimasi Bonus Harian</h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Host Scoreboard -->
+                        <div>
+                            <h4 class="font-semibold text-gray-700 mb-2">Estimasi Bonus Host</h4>
+                            <div class="table-responsive border rounded-lg">
+                                <table class="min-w-full bg-white">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Host</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Total PCS</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Total Omzet</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Estimasi Bonus</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="hostScoreboardBody" class="divide-y divide-gray-200"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- Admin Scoreboard -->
+                        <div>
+                            <h4 class="font-semibold text-gray-700 mb-2">Estimasi Bonus Admin</h4>
+                            <div class="table-responsive border rounded-lg">
+                                <table class="min-w-full bg-white">
+                                     <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Admin</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Total PCS</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Total Omzet</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Estimasi Bonus</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="adminScoreboardBody" class="divide-y divide-gray-200"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
                 <!-- Data Table -->
                 <div id="dataLoader" class="flex justify-center items-center h-40"><div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-32 w-32"></div></div>
                 <p id="dataError" class="text-center text-red-500 hidden"></p>
-                <div id="dataTableContainer" class="table-responsive">
+                <div id="dataTableContainer" class="table-responsive mt-8">
                     <table class="min-w-full bg-white">
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
                                 <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Host</th>
                                 <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shift</th>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Host</th>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admin</th>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PCS</th>
                                 <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Omzet</th>
-                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Bersih</th>
-                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis</th>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Transaksi</th>
                             </tr>
                         </thead>
                         <tbody id="dataTableBody" class="bg-white divide-y divide-gray-200"></tbody>
@@ -268,12 +311,87 @@
         statPcsReturn.textContent = pcsReturn.toLocaleString('id-ID');
         statOmzetReturn.textContent = formatCurrency(omzetReturn);
     }
+    
+    function calculateAndRenderScoreboard(data) {
+        const salesData = data.filter(row => row['Jenis Transaksi'] === 'Penjualan');
+        const getJustDate = (isoString) => isoString.split('T')[0];
+
+        const processPerformance = (groupByField, bonusRate) => {
+            const performance = {};
+            // Group all sales data by the person's name first.
+            const salesByPerson = salesData.reduce((acc, row) => {
+                const key = row[groupByField];
+                if (key) {
+                    (acc[key] = acc[key] || []).push(row);
+                }
+                return acc;
+            }, {});
+
+            // Now, for each person, calculate their total performance and bonus.
+            for (const name in salesByPerson) {
+                const personSales = salesByPerson[name];
+                const totalPcs = personSales.reduce((sum, row) => sum + Number(row['Total Pcs'] || 0), 0);
+                const totalOmzet = personSales.reduce((sum, row) => sum + Number(row['Total Omzet'] || 0), 0);
+                let totalBonus = 0;
+
+                // Group this person's sales by day to check for daily bonus eligibility.
+                const salesByDay = personSales.reduce((acc, row) => {
+                    const day = getJustDate(row['Tanggal Input']);
+                    (acc[day] = acc[day] || []).push(row);
+                    return acc;
+                }, {});
+
+                // Iterate over each day this person made sales.
+                for (const date in salesByDay) {
+                    const daySales = salesByDay[date];
+                    const dailyPcs = daySales.reduce((sum, row) => sum + Number(row['Total Pcs'] || 0), 0);
+                    // Check if they met the daily target.
+                    if (dailyPcs >= 40) {
+                        const dailyOmzet = daySales.reduce((sum, row) => sum + Number(row['Total Omzet'] || 0), 0);
+                        totalBonus += dailyOmzet * bonusRate;
+                    }
+                }
+                performance[name] = { totalPcs, totalOmzet, totalBonus };
+            }
+            return performance;
+        };
+
+        const hostPerformance = processPerformance('Nama Host', 0.03);
+        const adminPerformance = processPerformance('Nama Admin', 0.01);
+        
+        const renderScoreboard = (tbody, performanceData) => {
+            tbody.innerHTML = '';
+            const sortedNames = Object.keys(performanceData).sort((a,b) => performanceData[b].totalBonus - performanceData[a].totalBonus);
+
+            if (sortedNames.length === 0) {
+                 tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>`;
+                 return;
+            }
+
+            sortedNames.forEach(name => {
+                const perf = performanceData[name];
+                const row = `
+                    <tr>
+                        <td class="py-2 px-3 text-sm font-medium text-gray-900">${name}</td>
+                        <td class="py-2 px-3 text-sm text-gray-500">${perf.totalPcs.toLocaleString('id-ID')}</td>
+                        <td class="py-2 px-3 text-sm text-gray-500">${formatCurrency(perf.totalOmzet)}</td>
+                        <td class="py-2 px-3 text-sm font-semibold text-pink-600">${formatCurrency(perf.totalBonus)}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        };
+
+        renderScoreboard(document.getElementById('hostScoreboardBody'), hostPerformance);
+        renderScoreboard(document.getElementById('adminScoreboardBody'), adminPerformance);
+    }
+
 
     function renderTable(data) {
         dataTableContainer.style.display = 'block';
         dataTableBody.innerHTML = '';
         if (data.length === 0) {
-            dataTableBody.innerHTML = `<tr><td colspan="7" class="text-center py-10 text-gray-500">Tidak ada data yang cocok.</td></tr>`;
+            dataTableBody.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-gray-500">Tidak ada data yang cocok.</td></tr>`;
             return;
         }
         data.forEach(row => {
@@ -281,10 +399,11 @@
             tr.innerHTML = `
                 <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-900">${new Date(row['Tanggal Input']).toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'numeric'})}</td>
                 <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Nama Customer'] || '-'}</td>
-                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Nama Host']}</td>
                 <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Shift'] || '-'}</td>
+                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Nama Host']}</td>
+                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Nama Admin'] || '-'}</td>
+                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${Number(row['Total Pcs']).toLocaleString('id-ID')}</td>
                 <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${formatCurrency(row['Total Omzet'])}</td>
-                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${formatCurrency(row['Total Bersih'])}</td>
                 <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Jenis Transaksi']}</td>
             `;
             dataTableBody.appendChild(tr);
@@ -326,6 +445,7 @@
         });
         renderTable(filteredData);
         calculateAndRenderStats(filteredData);
+        calculateAndRenderScoreboard(filteredData);
     }
 
     // --- EVENT LISTENERS ---
