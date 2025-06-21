@@ -1,15 +1,7 @@
 // --- main.js ---
 // File utama untuk inisialisasi aplikasi.
 
-// --- KONFIGURASI & DATA GLOBAL ---
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzpSVOHsYuDXUoJqHJ4mi2bHiHVT7tqSgD1Q6iq2RKHhwIqszVCfczZUMrNB7zzoFn/exec';
-const CORRECT_PIN = '7501';
-const SALES_REPORT_PASSWORD = 'kuyangora666';
-const hostList = ['wafa', 'debi', 'bunga'];
-const adminList = ['Bunga', 'Teh Ros'];
-const treatmentPersonList = ['Bunda', 'Resin'];
-
-// Variabel global untuk status aplikasi
+// Variabel global untuk status aplikasi (dideklarasikan di sini)
 let allData = [];
 let isDataFetched = false;
 let dashboardDatePicker, customerDatePicker, salesReportDatePicker;
@@ -66,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('dashboardFilterAdmin').addEventListener(evt, applyFilters);
     });
 
-    // Populate dropdowns di form input
+    // Populate dropdowns di form input (menggunakan variabel global dari file lain)
     populateDropdown(document.getElementById('penjualanHost'), hostList);
     populateDropdown(document.getElementById('penjualanAdmin'), adminList);
     populateDropdown(document.getElementById('returnHost'), hostList);
