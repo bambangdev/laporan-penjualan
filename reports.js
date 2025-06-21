@@ -20,7 +20,6 @@ function applyFilters() {
 
     const filteredData = allData.filter(row => {
         const rowDate = new Date(row['Tanggal Input']);
-        // PERBAIKAN BUG: Pastikan 'Nama Customer' selalu string sebelum menggunakan toLowerCase()
         const customerName = String(row['Nama Customer'] || '');
         const customerMatch = customerName.toLowerCase().includes(searchTerm);
         
@@ -31,11 +30,17 @@ function applyFilters() {
         return customerMatch && shiftMatch && hostMatch && adminMatch && dateMatch;
     });
     
-    // Render all components with filtered data
+    // Render all components for the Dashboard Page
     calculateAndRenderStats(filteredData);
-    renderDashboardTable(filteredData); // <-- Menampilkan tabel di dashboard
-    applyCustomerReportFilters(); 
-    applySalesReportFilters();
+    renderDashboardTable(filteredData);
+    
+    // PERBAIKAN: Panggil fungsi scoreboard hanya untuk elemen dashboard
+    calculateAndRenderScoreboard(
+        filteredData, 
+        document.getElementById('hostScoreboardBody'), 
+        document.getElementById('adminScoreboardBody'), 
+        document.getElementById('treatmentScoreboardBody')
+    );
 }
 
 function calculateAndRenderStats(data) {
@@ -44,19 +49,40 @@ function calculateAndRenderStats(data) {
 
     const omzetPenjualan = penjualanData.reduce((s, r) => s + Number(r['Total Omzet'] || 0), 0);
     const omzetReturn = returnData.reduce((s, r) => s + Number(r['Total Omzet'] || 0), 0);
+    const pcsPenjualan = penjualanData.reduce((s, r) => s + Number(r['Total Pcs'] || 0), 0);
+    const pcsReturn = returnData.reduce((s, r) => s + Number(r['Total Pcs'] || 0), 0);
 
     document.getElementById('statOmzetPenjualan').textContent = formatCurrency(omzetPenjualan);
     document.getElementById('statOmzetReturn').textContent = formatCurrency(omzetReturn);
     document.getElementById('statLabaKotor').textContent = formatCurrency(omzetPenjualan - omzetReturn);
     document.getElementById('statTingkatReturn').textContent = omzetPenjualan > 0 ? `${((omzetReturn / omzetPenjualan) * 100).toFixed(1)}%` : '0%';
-    
-    // Perbarui juga statistik PCS
-    const pcsPenjualan = penjualanData.reduce((s, r) => s + Number(r['Total Pcs'] || 0), 0);
-    const pcsReturn = returnData.reduce((s, r) => s + Number(r['Total Pcs'] || 0), 0);
     document.getElementById('statPcsPenjualan').textContent = pcsPenjualan.toLocaleString('id-ID');
     document.getElementById('statPcsReturn').textContent = pcsReturn.toLocaleString('id-ID');
 }
 
+
+function renderDashboardTable(data) {
+    const tbody = document.getElementById('dashboardTableBody');
+    tbody.innerHTML = '';
+    if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-gray-500">Tidak ada data yang cocok.</td></tr>`;
+        return;
+    }
+    data.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-900">${new Date(row['Tanggal Input']).toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'numeric'})}</td>
+            <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Nama Customer'] || '-'}</td>
+            <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Shift'] || '-'}</td>
+            <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Nama Host'] || '-'}</td>
+            <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Nama Admin'] || '-'}</td>
+            <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${Number(row['Total Pcs'] || 0).toLocaleString('id-ID')}</td>
+            <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${formatCurrency(row['Total Omzet'])}</td>
+            <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Jenis Transaksi']}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
 
 function applyCustomerReportFilters() {
     if (!isDataFetched) return;
@@ -161,6 +187,7 @@ function calculateAndRenderScoreboard(data, hostTbody, adminTbody, treatmentTbod
     };
     
     const renderScoreboardTable = (tbody, performanceData) => {
+        if(!tbody) return;
         tbody.innerHTML = '';
         const sortedNames = Object.keys(performanceData).sort((a,b) => performanceData[b].totalBonus - performanceData[a].totalBonus);
         if (sortedNames.length === 0) {
@@ -189,27 +216,4 @@ function populateFilters() {
     populateDropdown(dashboardFilterShift, getUniqueValues('Shift'), false);
     populateDropdown(dashboardFilterHost, getUniqueValues('Nama Host'), false);
     populateDropdown(dashboardFilterAdmin, getUniqueValues('Nama Admin'), false);
-}
-
-function renderDashboardTable(data) {
-    const tbody = document.getElementById('dashboardTableBody');
-    tbody.innerHTML = '';
-    if (data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-gray-500">Tidak ada data yang cocok.</td></tr>`;
-        return;
-    }
-    data.forEach(row => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-900">${new Date(row['Tanggal Input']).toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'numeric'})}</td>
-            <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Nama Customer'] || '-'}</td>
-            <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Shift'] || '-'}</td>
-            <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Nama Host'] || '-'}</td>
-            <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Nama Admin'] || '-'}</td>
-            <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${Number(row['Total Pcs'] || 0).toLocaleString('id-ID')}</td>
-            <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${formatCurrency(row['Total Omzet'])}</td>
-            <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Jenis Transaksi']}</td>
-        `;
-        tbody.appendChild(tr);
-    });
 }
