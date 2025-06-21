@@ -1,10 +1,18 @@
 // --- main.js ---
 // File utama untuk inisialisasi aplikasi.
 
+// --- KONFIGURASI & DATA GLOBAL ---
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzpSVOHsYuDXUoJqHJ4mi2bHiHVT7tqSgD1Q6iq2RKHhwIqszVCfczZUMrNB7zzoFn/exec';
+const CORRECT_PIN = '7501';
+const SALES_REPORT_PASSWORD = 'kuyangora666';
+const hostList = ['wafa', 'debi', 'bunga'];
+const adminList = ['Bunga', 'Teh Ros'];
+const treatmentPersonList = ['Bunda', 'Resin'];
+
 // Variabel global untuk status aplikasi
 let allData = [];
 let isDataFetched = false;
-let dashboardDatePicker, customerDatePicker;
+let dashboardDatePicker, customerDatePicker, salesReportDatePicker;
 let salesChartInstance;
 
 
@@ -21,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Opsi konfigurasi umum untuk Litepicker
     const litepickerOptions = {
-        singleMode: false, format: 'DD MMM YYYY', lang: 'id-ID', numberOfMonths: 2,
+        singleMode: false, format: 'DD MMM yy', lang: 'id-ID', numberOfMonths: 2,
         dropdowns: { minYear: 2020, maxYear: null, months: true, years: true },
         buttonText: {
             'previousMonth': `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>`,
@@ -43,6 +51,13 @@ document.addEventListener('DOMContentLoaded', () => {
         setup: (picker) => { picker.on('selected', () => applyCustomerReportFilters()); }
     });
     
+    // Inisialisasi Litepicker untuk Sales Report
+    salesReportDatePicker = new Litepicker({ 
+        element: document.getElementById('salesReportDateRangePicker'), 
+        ...litepickerOptions, 
+        setup: (picker) => { picker.on('selected', () => applySalesReportFilters()); }
+    });
+
     // Tambahkan event listener untuk filter di Dashboard
     ['input', 'change'].forEach(evt => {
         document.getElementById('dashboardSearchCustomer').addEventListener(evt, applyFilters);
@@ -59,5 +74,8 @@ document.addEventListener('DOMContentLoaded', () => {
     populateDropdown(document.getElementById('treatmentPerson'), treatmentPersonList);
 
     // Mulai aplikasi dari layar PIN
-    document.querySelector('#pin-inputs input').focus();
+    const firstPinInput = document.querySelector('#pin-inputs input');
+    if (firstPinInput) {
+        firstPinInput.focus();
+    }
 });
