@@ -4,7 +4,7 @@
 // Variabel global untuk status aplikasi
 let allData = [];
 let isDataFetched = false;
-let dashboardDatePicker, customerDatePicker, salesReportDatePicker;
+let dashboardDatePicker, customerDatePicker;
 let salesChartInstance;
 
 
@@ -43,13 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
         setup: (picker) => { picker.on('selected', () => applyCustomerReportFilters()); }
     });
     
-    // Inisialisasi Litepicker untuk Sales Report
-    salesReportDatePicker = new Litepicker({ 
-        element: document.getElementById('salesReportDateRangePicker'), 
-        ...litepickerOptions, 
-        setup: (picker) => { picker.on('selected', () => applySalesReportFilters()); }
-    });
-
     // Tambahkan event listener untuk filter di Dashboard
     ['input', 'change'].forEach(evt => {
         document.getElementById('dashboardSearchCustomer').addEventListener(evt, applyFilters);
