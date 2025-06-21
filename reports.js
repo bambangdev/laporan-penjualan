@@ -120,11 +120,11 @@ function calculateAndRenderCustomerReport(data) {
     const topReturner = getTopCustomer(data.filter(r => r['Jenis Transaksi'] === 'Return'), 'Total Pcs', 'Total Omzet');
 
     const renderTopCustomer = (elements, data) => {
-        if (data) {
+        if (elements.name && data) {
             elements.name.textContent = data.name;
             elements.pcs.textContent = data.pcs.toLocaleString('id-ID');
             elements.omzet.textContent = formatCurrency(data.omzet);
-        } else {
+        } else if (elements.name) {
             elements.name.textContent = '-';
             elements.pcs.textContent = '0';
             elements.omzet.textContent = 'Rp 0';
