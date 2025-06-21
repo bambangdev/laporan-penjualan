@@ -30,12 +30,16 @@ function applyFilters() {
         return customerMatch && shiftMatch && hostMatch && adminMatch && dateMatch;
     });
     
-    // Render components for the Dashboard Page only
+    // Render all components for the Dashboard Page only
     calculateAndRenderStats(filteredData);
     renderDashboardTable(filteredData);
 }
 
 function calculateAndRenderStats(data) {
+    const statOmzetPenjualanEl = document.getElementById('statOmzetPenjualan');
+    // Jika elemen statistik tidak ada di halaman saat ini, hentikan fungsi.
+    if (!statOmzetPenjualanEl) return;
+
     const penjualanData = data.filter(r => r['Jenis Transaksi'] === 'Penjualan');
     const returnData = data.filter(r => r['Jenis Transaksi'] === 'Return');
 
@@ -44,7 +48,7 @@ function calculateAndRenderStats(data) {
     const pcsPenjualan = penjualanData.reduce((s, r) => s + Number(r['Total Pcs'] || 0), 0);
     const pcsReturn = returnData.reduce((s, r) => s + Number(r['Total Pcs'] || 0), 0);
 
-    document.getElementById('statOmzetPenjualan').textContent = formatCurrency(omzetPenjualan);
+    statOmzetPenjualanEl.textContent = formatCurrency(omzetPenjualan);
     document.getElementById('statOmzetReturn').textContent = formatCurrency(omzetReturn);
     document.getElementById('statLabaKotor').textContent = formatCurrency(omzetPenjualan - omzetReturn);
     document.getElementById('statTingkatReturn').textContent = omzetPenjualan > 0 ? `${((omzetReturn / omzetPenjualan) * 100).toFixed(1)}%` : '0%';
@@ -55,7 +59,8 @@ function calculateAndRenderStats(data) {
 
 function renderDashboardTable(data) {
     const tbody = document.getElementById('dashboardTableBody');
-    if(!tbody) return;
+    if(!tbody) return; // Jika tabel tidak ada di halaman ini, hentikan.
+
     tbody.innerHTML = '';
     if (data.length === 0) {
         tbody.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-gray-500">Tidak ada data yang cocok.</td></tr>`;
@@ -93,12 +98,15 @@ function applyCustomerReportFilters() {
 
 function calculateAndRenderCustomerReport(data) {
     const topBuyerEl = { name: document.getElementById('topBuyerName'), pcs: document.getElementById('topBuyerPcs'), omzet: document.getElementById('topBuyerOmzet') };
+    // Jika elemen tidak ada di halaman ini, hentikan.
+    if (!topBuyerEl.name) return;
+
     const topReturnerEl = { name: document.getElementById('topReturnerName'), pcs: document.getElementById('topReturnerPcs'), omzet: document.getElementById('topReturnerOmzet') };
     
     const getTopCustomer = (sourceData, pcsField, omzetField) => {
         if (sourceData.length === 0) return null;
         const customerData = sourceData.reduce((acc, row) => {
-            const name = String(row['Nama Customer'] || '');
+            const name = String(row['Nama Customer'] || ''); // Ensure name is a string
             if(!name || name === '-') return acc;
             acc[name] = acc[name] || { pcs: 0, omzet: 0 };
             acc[name].pcs += Number(row[pcsField] || 0);
@@ -113,11 +121,11 @@ function calculateAndRenderCustomerReport(data) {
     const topReturner = getTopCustomer(data.filter(r => r['Jenis Transaksi'] === 'Return'), 'Total Pcs', 'Total Omzet');
 
     const renderTopCustomer = (elements, data) => {
-        if (elements.name && data) {
+        if (data) {
             elements.name.textContent = data.name;
             elements.pcs.textContent = data.pcs.toLocaleString('id-ID');
             elements.omzet.textContent = formatCurrency(data.omzet);
-        } else if (elements.name) {
+        } else {
             elements.name.textContent = '-';
             elements.pcs.textContent = '0';
             elements.omzet.textContent = 'Rp 0';
@@ -142,6 +150,9 @@ function applySalesReportFilters() {
 }
 
 function calculateAndRenderScoreboard(data, hostTbody, adminTbody, treatmentTbody) {
+    // Jika elemen scoreboard tidak ada di halaman ini, hentikan.
+    if(!hostTbody) return;
+
     const getJustDate = (isoString) => isoString.split('T')[0];
 
     const processPerformance = (sourceData, groupByField, pcsField, omzetField, bonusRate, bonusType, target) => {
