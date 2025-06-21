@@ -6,7 +6,6 @@
     <title>Dashboard Laporan - infinithree.id</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Litepicker CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css"/>
     <style>
         body {
@@ -68,7 +67,6 @@
 </head>
 <body class="bg-gray-100">
 
-    <!-- Login Section -->
     <div id="loginSection" class="flex items-center justify-center h-screen">
         <div class="w-full max-w-sm p-8 bg-white rounded-xl shadow-lg text-center mx-4">
             <h1 class="text-2xl font-bold text-gray-800">infinithree.id</h1>
@@ -83,7 +81,6 @@
         </div>
     </div>
     
-    <!-- Sales Report Password Modal -->
     <div id="salesReportPasswordModal" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden items-center justify-center">
         <div class="w-full max-w-sm p-8 bg-white rounded-xl shadow-lg text-center mx-4">
             <h2 class="text-xl font-bold text-gray-800">Akses Terbatas</h2>
@@ -99,14 +96,25 @@
         </div>
     </div>
 
+    <div id="editRowPasswordModal" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden items-center justify-center">
+        <div class="w-full max-w-sm p-8 bg-white rounded-xl shadow-lg text-center mx-4">
+            <h2 class="text-xl font-bold text-gray-800">Edit Data Transaksi</h2>
+            <p class="text-gray-500 mb-6 mt-1">Masukkan PIN untuk mengedit data ini.</p>
+            <form id="editRowPasswordForm">
+                <input type="password" id="editRowPasswordInput" class="w-full px-4 py-2 text-center border-2 border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500" placeholder="•••••">
+                <p id="editRowPasswordError" class="text-red-500 text-sm h-4 mt-2"></p>
+                <div class="flex space-x-4 mt-6">
+                    <button type="button" id="cancelEditRow" class="w-full py-2 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300">Batal</button>
+                    <button type="submit" class="w-full py-2 px-4 bg-pink-600 text-white font-semibold rounded-lg hover:bg-pink-700">Verifikasi</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-    <!-- Main App Section (hidden by default) -->
     <div id="mainApp" class="hidden">
         <div class="relative min-h-screen lg:flex">
-            <!-- Overlay for mobile -->
             <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden lg:hidden"></div>
 
-            <!-- Sidebar -->
             <aside id="sidebar" class="fixed inset-y-0 left-0 bg-white shadow-md w-64 z-30 transform -translate-x-full transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0">
                 <div class="flex items-center justify-between p-4 border-b">
                     <h2 class="text-xl font-bold text-pink-600">infinithree.id</h2>
@@ -142,21 +150,17 @@
                 </nav>
             </aside>
 
-            <!-- Main Content -->
             <main class="flex-1 lg:p-8 p-4 w-full">
-                 <!-- Mobile Header -->
-                <header class="flex items-center justify-between lg:hidden mb-4">
+                 <header class="flex items-center justify-between lg:hidden mb-4">
                     <button id="open-sidebar-btn" class="text-gray-500 hover:text-gray-800">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                     </button>
                     <h2 class="text-lg font-bold text-pink-600">infinithree.id</h2>
                 </header>
                 
-                <!-- Dashboard Page -->
                 <div id="dashboardPage" class="page active">
                     <h1 class="text-3xl font-bold text-gray-800 mb-6">Dashboard</h1>
                     <div id="dashboardContent">
-                        <!-- Filters -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 p-4 border rounded-lg bg-gray-50">
                              <input type="search" id="dashboardSearchCustomer" placeholder="Cari Nama Customer..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
                              <select id="dashboardFilterShift" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="">Semua Shift</option></select>
@@ -167,15 +171,13 @@
                              </div>
                         </div>
 
-                         <!-- Statistics -->
-                        <div id="statsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                         <div id="statsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                             <div class="stat-card"><p class="text-sm text-gray-500">Total PCS Penjualan</p><p id="statPcsPenjualan" class="text-2xl font-bold text-gray-900">0</p></div>
                             <div class="stat-card"><p class="text-sm text-gray-500">Total Omzet Penjualan</p><p id="statOmzetPenjualan" class="text-2xl font-bold text-green-600">Rp 0</p></div>
                             <div class="stat-card"><p class="text-sm text-gray-500">Total PCS Return</p><p id="statPcsReturn" class="text-2xl font-bold text-gray-900">0</p></div>
                             <div class="stat-card"><p class="text-sm text-gray-500">Total Omzet Return</p><p id="statOmzetReturn" class="text-2xl font-bold text-red-600">Rp 0</p></div>
                         </div>
                         
-                        <!-- Main Data Table -->
                         <div class="mt-8">
                             <h3 class="text-lg font-semibold text-gray-800 mb-4">Data Transaksi</h3>
                             <div id="dashboardTableContainer" class="table-responsive">
@@ -190,16 +192,43 @@
                                             <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PCS</th>
                                             <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Omzet</th>
                                             <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Transaksi</th>
-                                        </tr>
+                                            <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PCS Treatment</th> <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th> </tr>
                                     </thead>
                                     <tbody id="dashboardTableBody" class="bg-white divide-y divide-gray-200"></tbody>
                                 </table>
+                            </div>
+                            <div id="editTransactionModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
+                                <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg mx-4">
+                                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Edit Data Transaksi</h2>
+                                    <form id="editTransactionForm" novalidate>
+                                        <input type="hidden" id="editRowIndex">
+                                        <input type="hidden" id="editOriginalTimestamp">
+                                        <div class="space-y-4">
+                                            <div><label for="editTransactionType" class="block text-sm font-medium text-gray-700 mb-1">Jenis Transaksi</label><input type="text" id="editTransactionType" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100"></div>
+                                            <div><label for="editShift" class="block text-sm font-medium text-gray-700 mb-1">Shift</label><select id="editShift" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="">-- Pilih Shift --</option><option value="Shift Pagi">Shift Pagi</option><option value="Shift Siang">Shift Siang</option></select></div>
+                                            <div><label for="editHost" class="block text-sm font-medium text-gray-700 mb-1">Nama Host</label><select id="editHost" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="">-- Pilih Host --</option></select></div>
+                                            <div id="editBackupHostContainer" class="hidden"><label for="editBackupHost" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Host Backup</label><input type="text" id="editBackupHost" placeholder="Ketik nama host pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                                            <div><label for="editAdmin" class="block text-sm font-medium text-gray-700 mb-1">Nama Admin</label><select id="editAdmin" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="">-- Pilih Admin --</option></select></div>
+                                            <div id="editBackupAdminContainer" class="hidden"><label for="editBackupAdmin" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Admin Backup</label><input type="text" id="editBackupAdmin" placeholder="Ketik nama admin pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                                            <div><label for="editCustomer" class="block text-sm font-medium text-gray-700 mb-1">Nama Customer</label><input type="text" id="editCustomer" placeholder="Ketik nama customer" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                                            <div><label for="editPcs" class="block text-sm font-medium text-gray-700 mb-1">Total Pcs</label><input type="number" id="editPcs" placeholder="Contoh: 50" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                                            <div><label for="editOmzet" class="block text-sm font-medium text-gray-700 mb-1">Total Omzet (Rp)</label><input type="text" id="editOmzet" placeholder="Contoh: 1.500.000" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                                            <div><label for="editOrangTreatment" class="block text-sm font-medium text-gray-700 mb-1">Orang Treatment</label><select id="editOrangTreatment" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="">-- Pilih Nama --</option></select></div>
+                                            <div id="editBackupTreatmentContainer" class="hidden"><label for="editBackupOrangTreatment" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Pengganti</label><input type="text" id="editBackupOrangTreatment" placeholder="Ketik nama pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                                            <div><label for="editPcsTreatment" class="block text-sm font-medium text-gray-700 mb-1">PCS Treatment</label><input type="number" id="editPcsTreatment" placeholder="Contoh: 35" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                                        </div>
+                                        <div class="flex space-x-4 mt-6">
+                                            <button type="button" id="cancelEditTransaction" class="w-full py-2 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300">Batal</button>
+                                            <button type="submit" id="saveEditTransaction" class="w-full py-2 px-4 bg-pink-600 text-white font-semibold rounded-lg hover:bg-pink-700 flex items-center justify-center"><span>Simpan Perubahan</span><div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 ml-3 hidden"></div></button>
+                                        </div>
+                                        <p id="editTransactionStatus" class="mt-4 text-center text-sm h-4"></p>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Input Penjualan Page -->
                 <div id="inputPenjualanPage" class="page">
                     <h1 class="text-3xl font-bold text-gray-800 mb-6">Input Laporan Penjualan</h1>
                      <form id="penjualanForm" novalidate class="max-w-md mx-auto p-6 bg-white rounded-lg shadow">
@@ -218,7 +247,6 @@
                     </form>
                 </div>
 
-                <!-- Input Return Page -->
                 <div id="inputReturnPage" class="page">
                      <h1 class="text-3xl font-bold text-gray-800 mb-6">Input Laporan Return</h1>
                      <form id="returnForm" novalidate class="max-w-md mx-auto p-6 bg-white rounded-lg shadow">
@@ -236,8 +264,7 @@
                     </form>
                 </div>
                 
-                 <!-- Input Treatment Page -->
-                <div id="inputTreatmentPage" class="page">
+                 <div id="inputTreatmentPage" class="page">
                      <h1 class="text-3xl font-bold text-gray-800 mb-6">Input Data Treatment</h1>
                      <form id="treatmentForm" novalidate class="max-w-md mx-auto p-6 bg-white rounded-lg shadow">
                         <div class="space-y-4">
@@ -250,11 +277,9 @@
                     </form>
                 </div>
 
-                <!-- Customer Report Page -->
                 <div id="customerReportPage" class="page">
                      <h1 class="text-3xl font-bold text-gray-800 mb-6">Laporan Customer</h1>
-                      <!-- Filters for Customer Report -->
-                    <div class="mb-6 p-4 border rounded-lg bg-gray-50">
+                      <div class="mb-6 p-4 border rounded-lg bg-gray-50">
                         <label for="customerReportDateRangePicker" class="block text-sm font-medium text-gray-700 mb-1">Pilih Rentang Tanggal</label>
                         <input type="text" id="customerReportDateRangePicker" placeholder="Filter data berdasarkan tanggal" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
                     </div>
@@ -278,16 +303,13 @@
                      </div>
                 </div>
 
-                <!-- Sales Report Page -->
-                 <div id="salesReportPage" class="page">
+                <div id="salesReportPage" class="page">
                     <h1 class="text-3xl font-bold text-gray-800 mb-6">Sales Report (Bonus)</h1>
-                     <!-- Filters for Sales Report -->
-                    <div class="mb-6 p-4 border rounded-lg bg-gray-50">
+                     <div class="mb-6 p-4 border rounded-lg bg-gray-50">
                         <label for="salesReportDateRangePicker" class="block text-sm font-medium text-gray-700 mb-1">Pilih Rentang Tanggal</label>
                         <input type="text" id="salesReportDateRangePicker" placeholder="Filter data berdasarkan tanggal" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
                     </div>
-                     <!-- Scoreboard Section -->
-                    <div id="salesReportScoreboard">
+                     <div id="salesReportScoreboard">
                          <h3 class="text-lg font-semibold text-gray-800 mb-4">Scoreboard Estimasi Bonus Harian</h3>
                          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                              <div>
@@ -306,15 +328,13 @@
                     </div>
                 </div>
                 
-                 <!-- Common Loader and Error Display -->
-                <div id="pageLoader" class="hidden justify-center items-center h-40"><div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-32 w-32"></div></div>
+                 <div id="pageLoader" class="hidden justify-center items-center h-40"><div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-32 w-32"></div></div>
                 <p id="pageError" class="text-center text-red-500 hidden"></p>
 
             </main>
         </div>
     </div>
     
-    <!-- Litepicker JS -->
     <script src="https://cdn.jsdelivr.net/npm/moment/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
     
@@ -323,12 +343,14 @@
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzpSVOHsYuDXUoJqHJ4mi2bHiHVT7tqSgD1Q6iq2RKHhwIqszVCfczZUMrNB7zzoFn/exec';
     const CORRECT_PIN = '7501';
     const SALES_REPORT_PASSWORD = 'kuyangora666';
+    const EDIT_PIN = '69960'; // NEW: PIN untuk edit data
     const hostList = ['wafa', 'debi', 'bunga'];
     const adminList = ['Bunga', 'Teh Ros'];
     const treatmentPersonList = ['Bunda', 'Resin'];
     let allData = [];
     let isDataFetched = false;
     let dashboardDatePicker, customerDatePicker, salesReportDatePicker;
+    let currentRowToEdit = null; // NEW: Menyimpan data baris yang sedang diedit
 
     // --- DOM ELEMENTS ---
     const loginSection = document.getElementById('loginSection');
@@ -349,13 +371,48 @@
     const salesReportPasswordError = document.getElementById('salesReportPasswordError');
     const cancelSalesReportBtn = document.getElementById('cancelSalesReport');
 
+    // NEW: Edit PIN Modal Elements
+    const editRowPasswordModal = document.getElementById('editRowPasswordModal');
+    const editRowPasswordForm = document.getElementById('editRowPasswordForm');
+    const editRowPasswordInput = document.getElementById('editRowPasswordInput');
+    const editRowPasswordError = document.getElementById('editRowPasswordError');
+    const cancelEditRowBtn = document.getElementById('cancelEditRow');
+
+    // NEW: Edit Transaction Modal Elements
+    const editTransactionModal = document.getElementById('editTransactionModal');
+    const editTransactionForm = document.getElementById('editTransactionForm');
+    const editRowIndexInput = document.getElementById('editRowIndex');
+    const editOriginalTimestampInput = document.getElementById('editOriginalTimestamp');
+    const editTransactionTypeInput = document.getElementById('editTransactionType');
+    const editShiftInput = document.getElementById('editShift');
+    const editHostInput = document.getElementById('editHost');
+    const editBackupHostContainer = document.getElementById('editBackupHostContainer');
+    const editBackupHostInput = document.getElementById('editBackupHost');
+    const editAdminInput = document.getElementById('editAdmin');
+    const editBackupAdminContainer = document.getElementById('editBackupAdminContainer');
+    const editBackupAdminInput = document.getElementById('editBackupAdmin');
+    const editCustomerInput = document.getElementById('editCustomer');
+    const editPcsInput = document.getElementById('editPcs');
+    const editOmzetInput = document.getElementById('editOmzet');
+    const editOrangTreatmentInput = document.getElementById('editOrangTreatment'); // NEW
+    const editBackupTreatmentContainer = document.getElementById('editBackupTreatmentContainer'); // NEW
+    const editBackupOrangTreatmentInput = document.getElementById('editBackupOrangTreatment'); // NEW
+    const editPcsTreatmentInput = document.getElementById('editPcsTreatment'); // NEW
+    const cancelEditTransactionBtn = document.getElementById('cancelEditTransaction');
+    const saveEditTransactionBtn = document.getElementById('saveEditTransaction');
+    const editTransactionStatus = document.getElementById('editTransactionStatus');
+
 
     // --- HELPER FUNCTIONS ---
     const parseCurrency = (value) => Number(String(value).replace(/[^0-9]/g, '')) || 0;
     const formatCurrency = (value) => `Rp ${new Intl.NumberFormat('id-ID').format(value || 0)}`;
 
     function populateDropdown(selectElement, listItems, includeBackup = true) {
-        while (selectElement.options.length > 1) selectElement.remove(1);
+        // Simpan opsi pertama (disabled selected) jika ada
+        const firstOption = selectElement.options[0];
+        selectElement.innerHTML = ''; // Bersihkan semua opsi
+        if (firstOption) selectElement.appendChild(firstOption); // Tambahkan kembali opsi pertama
+
         listItems.forEach(item => selectElement.add(new Option(item, item)));
         if(includeBackup) selectElement.add(new Option('Backup (Isi Manual)', 'Backup'));
     }
@@ -421,6 +478,44 @@
         salesReportPasswordError.textContent = '';
     });
 
+    // NEW: Edit Row PIN Logic
+    editRowPasswordForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (editRowPasswordInput.value === EDIT_PIN) {
+            editRowPasswordModal.classList.add('hidden');
+            editRowPasswordModal.classList.remove('flex');
+            editRowPasswordInput.value = '';
+            editRowPasswordError.textContent = '';
+            
+            // Open edit transaction modal and populate it
+            populateEditModal(currentRowToEdit);
+            editTransactionModal.classList.remove('hidden');
+            editTransactionModal.classList.add('flex');
+        } else {
+            editRowPasswordError.textContent = 'PIN salah.';
+        }
+    });
+
+    cancelEditRowBtn.addEventListener('click', () => {
+        editRowPasswordModal.classList.add('hidden');
+        editRowPasswordModal.classList.remove('flex');
+        editRowPasswordInput.value = '';
+        editRowPasswordError.textContent = '';
+        currentRowToEdit = null; // Reset
+    });
+
+    cancelEditTransactionBtn.addEventListener('click', () => {
+        editTransactionModal.classList.add('hidden');
+        editTransactionModal.classList.remove('flex');
+        editTransactionForm.reset();
+        editTransactionStatus.textContent = '';
+        currentRowToEdit = null; // Reset
+        // Reset backup fields visibility
+        editBackupHostContainer.classList.add('hidden');
+        editBackupAdminContainer.classList.add('hidden');
+        editBackupTreatmentContainer.classList.add('hidden');
+    });
+
     // --- DATA FETCHING & RENDERING LOGIC ---
     async function fetchData() {
         if (isDataFetched) {
@@ -434,7 +529,12 @@
             const response = await fetch(SCRIPT_URL);
             const result = await response.json();
             if (result.status !== 'success') throw new Error(result.message);
-            allData = result.data.sort((a, b) => new Date(b['Tanggal Input']) - new Date(a['Tanggal Input']));
+            // NEW: Tambahkan pengecekan untuk kolom 'Tanggal Input' sebelum mengurutkan
+            allData = result.data.sort((a, b) => {
+                const dateA = a['Tanggal Input'] ? new Date(a['Tanggal Input']) : new Date(0);
+                const dateB = b['Tanggal Input'] ? new Date(b['Tanggal Input']) : new Date(0);
+                return dateB - dateA;
+            });
             isDataFetched = true;
             populateFilters();
             applyFilters();
@@ -462,12 +562,12 @@
         if(endDate) endDate.setHours(23,59,59,999);
 
         const filteredData = allData.filter(row => {
-            const rowDate = new Date(row['Tanggal Input']);
-            const customerMatch = row['Nama Customer'] ? row['Nama Customer'].toLowerCase().includes(searchTerm) : searchTerm === '';
+            const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
+            const customerMatch = row['Nama Customer'] ? row['Nama Customer'].toLowerCase().includes(searchTerm) : (searchTerm === '');
             const shiftMatch = selectedShift ? row.Shift === selectedShift : true;
             const hostMatch = selectedHost ? row['Nama Host'] === selectedHost : true;
             const adminMatch = selectedAdmin ? row['Nama Admin'] === selectedAdmin : true;
-            const dateMatch = (!startDate || rowDate >= startDate) && (!endDate || rowDate <= endDate);
+            const dateMatch = (!startDate || (rowDate && rowDate >= startDate)) && (!endDate || (rowDate && rowDate <= endDate));
             return customerMatch && shiftMatch && hostMatch && adminMatch && dateMatch;
         });
         
@@ -493,7 +593,7 @@
     }
     
     function calculateAndRenderScoreboard(data, hostTbodyId, adminTbodyId, treatmentTbodyId) {
-        const getJustDate = (isoString) => isoString.split('T')[0];
+        const getJustDate = (isoString) => isoString ? isoString.split('T')[0] : null;
 
         const processPerformance = (sourceData, groupByField, pcsField, omzetField, bonusRate, bonusType, target) => {
             const performance = {};
@@ -510,7 +610,9 @@
 
                 const salesByDay = personSales.reduce((acc, row) => {
                     const day = getJustDate(row['Tanggal Input']);
-                    (acc[day] = acc[day] || []).push(row);
+                    if (day) { // Ensure day is not null
+                        (acc[day] = acc[day] || []).push(row);
+                    }
                     return acc;
                 }, {});
 
@@ -555,11 +657,14 @@
         const tbody = document.getElementById('dashboardTableBody');
         tbody.innerHTML = '';
         if (data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-gray-500">Tidak ada data yang cocok.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-10 text-gray-500">Tidak ada data yang cocok.</td></tr>`; // Updated colspan
             return;
         }
         data.forEach(row => {
             const tr = document.createElement('tr');
+            // Store full row data for editing
+            tr.dataset.rowData = JSON.stringify(row); 
+
             tr.innerHTML = `
                 <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-900">${new Date(row['Tanggal Input']).toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'numeric'})}</td>
                 <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Nama Customer'] || '-'}</td>
@@ -569,10 +674,137 @@
                 <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${Number(row['Total Pcs'] || 0).toLocaleString('id-ID')}</td>
                 <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${formatCurrency(row['Total Omzet'])}</td>
                 <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Jenis Transaksi']}</td>
+                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${Number(row['PCS Treatment'] || 0).toLocaleString('id-ID')}</td> <td class="py-4 px-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button class="text-indigo-600 hover:text-indigo-900 edit-row-btn" data-row-index="${row.rowIndex}">Edit</button>
+                </td>
             `;
             tbody.appendChild(tr);
         });
+
+        // Add event listeners for edit buttons
+        document.querySelectorAll('.edit-row-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const tr = e.target.closest('tr');
+                currentRowToEdit = JSON.parse(tr.dataset.rowData);
+                editRowPasswordModal.classList.remove('hidden');
+                editRowPasswordModal.classList.add('flex');
+                editRowPasswordInput.focus();
+            });
+        });
     }
+
+    // NEW: Function to populate the edit modal
+    function populateEditModal(data) {
+        editRowIndexInput.value = data.rowIndex;
+        editOriginalTimestampInput.value = data['Tanggal Input']; // Keep original timestamp
+        editTransactionTypeInput.value = data['Jenis Transaksi'] || '';
+        editShiftInput.value = data.Shift || '';
+
+        // Populate Host dropdown
+        populateDropdown(editHostInput, hostList);
+        editHostInput.value = data['Nama Host'] || '';
+        if (!hostList.includes(data['Nama Host']) && data['Nama Host']) {
+            editHostInput.value = 'Backup';
+            editBackupHostContainer.classList.remove('hidden');
+            editBackupHostInput.value = data['Nama Host'];
+        } else {
+            editBackupHostContainer.classList.add('hidden');
+            editBackupHostInput.value = '';
+        }
+
+        // Populate Admin dropdown
+        populateDropdown(editAdminInput, adminList);
+        editAdminInput.value = data['Nama Admin'] || '';
+        if (!adminList.includes(data['Nama Admin']) && data['Nama Admin']) {
+            editAdminInput.value = 'Backup';
+            editBackupAdminContainer.classList.remove('hidden');
+            editBackupAdminInput.value = data['Nama Admin'];
+        } else {
+            editBackupAdminContainer.classList.add('hidden');
+            editBackupAdminInput.value = '';
+        }
+
+        editCustomerInput.value = data['Nama Customer'] || '';
+        editPcsInput.value = data['Total Pcs'] || '';
+        editOmzetInput.value = formatCurrency(data['Total Omzet']);
+        
+        // Populate Treatment Person dropdown (NEW)
+        populateDropdown(editOrangTreatmentInput, treatmentPersonList);
+        editOrangTreatmentInput.value = data['Orang Treatment'] || '';
+        if (!treatmentPersonList.includes(data['Orang Treatment']) && data['Orang Treatment']) {
+            editOrangTreatmentInput.value = 'Backup';
+            editBackupTreatmentContainer.classList.remove('hidden');
+            editBackupOrangTreatmentInput.value = data['Orang Treatment'];
+        } else {
+            editBackupTreatmentContainer.classList.add('hidden');
+            editBackupOrangTreatmentInput.value = '';
+        }
+        editPcsTreatmentInput.value = data['PCS Treatment'] || '';
+
+        // Event listeners for backup fields in edit modal
+        editHostInput.addEventListener('change', () => { editBackupHostContainer.classList.toggle('hidden', editHostInput.value !== 'Backup'); });
+        editAdminInput.addEventListener('change', () => { editBackupAdminContainer.classList.toggle('hidden', editAdminInput.value !== 'Backup'); });
+        editOrangTreatmentInput.addEventListener('change', () => { editBackupTreatmentContainer.classList.toggle('hidden', editOrangTreatmentInput.value !== 'Backup'); }); // NEW
+
+        editOmzetInput.addEventListener('input', (e) => { e.target.value = formatCurrency(parseCurrency(e.target.value)); });
+    }
+
+    // NEW: Handle save edit transaction
+    editTransactionForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = saveEditTransactionBtn;
+        const btnText = submitBtn.querySelector('span');
+        const loader = submitBtn.querySelector('.loader');
+        
+        btnText.classList.add('hidden'); loader.classList.remove('hidden'); submitBtn.disabled = true;
+
+        const finalHost = editHostInput.value === 'Backup' ? editBackupHostInput.value.trim() : editHostInput.value;
+        const finalAdmin = editAdminInput.value === 'Backup' ? editBackupAdminInput.value.trim() : editAdminInput.value;
+        const finalTreatment = editOrangTreatmentInput.value === 'Backup' ? editBackupOrangTreatmentInput.value.trim() : editOrangTreatmentInput.value; // NEW
+
+        const omzetValue = parseCurrency(editOmzetInput.value);
+
+        const formData = {
+            action: 'edit', // Indicate this is an edit operation
+            rowIndex: editRowIndexInput.value,
+            timestamp: editOriginalTimestampInput.value, // Send original timestamp back
+            transactionType: editTransactionTypeInput.value || '',
+            shift: editShiftInput.value || '',
+            host: finalHost || '',
+            adminName: finalAdmin || '',
+            customerName: editCustomerInput.value || '',
+            totalPcs: editPcsInput.value || '',
+            totalOmzet: omzetValue || '',
+            orangTreatment: finalTreatment || '', // NEW
+            pcsTreatment: editPcsTreatmentInput.value || '' // NEW
+        };
+        
+        try {
+            const response = await fetch(SCRIPT_URL, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(formData) });
+            const result = await response.json();
+            if (result.status !== 'success') throw new Error(result.message);
+            editTransactionStatus.textContent = `Data berhasil diperbarui!`;
+            editTransactionStatus.className = 'mt-4 text-center text-sm h-4 text-green-600';
+            isDataFetched = false; // Force re-fetch to update table
+            await fetchData();
+            setTimeout(() => { // Close modal after a short delay
+                editTransactionModal.classList.add('hidden');
+                editTransactionModal.classList.remove('flex');
+                editTransactionForm.reset();
+                editTransactionStatus.textContent = '';
+                currentRowToEdit = null;
+                 // Reset backup fields visibility
+                editBackupHostContainer.classList.add('hidden');
+                editBackupAdminContainer.classList.add('hidden');
+                editBackupTreatmentContainer.classList.add('hidden');
+            }, 1500);
+        } catch (error) {
+            editTransactionStatus.textContent = `Error: ${error.message}`;
+            editTransactionStatus.className = 'mt-4 text-center text-sm h-4 text-red-600';
+        } finally {
+            btnText.classList.remove('hidden'); loader.classList.add('hidden'); submitBtn.disabled = false;
+        }
+    });
 
     function applyCustomerReportFilters() {
         if (!isDataFetched) return;
@@ -582,8 +814,8 @@
         if(endDate) endDate.setHours(23,59,59,999);
         
         const filteredData = allData.filter(row => {
-             const rowDate = new Date(row['Tanggal Input']);
-             return (!startDate || rowDate >= startDate) && (!endDate || rowDate <= endDate);
+             const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
+             return (!startDate || (rowDate && rowDate >= startDate)) && (!endDate || (rowDate && rowDate <= endDate));
         });
         calculateAndRenderCustomerReport(filteredData);
     }
@@ -632,8 +864,8 @@
         if(endDate) endDate.setHours(23,59,59,999);
         
         const filteredData = allData.filter(row => {
-             const rowDate = new Date(row['Tanggal Input']);
-             return (!startDate || rowDate >= startDate) && (!endDate || rowDate <= endDate);
+             const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
+             return (!startDate || (rowDate && rowDate >= startDate)) && (!endDate || (rowDate && rowDate <= endDate));
         });
         calculateAndRenderScoreboard(filteredData, 'salesReportHostScoreboardBody', 'salesReportAdminScoreboardBody', 'salesReportTreatmentScoreboardBody');
     }
@@ -680,6 +912,7 @@
 
             const omzetValue = parseCurrency(formFields.omzet?.value);
             const formData = {
+                action: 'add', // Indicate add operation
                 transactionType: type,
                 shift: formFields.shift?.value || '',
                 host: finalHost || '',
@@ -739,6 +972,11 @@
         populateDropdown(document.getElementById('returnAdmin'), adminList);
         populateDropdown(document.getElementById('treatmentPerson'), treatmentPersonList);
 
+        // Populate edit modal dropdowns initially (they are hidden but need to be ready)
+        populateDropdown(editHostInput, hostList);
+        populateDropdown(editAdminInput, adminList);
+        populateDropdown(editOrangTreatmentInput, treatmentPersonList);
+
         setupForm('penjualanForm', 'Penjualan', {
              shift: document.getElementById('penjualanShift'), host: document.getElementById('penjualanHost'), admin: document.getElementById('penjualanAdmin'), customer: document.getElementById('penjualanCustomer'), pcs: document.getElementById('penjualanPcs'), omzet: document.getElementById('penjualanOmzet'),
              backupHostContainer: document.getElementById('penjualanBackupHostContainer'), backupAdminContainer: document.getElementById('penjualanBackupAdminContainer'),
@@ -760,7 +998,7 @@
         });
         
         const litepickerOptions = {
-            singleMode: false, format: 'DD MMM YYYY', lang: 'id-ID', numberOfMonths: 2,
+            singleMode: false, format: 'DD MMM YYYY', lang: 'id-ID', numberOfMonths: 2, // Changed format to 'DD MMM YYYY' for consistency
             dropdowns: { minYear: 2020, maxYear: null, months: true, years: true },
             buttonText: {
                 'previousMonth': `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>`,
