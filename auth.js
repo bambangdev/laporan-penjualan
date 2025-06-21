@@ -1,3 +1,6 @@
+// --- auth.js ---
+// Mengelola semua logika otentikasi (PIN dan Kata Sandi).
+
 const CORRECT_PIN = '7501';
 const SALES_REPORT_PASSWORD = 'kuyangora666';
 
@@ -14,10 +17,14 @@ function initAuth() {
 
     pinInputs.forEach((input, index) => {
         input.addEventListener('keydown', (e) => {
-            if (e.key === "Backspace" && !input.value && index > 0) pinInputs[index - 1].focus();
+            if (e.key === "Backspace" && !input.value && index > 0) {
+                pinInputs[index - 1].focus();
+            }
         });
         input.addEventListener('input', () => {
-            if (input.value && index < pinInputs.length - 1) pinInputs[index + 1].focus();
+            if (input.value && index < pinInputs.length - 1) {
+                pinInputs[index + 1].focus();
+            }
             const enteredPin = Array.from(pinInputs).map(i => i.value).join('');
             if (enteredPin.length === 4) {
                 if (enteredPin === CORRECT_PIN) {
