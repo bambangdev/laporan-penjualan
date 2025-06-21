@@ -251,6 +251,11 @@
                 <!-- Customer Report Page -->
                 <div id="customerReportPage" class="page">
                      <h1 class="text-3xl font-bold text-gray-800 mb-6">Laporan Customer</h1>
+                      <!-- Filters for Customer Report -->
+                    <div class="mb-6 p-4 border rounded-lg bg-gray-50">
+                        <label for="customerReportDateRangePicker" class="block text-sm font-medium text-gray-700 mb-1">Pilih Rentang Tanggal</label>
+                        <input type="text" id="customerReportDateRangePicker" placeholder="Filter data berdasarkan tanggal" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
+                    </div>
                      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div class="stat-card">
                             <h4 class="text-lg font-semibold text-gray-800 mb-2">Top Customer (Pembelian Terbanyak)</h4>
@@ -292,7 +297,7 @@
     const treatmentPersonList = ['Bunda', 'Resin'];
     let allData = [];
     let isDataFetched = false;
-    let datePicker;
+    let dashboardDatePicker, customerDatePicker;
 
     // --- DOM ELEMENTS ---
     const loginSection = document.getElementById('loginSection');
@@ -394,8 +399,8 @@
         const selectedShift = dashboardFilterShift.value;
         const selectedHost = dashboardFilterHost.value;
         const selectedAdmin = dashboardFilterAdmin.value;
-        const startDate = datePicker.getStartDate()?.toJSDate();
-        const endDate = datePicker.getEndDate()?.toJSDate();
+        const startDate = dashboardDatePicker.getStartDate()?.toJSDate();
+        const endDate = dashboardDatePicker.getEndDate()?.toJSDate();
         if(startDate) startDate.setHours(0,0,0,0);
         if(endDate) endDate.setHours(23,59,59,999);
 
@@ -412,7 +417,7 @@
         calculateAndRenderStats(filteredData);
         calculateAndRenderScoreboard(filteredData);
         renderDashboardTable(filteredData);
-        calculateAndRenderCustomerReport(filteredData);
+        applyCustomerReportFilters(); // Also update customer report based on its own filters
     }
     
     function calculateAndRenderStats(data) {
@@ -510,6 +515,20 @@
             `;
             tbody.appendChild(tr);
         });
+    }
+
+    function applyCustomerReportFilters() {
+        if (!isDataFetched) return;
+        const startDate = customerDatePicker.getStartDate()?.toJSDate();
+        const endDate = customerDatePicker.getEndDate()?.toJSDate();
+        if(startDate) startDate.setHours(0,0,0,0);
+        if(endDate) endDate.setHours(23,59,59,999);
+        
+        const filteredData = allData.filter(row => {
+             const rowDate = new Date(row['Tanggal Input']);
+             return (!startDate || rowDate >= startDate) && (!endDate || rowDate <= endDate);
+        });
+        calculateAndRenderCustomerReport(filteredData);
     }
 
     function calculateAndRenderCustomerReport(data) {
@@ -662,16 +681,27 @@
              submitBtnId: 'treatmentSubmitBtn', status: document.getElementById('treatmentStatus'),
         });
         
-        // Initialize Litepicker for Dashboard
-        datePicker = new Litepicker({
-            element: document.getElementById('dashboardDateRangePicker'),
+        const litepickerOptions = {
             singleMode: false, format: 'DD MMM YYYY', lang: 'id-ID', numberOfMonths: 2,
             dropdowns: { minYear: 2020, maxYear: null, months: true, years: true },
             buttonText: {
                 'previousMonth': `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>`,
                 'nextMonth': `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>`,
             },
+        };
+
+        // Initialize Litepicker for Dashboard
+        dashboardDatePicker = new Litepicker({
+            element: document.getElementById('dashboardDateRangePicker'),
+            ...litepickerOptions,
             setup: (picker) => { picker.on('selected', () => applyFilters()); }
+        });
+
+        // Initialize Litepicker for Customer Report
+        customerDatePicker = new Litepicker({
+            element: document.getElementById('customerReportDateRangePicker'),
+            ...litepickerOptions,
+            setup: (picker) => { picker.on('selected', () => applyCustomerReportFilters()); }
         });
 
         // Event listeners for filters
