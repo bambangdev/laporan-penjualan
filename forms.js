@@ -1,3 +1,6 @@
+// --- forms.js ---
+// Mengelola semua logika untuk form input (Penjualan, Return, Treatment).
+
 function initForms() {
     function setupForm(formId, type, formFields) {
         const form = document.getElementById(formId);
@@ -51,7 +54,7 @@ function initForms() {
                 formFields.status.className = 'mt-4 text-center text-sm h-4 text-green-600';
                 form.reset();
                 form.dispatchEvent(new Event('change'));
-                isDataFetched = false;
+                isDataFetched = false; // Data is now stale, needs re-fetch on next view
             } catch (error) {
                 formFields.status.textContent = `Error: ${error.message}`;
                 formFields.status.className = 'mt-4 text-center text-sm h-4 text-red-600';
