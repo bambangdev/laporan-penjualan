@@ -2,7 +2,11 @@
 // Mengelola semua perhitungan dan rendering untuk laporan dan dashboard.
 
 function applyFilters() {
-    if (!isDataFetched) return;
+    // PERBAIKAN: Hentikan fungsi jika halaman Dashboard tidak aktif.
+    const dashboardPage = document.getElementById('dashboardPage');
+    if (!isDataFetched || !dashboardPage.classList.contains('active')) {
+        return; 
+    }
 
     const dashboardSearchCustomer = document.getElementById('dashboardSearchCustomer');
     const dashboardFilterShift = document.getElementById('dashboardFilterShift');
@@ -33,11 +37,11 @@ function applyFilters() {
     // Render all components for the Dashboard Page only
     calculateAndRenderStats(filteredData);
     renderDashboardTable(filteredData);
+    // Kita tidak lagi memanggil fungsi filter halaman lain dari sini.
 }
 
 function calculateAndRenderStats(data) {
     const statOmzetPenjualanEl = document.getElementById('statOmzetPenjualan');
-    // Jika elemen statistik tidak ada di halaman saat ini, hentikan fungsi.
     if (!statOmzetPenjualanEl) return;
 
     const penjualanData = data.filter(r => r['Jenis Transaksi'] === 'Penjualan');
@@ -59,7 +63,7 @@ function calculateAndRenderStats(data) {
 
 function renderDashboardTable(data) {
     const tbody = document.getElementById('dashboardTableBody');
-    if(!tbody) return; // Jika tabel tidak ada di halaman ini, hentikan.
+    if(!tbody) return;
 
     tbody.innerHTML = '';
     if (data.length === 0) {
@@ -98,7 +102,6 @@ function applyCustomerReportFilters() {
 
 function calculateAndRenderCustomerReport(data) {
     const topBuyerEl = { name: document.getElementById('topBuyerName'), pcs: document.getElementById('topBuyerPcs'), omzet: document.getElementById('topBuyerOmzet') };
-    // Jika elemen tidak ada di halaman ini, hentikan.
     if (!topBuyerEl.name) return;
 
     const topReturnerEl = { name: document.getElementById('topReturnerName'), pcs: document.getElementById('topReturnerPcs'), omzet: document.getElementById('topReturnerOmzet') };
@@ -106,7 +109,7 @@ function calculateAndRenderCustomerReport(data) {
     const getTopCustomer = (sourceData, pcsField, omzetField) => {
         if (sourceData.length === 0) return null;
         const customerData = sourceData.reduce((acc, row) => {
-            const name = String(row['Nama Customer'] || ''); // Ensure name is a string
+            const name = String(row['Nama Customer'] || '');
             if(!name || name === '-') return acc;
             acc[name] = acc[name] || { pcs: 0, omzet: 0 };
             acc[name].pcs += Number(row[pcsField] || 0);
@@ -150,7 +153,6 @@ function applySalesReportFilters() {
 }
 
 function calculateAndRenderScoreboard(data, hostTbody, adminTbody, treatmentTbody) {
-    // Jika elemen scoreboard tidak ada di halaman ini, hentikan.
     if(!hostTbody) return;
 
     const getJustDate = (isoString) => isoString.split('T')[0];
