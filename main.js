@@ -9,12 +9,13 @@ let salesChartInstance;
 
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Inisialisasi elemen UI (sidebar, navigasi)
+    // HARUS dipanggil pertama agar fungsi global seperti switchPage terdefinisi
+    initUI();
+    
     // Inisialisasi autentikasi (login, password)
     initAuth();
 
-    // Inisialisasi elemen UI (sidebar, navigasi)
-    initUI();
-    
     // Inisialisasi semua form input
     initForms();
 
