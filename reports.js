@@ -20,7 +20,8 @@ function applyFilters() {
 
     const filteredData = allData.filter(row => {
         const rowDate = new Date(row['Tanggal Input']);
-        const customerMatch = row['Nama Customer'] ? row['Nama Customer'].toLowerCase().includes(searchTerm) : searchTerm === '';
+        // BUG FIX: Convert 'Nama Customer' to string before calling toLowerCase()
+        const customerMatch = row['Nama Customer'] ? String(row['Nama Customer']).toLowerCase().includes(searchTerm) : searchTerm === '';
         const shiftMatch = selectedShift ? row.Shift === selectedShift : true;
         const hostMatch = selectedHost ? row['Nama Host'] === selectedHost : true;
         const adminMatch = selectedAdmin ? row['Nama Admin'] === selectedAdmin : true;
