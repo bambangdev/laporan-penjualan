@@ -31,8 +31,9 @@ function applyFilters() {
         return customerMatch && shiftMatch && hostMatch && adminMatch && dateMatch;
     });
     
+    // Render all components with filtered data
     calculateAndRenderStats(filteredData);
-    renderSalesTrendChart(filteredData);
+    renderDashboardTable(filteredData); // <-- Menampilkan tabel di dashboard
     applyCustomerReportFilters(); 
     applySalesReportFilters();
 }
@@ -48,44 +49,14 @@ function calculateAndRenderStats(data) {
     document.getElementById('statOmzetReturn').textContent = formatCurrency(omzetReturn);
     document.getElementById('statLabaKotor').textContent = formatCurrency(omzetPenjualan - omzetReturn);
     document.getElementById('statTingkatReturn').textContent = omzetPenjualan > 0 ? `${((omzetReturn / omzetPenjualan) * 100).toFixed(1)}%` : '0%';
-}
-
-function renderSalesTrendChart(data) {
-    const salesData = data.filter(r => r['Jenis Transaksi'] === 'Penjualan');
-    const salesByDay = salesData.reduce((acc, row) => {
-        const date = moment(row['Tanggal Input']).format('YYYY-MM-DD');
-        acc[date] = (acc[date] || 0) + Number(row['Total Omzet']);
-        return acc;
-    }, {});
-
-    const sortedDates = Object.keys(salesByDay).sort((a,b) => new Date(a) - new Date(b));
-    const labels = sortedDates.map(date => moment(date).format('DD MMM'));
-    const chartData = sortedDates.map(date => salesByDay[date]);
     
-    const ctx = document.getElementById('salesTrendChart').getContext('2d');
-    if (salesChartInstance) {
-        salesChartInstance.destroy();
-    }
-    salesChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Omzet Penjualan',
-                data: chartData,
-                borderColor: '#db2777',
-                backgroundColor: 'rgba(219, 39, 119, 0.1)',
-                fill: true,
-                tension: 0.3,
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            scales: { y: { beginAtZero: true, ticks: { callback: (v) => 'Rp ' + (v/1000) + 'k' } } },
-            plugins: { tooltip: { callbacks: { label: (c) => ` Omzet: ${formatCurrency(c.raw)}` } } }
-        }
-    });
+    // Perbarui juga statistik PCS
+    const pcsPenjualan = penjualanData.reduce((s, r) => s + Number(r['Total Pcs'] || 0), 0);
+    const pcsReturn = returnData.reduce((s, r) => s + Number(r['Total Pcs'] || 0), 0);
+    document.getElementById('statPcsPenjualan').textContent = pcsPenjualan.toLocaleString('id-ID');
+    document.getElementById('statPcsReturn').textContent = pcsReturn.toLocaleString('id-ID');
 }
+
 
 function applyCustomerReportFilters() {
     if (!isDataFetched) return;
