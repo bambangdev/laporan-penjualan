@@ -1,14 +1,21 @@
+// --- main.js ---
+// File utama untuk inisialisasi aplikasi.
+
+// Variabel global untuk status aplikasi
+let allData = [];
+let isDataFetched = false;
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize authentication
+    // Inisialisasi autentikasi (login, password)
     initAuth();
 
-    // Initialize UI elements and navigation
+    // Inisialisasi elemen UI (sidebar, navigasi)
     initUI();
     
-    // Initialize form dropdowns and submission logic
+    // Inisialisasi semua form input
     initForms();
 
-    // Initialize Litepickers
+    // Opsi konfigurasi umum untuk Litepicker
     const litepickerOptions = {
         singleMode: false, format: 'DD MMM YYYY', lang: 'id-ID', numberOfMonths: 2,
         dropdowns: { minYear: 2020, maxYear: null, months: true, years: true },
@@ -18,11 +25,28 @@ document.addEventListener('DOMContentLoaded', () => {
         },
     };
 
-    dashboardDatePicker = new Litepicker({ element: document.getElementById('dashboardDateRangePicker'), ...litepickerOptions, setup: (picker) => { picker.on('selected', () => applyFilters()); }});
-    customerDatePicker = new Litepicker({ element: document.getElementById('customerReportDateRangePicker'), ...litepickerOptions, setup: (picker) => { picker.on('selected', () => applyCustomerReportFilters()); }});
-    salesReportDatePicker = new Litepicker({ element: document.getElementById('salesReportDateRangePicker'), ...litepickerOptions, setup: (picker) => { picker.on('selected', () => applySalesReportFilters()); }});
+    // Inisialisasi Litepicker untuk Dashboard
+    dashboardDatePicker = new Litepicker({ 
+        element: document.getElementById('dashboardDateRangePicker'), 
+        ...litepickerOptions, 
+        setup: (picker) => { picker.on('selected', () => applyFilters()); }
+    });
 
-    // Event listeners for filters
+    // Inisialisasi Litepicker untuk Customer Report
+    customerDatePicker = new Litepicker({ 
+        element: document.getElementById('customerReportDateRangePicker'), 
+        ...litepickerOptions, 
+        setup: (picker) => { picker.on('selected', () => applyCustomerReportFilters()); }
+    });
+    
+    // Inisialisasi Litepicker untuk Sales Report
+    salesReportDatePicker = new Litepicker({ 
+        element: document.getElementById('salesReportDateRangePicker'), 
+        ...litepickerOptions, 
+        setup: (picker) => { picker.on('selected', () => applySalesReportFilters()); }
+    });
+
+    // Tambahkan event listener untuk filter di Dashboard
     ['input', 'change'].forEach(evt => {
         document.getElementById('dashboardSearchCustomer').addEventListener(evt, applyFilters);
         document.getElementById('dashboardFilterShift').addEventListener(evt, applyFilters);
@@ -30,13 +54,13 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('dashboardFilterAdmin').addEventListener(evt, applyFilters);
     });
 
-    // Populate static dropdowns
+    // Populate dropdowns di form input
     populateDropdown(document.getElementById('penjualanHost'), hostList);
     populateDropdown(document.getElementById('penjualanAdmin'), adminList);
     populateDropdown(document.getElementById('returnHost'), hostList);
     populateDropdown(document.getElementById('returnAdmin'), adminList);
     populateDropdown(document.getElementById('treatmentPerson'), treatmentPersonList);
 
-    // Start with PIN screen
+    // Mulai aplikasi dari layar PIN
     document.querySelector('#pin-inputs input').focus();
 });
