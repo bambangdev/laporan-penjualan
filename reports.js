@@ -30,17 +30,9 @@ function applyFilters() {
         return customerMatch && shiftMatch && hostMatch && adminMatch && dateMatch;
     });
     
-    // Render all components for the Dashboard Page
+    // Render components for the Dashboard Page only
     calculateAndRenderStats(filteredData);
     renderDashboardTable(filteredData);
-    
-    // PERBAIKAN: Panggil fungsi scoreboard hanya untuk elemen dashboard
-    calculateAndRenderScoreboard(
-        filteredData, 
-        document.getElementById('hostScoreboardBody'), 
-        document.getElementById('adminScoreboardBody'), 
-        document.getElementById('treatmentScoreboardBody')
-    );
 }
 
 function calculateAndRenderStats(data) {
@@ -63,6 +55,7 @@ function calculateAndRenderStats(data) {
 
 function renderDashboardTable(data) {
     const tbody = document.getElementById('dashboardTableBody');
+    if(!tbody) return;
     tbody.innerHTML = '';
     if (data.length === 0) {
         tbody.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-gray-500">Tidak ada data yang cocok.</td></tr>`;
@@ -105,7 +98,7 @@ function calculateAndRenderCustomerReport(data) {
     const getTopCustomer = (sourceData, pcsField, omzetField) => {
         if (sourceData.length === 0) return null;
         const customerData = sourceData.reduce((acc, row) => {
-            const name = String(row['Nama Customer'] || ''); // Ensure name is a string
+            const name = String(row['Nama Customer'] || '');
             if(!name || name === '-') return acc;
             acc[name] = acc[name] || { pcs: 0, omzet: 0 };
             acc[name].pcs += Number(row[pcsField] || 0);
