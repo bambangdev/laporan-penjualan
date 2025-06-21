@@ -1,7 +1,11 @@
-let dashboardDatePicker, customerDatePicker, salesReportDatePicker;
+// --- reports.js ---
+// Mengelola semua perhitungan dan rendering untuk laporan dan dashboard.
+
 let salesChartInstance;
 
 function applyFilters() {
+    if (!isDataFetched) return;
+
     const dashboardSearchCustomer = document.getElementById('dashboardSearchCustomer');
     const dashboardFilterShift = document.getElementById('dashboardFilterShift');
     const dashboardFilterHost = document.getElementById('dashboardFilterHost');
@@ -26,10 +30,11 @@ function applyFilters() {
         return customerMatch && shiftMatch && hostMatch && adminMatch && dateMatch;
     });
     
+    // Render all components with filtered data
     calculateAndRenderStats(filteredData);
-    renderSalesTrendChart(filteredData);
-    applyCustomerReportFilters();
-    applySalesReportFilters();
+    renderDashboardTable(filteredData);
+    applyCustomerReportFilters(); // Always update other pages
+    applySalesReportFilters();   // Always update other pages
 }
 
 function calculateAndRenderStats(data) {
@@ -38,47 +43,33 @@ function calculateAndRenderStats(data) {
 
     const omzetPenjualan = penjualanData.reduce((s, r) => s + Number(r['Total Omzet'] || 0), 0);
     const omzetReturn = returnData.reduce((s, r) => s + Number(r['Total Omzet'] || 0), 0);
-    
+
     document.getElementById('statOmzetPenjualan').textContent = formatCurrency(omzetPenjualan);
     document.getElementById('statOmzetReturn').textContent = formatCurrency(omzetReturn);
     document.getElementById('statLabaKotor').textContent = formatCurrency(omzetPenjualan - omzetReturn);
     document.getElementById('statTingkatReturn').textContent = omzetPenjualan > 0 ? `${((omzetReturn / omzetPenjualan) * 100).toFixed(1)}%` : '0%';
 }
 
-function renderSalesTrendChart(data) {
-    const salesData = data.filter(r => r['Jenis Transaksi'] === 'Penjualan');
-    const salesByDay = salesData.reduce((acc, row) => {
-        const date = moment(row['Tanggal Input']).format('YYYY-MM-DD');
-        acc[date] = (acc[date] || 0) + Number(row['Total Omzet']);
-        return acc;
-    }, {});
-
-    const sortedDates = Object.keys(salesByDay).sort((a,b) => new Date(a) - new Date(b));
-    const labels = sortedDates.map(date => moment(date).format('DD MMM'));
-    const chartData = sortedDates.map(date => salesByDay[date]);
-    
-    const ctx = document.getElementById('salesTrendChart').getContext('2d');
-    if (salesChartInstance) {
-        salesChartInstance.destroy();
+function renderDashboardTable(data) {
+    const tbody = document.getElementById('dashboardTableBody');
+    tbody.innerHTML = '';
+    if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-gray-500">Tidak ada data yang cocok.</td></tr>`;
+        return;
     }
-    salesChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Omzet Penjualan',
-                data: chartData,
-                borderColor: '#db2777',
-                backgroundColor: 'rgba(219, 39, 119, 0.1)',
-                fill: true,
-                tension: 0.3,
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            scales: { y: { beginAtZero: true, ticks: { callback: (v) => 'Rp ' + (v/1000) + 'k' } } },
-            plugins: { tooltip: { callbacks: { label: (c) => ` Omzet: ${formatCurrency(c.raw)}` } } }
-        }
+    data.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-900">${new Date(row['Tanggal Input']).toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'numeric'})}</td>
+            <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Nama Customer'] || '-'}</td>
+            <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Shift'] || '-'}</td>
+            <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Nama Host'] || '-'}</td>
+            <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Nama Admin'] || '-'}</td>
+            <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${Number(row['Total Pcs'] || 0).toLocaleString('id-ID')}</td>
+            <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${formatCurrency(row['Total Omzet'])}</td>
+            <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Jenis Transaksi']}</td>
+        `;
+        tbody.appendChild(tr);
     });
 }
 
@@ -143,10 +134,10 @@ function applySalesReportFilters() {
          const rowDate = new Date(row['Tanggal Input']);
          return (!startDate || rowDate >= startDate) && (!endDate || rowDate <= endDate);
     });
-    calculateAndRenderScoreboard(filteredData, 'salesReportHostScoreboardBody', 'salesReportAdminScoreboardBody', 'salesReportTreatmentScoreboardBody');
+    calculateAndRenderScoreboard(filteredData, document.getElementById('salesReportHostScoreboardBody'), document.getElementById('salesReportAdminScoreboardBody'), document.getElementById('salesReportTreatmentScoreboardBody'));
 }
 
-function calculateAndRenderScoreboard(data, hostTbodyId, adminTbodyId, treatmentTbodyId) {
+function calculateAndRenderScoreboard(data, hostTbody, adminTbody, treatmentTbody) {
     const getJustDate = (isoString) => isoString.split('T')[0];
 
     const processPerformance = (sourceData, groupByField, pcsField, omzetField, bonusRate, bonusType, target) => {
@@ -200,9 +191,9 @@ function calculateAndRenderScoreboard(data, hostTbodyId, adminTbodyId, treatment
     const salesData = data.filter(r => r['Jenis Transaksi'] === 'Penjualan');
     const treatmentData = data.filter(r => r['Jenis Transaksi'] === 'Treatment');
     
-    renderScoreboardTable(document.getElementById(hostTbodyId), processPerformance(salesData, 'Nama Host', 'Total Pcs', 'Total Omzet', 0.03, 'percentage', 40));
-    renderScoreboardTable(document.getElementById(adminTbodyId), processPerformance(salesData, 'Nama Admin', 'Total Pcs', 'Total Omzet', 0.01, 'percentage', 40));
-    renderScoreboardTable(document.getElementById(treatmentTbodyId), processPerformance(treatmentData, 'Orang Treatment', 'PCS Treatment', null, 2500, 'fixed', 30));
+    renderScoreboardTable(hostTbody, processPerformance(salesData, 'Nama Host', 'Total Pcs', 'Total Omzet', 0.03, 'percentage', 40));
+    renderScoreboardTable(adminTbody, processPerformance(salesData, 'Nama Admin', 'Total Pcs', 'Total Omzet', 0.01, 'percentage', 40));
+    renderScoreboardTable(treatmentTbody, processPerformance(treatmentData, 'Orang Treatment', 'PCS Treatment', null, 2500, 'fixed', 30));
 }
 
 function populateFilters() {
