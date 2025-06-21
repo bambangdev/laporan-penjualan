@@ -563,7 +563,8 @@
 
         const filteredData = allData.filter(row => {
             const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
-            const customerMatch = String(row['Nama Customer'] || '').toLowerCase().includes(searchTerm); // Pastikan selalu string            const shiftMatch = selectedShift ? row.Shift === selectedShift : true;
+            const customerMatch = String(row['Nama Customer'] || '').toLowerCase().includes(searchTerm); // Pastikan selalu string            
+            const shiftMatch = selectedShift ? row.Shift === selectedShift : true;
             const hostMatch = selectedHost ? row['Nama Host'] === selectedHost : true;
             const adminMatch = selectedAdmin ? row['Nama Admin'] === selectedAdmin : true;
             const dateMatch = (!startDate || (rowDate && rowDate >= startDate)) && (!endDate || (rowDate && rowDate <= endDate));
