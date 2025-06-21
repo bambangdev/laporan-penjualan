@@ -4,6 +4,9 @@
 // Variabel global untuk status aplikasi
 let allData = [];
 let isDataFetched = false;
+let dashboardDatePicker, customerDatePicker, salesReportDatePicker;
+let salesChartInstance;
+
 
 document.addEventListener('DOMContentLoaded', () => {
     // Inisialisasi autentikasi (login, password)
