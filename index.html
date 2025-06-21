@@ -8,8 +8,63 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Litepicker CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css"/>
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .loader {
+            border-top-color: #EC4899;
+            -webkit-animation: spin 1s linear infinite;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            color: #4b5563; /* gray-600 */
+        }
+        .sidebar-link:hover {
+            background-color: #fce7f3; /* pink-100 */
+            color: #be185d; /* pink-700 */
+        }
+        .sidebar-link.active {
+            background-color: #db2777; /* pink-600 */
+            color: white;
+            font-weight: 600;
+        }
+        .sidebar-link svg {
+            margin-right: 0.75rem;
+        }
+        .table-responsive {
+            display: block;
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .stat-card {
+            background-color: #f9fafb;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid #e5e7eb;
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        /* Mobile sidebar transition */
+        .sidebar-mobile-open {
+            transform: translateX(0);
+        }
+    </style>
 </head>
 <body class="bg-gray-100">
 
@@ -27,23 +82,6 @@
             <p id="pinError" class="text-red-500 text-sm h-4"></p>
         </div>
     </div>
-    
-    <!-- Sales Report Password Modal -->
-    <div id="salesReportPasswordModal" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden items-center justify-center">
-        <div class="w-full max-w-sm p-8 bg-white rounded-xl shadow-lg text-center mx-4">
-            <h2 class="text-xl font-bold text-gray-800">Akses Terbatas</h2>
-            <p class="text-gray-500 mb-6 mt-1">Masukkan kata sandi untuk melihat laporan penjualan.</p>
-            <form id="salesReportPasswordForm">
-                <input type="password" id="salesReportPasswordInput" class="w-full px-4 py-2 text-center border-2 border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500" placeholder="••••••••••">
-                <p id="salesReportPasswordError" class="text-red-500 text-sm h-4 mt-2"></p>
-                <div class="flex space-x-4 mt-6">
-                    <button type="button" id="cancelSalesReport" class="w-full py-2 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300">Batal</button>
-                    <button type="submit" class="w-full py-2 px-4 bg-pink-600 text-white font-semibold rounded-lg hover:bg-pink-700">Buka</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
 
     <!-- Main App Section (hidden by default) -->
     <div id="mainApp" class="hidden">
@@ -115,6 +153,25 @@
                             <div class="stat-card"><p class="text-sm text-gray-500">Total PCS Return</p><p id="statPcsReturn" class="text-2xl font-bold text-gray-900">0</p></div>
                             <div class="stat-card"><p class="text-sm text-gray-500">Total Omzet Return</p><p id="statOmzetReturn" class="text-2xl font-bold text-red-600">Rp 0</p></div>
                         </div>
+
+                        <!-- Scoreboard Section -->
+                        <div id="scoreboardSection" class="mt-8">
+                             <h3 class="text-lg font-semibold text-gray-800 mb-4">Scoreboard Estimasi Bonus Harian</h3>
+                             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                 <div>
+                                     <h4 class="font-semibold text-gray-700 mb-2">Estimasi Bonus Host</h4>
+                                     <div class="table-responsive border rounded-lg"><table class="min-w-full bg-white"><thead class="bg-gray-50"><tr><th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th><th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">PCS</th><th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Bonus</th></tr></thead><tbody id="hostScoreboardBody" class="divide-y divide-gray-200"></tbody></table></div>
+                                 </div>
+                                 <div>
+                                     <h4 class="font-semibold text-gray-700 mb-2">Estimasi Bonus Admin</h4>
+                                     <div class="table-responsive border rounded-lg"><table class="min-w-full bg-white"><thead class="bg-gray-50"><tr><th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th><th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">PCS</th><th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Bonus</th></tr></thead><tbody id="adminScoreboardBody" class="divide-y divide-gray-200"></tbody></table></div>
+                                 </div>
+                                 <div>
+                                     <h4 class="font-semibold text-gray-700 mb-2">Estimasi Bonus Treatment</h4>
+                                     <div class="table-responsive border rounded-lg"><table class="min-w-full bg-white"><thead class="bg-gray-50"><tr><th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th><th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">PCS</th><th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Bonus</th></tr></thead><tbody id="treatmentScoreboardBody" class="divide-y divide-gray-200"></tbody></table></div>
+                                 </div>
+                             </div>
+                        </div>
                         
                         <!-- Main Data Table -->
                         <div class="mt-8">
@@ -130,7 +187,7 @@
                                             <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admin</th>
                                             <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PCS</th>
                                             <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Omzet</th>
-                                            <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis</th>
+                                            <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Transaksi</th>
                                         </tr>
                                     </thead>
                                     <tbody id="dashboardTableBody" class="bg-white divide-y divide-gray-200"></tbody>
