@@ -1,11 +1,22 @@
+// --- ui.js ---
+// Mengelola interaksi antarmuka seperti sidebar, navigasi, dan fungsi pembantu.
+
 // --- HELPER FUNCTIONS ---
 const parseCurrency = (value) => Number(String(value).replace(/[^0-9]/g, '')) || 0;
 const formatCurrency = (value) => `Rp ${new Intl.NumberFormat('id-ID').format(value || 0)}`;
 
 function populateDropdown(selectElement, listItems, includeBackup = true) {
+    // Simpan nilai yang sedang dipilih (jika ada)
+    const selectedValue = selectElement.value;
+    
     while (selectElement.options.length > 1) selectElement.remove(1);
     listItems.forEach(item => selectElement.add(new Option(item, item)));
     if(includeBackup) selectElement.add(new Option('Backup (Isi Manual)', 'Backup'));
+    
+    // Kembalikan nilai yang dipilih sebelumnya
+    if (selectedValue) {
+        selectElement.value = selectedValue;
+    }
 }
 
 // --- PAGE & NAVIGATION LOGIC ---
@@ -30,6 +41,7 @@ function initUI() {
         if (window.innerWidth < 1024) {
             closeSidebar();
         }
+        // Fetch data if navigating to a data-driven page
         if (['dashboardPage', 'customerReportPage', 'salesReportPage'].includes(pageId)) {
             fetchData();
         }
