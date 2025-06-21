@@ -8,8 +8,65 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Litepicker CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css"/>
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .loader {
+            border-top-color: #EC4899;
+            -webkit-animation: spin 1s linear infinite;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            color: #4b5563; /* gray-600 */
+        }
+        .sidebar-link:hover {
+            background-color: #fce7f3; /* pink-100 */
+            color: #be185d; /* pink-700 */
+        }
+        .sidebar-link.active {
+            background-color: #db2777; /* pink-600 */
+            color: white;
+            font-weight: 600;
+        }
+        .sidebar-link svg {
+            margin-right: 0.75rem;
+        }
+        .table-responsive {
+            display: block;
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .stat-card {
+            background-color: #f9fafb;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid #e5e7eb;
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        /* Mobile sidebar transition */
+        .sidebar-mobile-open {
+            transform: translateX(0);
+        }
+    </style>
 </head>
 <body class="bg-gray-100">
 
@@ -134,7 +191,7 @@
                                             <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admin</th>
                                             <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PCS</th>
                                             <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Omzet</th>
-                                            <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Transaksi</th>
+                                            <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis</th>
                                         </tr>
                                     </thead>
                                     <tbody id="dashboardTableBody" class="bg-white divide-y divide-gray-200"></tbody>
@@ -221,6 +278,34 @@
                             </div>
                         </div>
                      </div>
+                </div>
+
+                <!-- Sales Report Page -->
+                 <div id="salesReportPage" class="page">
+                    <h1 class="text-3xl font-bold text-gray-800 mb-6">Sales Report (Bonus)</h1>
+                     <!-- Filters for Sales Report -->
+                    <div class="mb-6 p-4 border rounded-lg bg-gray-50">
+                        <label for="salesReportDateRangePicker" class="block text-sm font-medium text-gray-700 mb-1">Pilih Rentang Tanggal</label>
+                        <input type="text" id="salesReportDateRangePicker" placeholder="Filter data berdasarkan tanggal" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
+                    </div>
+                     <!-- Scoreboard Section -->
+                    <div id="salesReportScoreboard">
+                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Scoreboard Estimasi Bonus Harian</h3>
+                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                             <div>
+                                 <h4 class="font-semibold text-gray-700 mb-2">Estimasi Bonus Host</h4>
+                                 <div class="table-responsive border rounded-lg"><table class="min-w-full bg-white"><thead class="bg-gray-50"><tr><th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th><th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">PCS</th><th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Bonus</th></tr></thead><tbody id="salesReportHostScoreboardBody" class="divide-y divide-gray-200"></tbody></table></div>
+                             </div>
+                             <div>
+                                 <h4 class="font-semibold text-gray-700 mb-2">Estimasi Bonus Admin</h4>
+                                 <div class="table-responsive border rounded-lg"><table class="min-w-full bg-white"><thead class="bg-gray-50"><tr><th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th><th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">PCS</th><th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Bonus</th></tr></thead><tbody id="salesReportAdminScoreboardBody" class="divide-y divide-gray-200"></tbody></table></div>
+                             </div>
+                             <div>
+                                 <h4 class="font-semibold text-gray-700 mb-2">Estimasi Bonus Treatment</h4>
+                                 <div class="table-responsive border rounded-lg"><table class="min-w-full bg-white"><thead class="bg-gray-50"><tr><th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th><th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">PCS</th><th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Bonus</th></tr></thead><tbody id="salesReportTreatmentScoreboardBody" class="divide-y divide-gray-200"></tbody></table></div>
+                             </div>
+                         </div>
+                    </div>
                 </div>
                 
                  <!-- Common Loader and Error Display -->
