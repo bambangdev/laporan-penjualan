@@ -24,6 +24,7 @@ function applyFilters() {
 
     const filteredData = allData.filter(row => {
         const rowDate = new Date(row['Tanggal Input']);
+        // PERBAIKAN BUG: Pastikan 'Nama Customer' selalu string sebelum menggunakan toLowerCase()
         const customerName = String(row['Nama Customer'] || '');
         const customerMatch = customerName.toLowerCase().includes(searchTerm);
         
