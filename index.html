@@ -63,6 +63,11 @@
         .sidebar-mobile-open {
             transform: translateX(0);
         }
+        /* Style untuk tombol pagination disabled */
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -199,6 +204,11 @@
                                     <tbody id="dashboardTableBody" class="bg-white divide-y divide-gray-200"></tbody>
                                 </table>
                             </div>
+                            <div class="flex justify-between items-center mt-4">
+                                <button id="prevPageBtn" class="pagination-btn bg-pink-500 hover:bg-pink-600 text-white py-2 px-4 rounded-lg">Sebelumnya</button>
+                                <span class="text-gray-700">Halaman <span id="currentPageSpan">1</span> dari <span id="totalPagesSpan">1</span></span>
+                                <button id="nextPageBtn" class="pagination-btn bg-pink-500 hover:bg-pink-600 text-white py-2 px-4 rounded-lg">Berikutnya</button>
+                            </div>
                             <div id="editTransactionModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
                                 <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg mx-4">
                                     <h2 class="text-2xl font-bold text-gray-800 mb-6">Edit Data Transaksi</h2>
@@ -255,7 +265,7 @@
                         <div class="space-y-4">
                             <div><label for="returnHost" class="block text-sm font-medium text-gray-700 mb-1">Nama Host</label><select id="returnHost" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="" disabled selected>-- Pilih Host --</option></select></div>
                             <div id="returnBackupHostContainer" class="hidden"><label for="returnBackupHost" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Host Backup</label><input type="text" id="returnBackupHost" placeholder="Ketik nama host pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
-                            <div><label for="returnAdmin" class="block text-sm font-medium text-gray-700 mb-1">Nama Admin</label><select id="returnAdmin" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="" disabled selected>-- Pilih Admin --</option></select></div>
+                            <div><label for="returnAdmin" class="block text-sm font-medium text-gray-700 mb-1">Nama Admin</label><select id="returnAdmin" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="">-- Pilih Admin --</option></select></div>
                             <div id="returnBackupAdminContainer" class="hidden"><label for="returnBackupAdmin" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Admin Backup</label><input type="text" id="returnBackupAdmin" placeholder="Ketik nama admin pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
                             <div><label for="returnCustomer" class="block text-sm font-medium text-gray-700 mb-1">Nama Customer</label><input type="text" id="returnCustomer" required placeholder="Ketik nama customer" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
                             <div><label for="returnPcs" class="block text-sm font-medium text-gray-700 mb-1">Total Pcs</label><input type="number" id="returnPcs" required placeholder="Contoh: 5" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
@@ -400,6 +410,11 @@
     let currentRowToEdit = null;
     let monthlySalesChartInstance = null;
 
+    // --- Pagination variables for Dashboard Table ---
+    let filteredDashboardData = []; // Menyimpan data yang sudah difilter untuk dashboard
+    let currentPage = 1;
+    const rowsPerPage = 100; // 100 baris per halaman
+
     // --- DOM ELEMENTS ---
     const loginSection = document.getElementById('loginSection');
     const mainApp = document.getElementById('mainApp');
@@ -454,6 +469,12 @@
     const salesReportRepeatCustomers = document.getElementById('salesReportRepeatCustomers');
     const salesReportTopHostTable = document.getElementById('salesReportTopHostTable');
 
+    // NEW: Pagination DOM Elements
+    const prevPageBtn = document.getElementById('prevPageBtn');
+    const nextPageBtn = document.getElementById('nextPageBtn');
+    const currentPageSpan = document.getElementById('currentPageSpan');
+    const totalPagesSpan = document.getElementById('totalPagesSpan');
+
 
     // --- HELPER FUNCTIONS ---
     const parseCurrency = (value) => Number(String(value).replace(/[^0-9]/g, '')) || 0;
@@ -468,7 +489,7 @@
         if(includeBackup) selectElement.add(new Option('Backup (Isi Manual)', 'Backup'));
     }
 
-    // NEW: Fungsi untuk mengecek duplikasi customer di hari yang sama
+    // Fungsi untuk mengecek duplikasi customer di hari yang sama
     function checkDuplicateCustomerToday(customerName, transactionType) {
         const today = moment().startOf('day');
         
@@ -637,7 +658,8 @@
         if(startDate) startDate.setHours(0,0,0,0);
         if(endDate) endDate.setHours(23,59,59,999);
 
-        const filteredData = allData.filter(row => {
+        // Filter data berdasarkan kriteria
+        filteredDashboardData = allData.filter(row => { // Simpan ke filteredDashboardData
             const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
             const customerMatch = String(row['Nama Customer'] || '').toLowerCase().includes(searchTerm);
             const shiftMatch = selectedShift ? row.Shift === selectedShift : true;
@@ -647,8 +669,11 @@
             return customerMatch && shiftMatch && hostMatch && adminMatch && dateMatch;
         });
         
-        calculateAndRenderStats(filteredData);
-        renderDashboardTable(filteredData);
+        // Reset halaman saat filter berubah
+        currentPage = 1;
+        
+        calculateAndRenderStats(filteredDashboardData);
+        renderDashboardTable(); // Panggil renderDashboardTable tanpa parameter, gunakan filteredDashboardData global
     }
     
     function calculateAndRenderStats(data) {
@@ -727,35 +752,51 @@
         renderScoreboardTable(document.getElementById(treatmentTbodyId), processPerformance(treatmentData, 'Orang Treatment', 'PCS Treatment', null, 2500, 'fixed', 30));
     }
 
-    function renderDashboardTable(data) {
+    // Modifikasi renderDashboardTable untuk pagination
+    function renderDashboardTable() {
         const tbody = document.getElementById('dashboardTableBody');
         tbody.innerHTML = '';
-        if (data.length === 0) {
+
+        const totalRows = filteredDashboardData.length;
+        const totalPages = Math.ceil(totalRows / rowsPerPage);
+
+        // Tentukan data untuk halaman saat ini
+        const startIndex = (currentPage - 1) * rowsPerPage;
+        const endIndex = Math.min(startIndex + rowsPerPage, totalRows);
+        const paginatedData = filteredDashboardData.slice(startIndex, endIndex);
+
+        if (paginatedData.length === 0) {
             tbody.innerHTML = `<tr><td colspan="10" class="text-center py-10 text-gray-500">Tidak ada data yang cocok.</td></tr>`;
-            return;
+        } else {
+            paginatedData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.dataset.rowData = JSON.stringify(row); 
+
+                const tanggalFormatted = row['Tanggal Input'] ? new Date(row['Tanggal Input']).toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'numeric'}) : '-';
+
+                tr.innerHTML = `
+                    <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-900">${tanggalFormatted}</td>
+                    <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Nama Customer'] || '-'}</td>
+                    <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Shift'] || '-'}</td>
+                    <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Nama Host'] || '-'}</td>
+                    <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Nama Admin'] || '-'}</td>
+                    <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${Number(row['Total Pcs'] || 0).toLocaleString('id-ID')}</td>
+                    <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${formatCurrency(row['Total Omzet'])}</td>
+                    <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Jenis Transaksi']}</td>
+                    <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${Number(row['PCS Treatment'] || 0).toLocaleString('id-ID')}</td>
+                    <td class="py-4 px-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button class="text-indigo-600 hover:text-indigo-900 edit-row-btn" data-row-index="${row.rowIndex}">Edit</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
         }
-        data.forEach(row => {
-            const tr = document.createElement('tr');
-            tr.dataset.rowData = JSON.stringify(row); 
 
-            const tanggalFormatted = row['Tanggal Input'] ? new Date(row['Tanggal Input']).toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'numeric'}) : '-';
-
-            tr.innerHTML = `
-                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-900">${tanggalFormatted}</td>
-                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Nama Customer'] || '-'}</td>
-                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Shift'] || '-'}</td>
-                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Nama Host'] || '-'}</td>
-                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Nama Admin'] || '-'}</td>
-                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${Number(row['Total Pcs'] || 0).toLocaleString('id-ID')}</td>
-                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${formatCurrency(row['Total Omzet'])}</td>
-                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Jenis Transaksi']}</td>
-                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${Number(row['PCS Treatment'] || 0).toLocaleString('id-ID')}</td>
-                <td class="py-4 px-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button class="text-indigo-600 hover:text-indigo-900 edit-row-btn" data-row-index="${row.rowIndex}">Edit</button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
+        // Update pagination controls
+        currentPageSpan.textContent = currentPage;
+        totalPagesSpan.textContent = totalPages;
+        prevPageBtn.disabled = currentPage === 1;
+        nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
 
         document.querySelectorAll('.edit-row-btn').forEach(button => {
             button.addEventListener('click', (e) => {
@@ -766,6 +807,16 @@
                 editRowPasswordInput.focus();
             });
         });
+    }
+
+    // Fungsi untuk mengubah halaman pagination
+    function changePage(direction) {
+        if (direction === 'prev' && currentPage > 1) {
+            currentPage--;
+        } else if (direction === 'next' && currentPage < Math.ceil(filteredDashboardData.length / rowsPerPage)) {
+            currentPage++;
+        }
+        renderDashboardTable(); // Render ulang tabel dengan halaman baru
     }
 
     function populateEditModal(data) {
@@ -964,7 +1015,7 @@
         const uniqueCustomers = Object.keys(customerPurchaseCounts).length;
         salesReportUniqueCustomers.textContent = uniqueCustomers.toLocaleString('id-ID');
 
-        // NEW: Total Customer Repeat
+        // Total Customer Repeat
         let repeatCustomers = 0;
         for (const customer in customerPurchaseCounts) {
             if (customerPurchaseCounts[customer] > 1) {
@@ -1239,6 +1290,10 @@
         });
         
         salesReportDatePicker.on('selected', () => applySalesReportFilters());
+
+        // NEW: Event listeners for pagination buttons
+        prevPageBtn.addEventListener('click', () => changePage('prev'));
+        nextPageBtn.addEventListener('click', () => changePage('next'));
 
         pinInputs[0].focus();
     });
