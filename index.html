@@ -309,6 +309,46 @@
                         <label for="salesReportDateRangePicker" class="block text-sm font-medium text-gray-700 mb-1">Pilih Rentang Tanggal</label>
                         <input type="text" id="salesReportDateRangePicker" placeholder="Filter data berdasarkan tanggal" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
                     </div>
+
+                    <div id="salesReportInsights" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                        <div class="stat-card">
+                            <p class="text-sm text-gray-500">Net Omzet</p>
+                            <p id="salesReportNetOmzet" class="text-2xl font-bold text-blue-600">Rp 0</p>
+                        </div>
+                        <div class="stat-card">
+                            <p class="text-sm text-gray-500">Rasio Return (%)</p>
+                            <p id="salesReportReturnRatio" class="text-2xl font-bold text-red-600">0.00%</p>
+                        </div>
+                         <div class="stat-card">
+                            <p class="text-sm text-gray-500">Total Customer Unik</p>
+                            <p id="salesReportUniqueCustomers" class="text-2xl font-bold text-purple-600">0</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Tren Omzet Penjualan Bulanan</h3>
+                        <canvas id="monthlySalesChart"></canvas>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Top Host Berdasarkan Omzet Penjualan</h3>
+                         <div class="table-responsive border rounded-lg">
+                             <table class="min-w-full bg-white">
+                                 <thead class="bg-gray-50">
+                                     <tr>
+                                         <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Host</th>
+                                         <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Total Omzet</th>
+                                         <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Total PCS</th>
+                                     </tr>
+                                 </thead>
+                                 <tbody id="salesReportTopHostTable" class="divide-y divide-gray-200">
+                                     <tr><td colspan="3" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>
+                                 </tbody>
+                             </table>
+                         </div>
+                    </div>
+
+
                      <div id="salesReportScoreboard">
                          <h3 class="text-lg font-semibold text-gray-800 mb-4">Scoreboard Estimasi Bonus Harian</h3>
                          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -337,7 +377,8 @@
     
     <script src="https://cdn.jsdelivr.net/npm/moment/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script>
     // --- APP STATE & CONFIG ---
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzpSVOHsYuDXUoJqHJ4mi2bHiHVT7tqSgD1Q6iq2RKHhwIqszVCfczZUMrNB7zzoFn/exec';
@@ -351,6 +392,7 @@
     let isDataFetched = false;
     let dashboardDatePicker, customerDatePicker, salesReportDatePicker;
     let currentRowToEdit = null; // NEW: Menyimpan data baris yang sedang diedit
+    let monthlySalesChartInstance = null; // NEW: To store Chart.js instance
 
     // --- DOM ELEMENTS ---
     const loginSection = document.getElementById('loginSection');
@@ -394,13 +436,19 @@
     const editCustomerInput = document.getElementById('editCustomer');
     const editPcsInput = document.getElementById('editPcs');
     const editOmzetInput = document.getElementById('editOmzet');
-    const editOrangTreatmentInput = document.getElementById('editOrangTreatment'); // NEW
-    const editBackupTreatmentContainer = document.getElementById('editBackupTreatmentContainer'); // NEW
-    const editBackupOrangTreatmentInput = document.getElementById('editBackupOrangTreatment'); // NEW
-    const editPcsTreatmentInput = document.getElementById('editPcsTreatment'); // NEW
+    const editOrangTreatmentInput = document.getElementById('editOrangTreatment');
+    const editBackupTreatmentContainer = document.getElementById('editBackupTreatmentContainer');
+    const editBackupOrangTreatmentInput = document.getElementById('editBackupOrangTreatment');
+    const editPcsTreatmentInput = document.getElementById('editPcsTreatment');
     const cancelEditTransactionBtn = document.getElementById('cancelEditTransaction');
     const saveEditTransactionBtn = document.getElementById('saveEditTransaction');
     const editTransactionStatus = document.getElementById('editTransactionStatus');
+
+    // NEW: Sales Report Specific Elements
+    const salesReportNetOmzet = document.getElementById('salesReportNetOmzet');
+    const salesReportReturnRatio = document.getElementById('salesReportReturnRatio');
+    const salesReportUniqueCustomers = document.getElementById('salesReportUniqueCustomers');
+    const salesReportTopHostTable = document.getElementById('salesReportTopHostTable');
 
 
     // --- HELPER FUNCTIONS ---
@@ -408,10 +456,9 @@
     const formatCurrency = (value) => `Rp ${new Intl.NumberFormat('id-ID').format(value || 0)}`;
 
     function populateDropdown(selectElement, listItems, includeBackup = true) {
-        // Simpan opsi pertama (disabled selected) jika ada
         const firstOption = selectElement.options[0];
-        selectElement.innerHTML = ''; // Bersihkan semua opsi
-        if (firstOption) selectElement.appendChild(firstOption); // Tambahkan kembali opsi pertama
+        selectElement.innerHTML = '';
+        if (firstOption) selectElement.appendChild(firstOption);
 
         listItems.forEach(item => selectElement.add(new Option(item, item)));
         if(includeBackup) selectElement.add(new Option('Backup (Isi Manual)', 'Backup'));
@@ -478,7 +525,7 @@
         salesReportPasswordError.textContent = '';
     });
 
-    // NEW: Edit Row PIN Logic
+    // Edit Row PIN Logic
     editRowPasswordForm.addEventListener('submit', (e) => {
         e.preventDefault();
         if (editRowPasswordInput.value === EDIT_PIN) {
@@ -487,7 +534,6 @@
             editRowPasswordInput.value = '';
             editRowPasswordError.textContent = '';
             
-            // Open edit transaction modal and populate it
             populateEditModal(currentRowToEdit);
             editTransactionModal.classList.remove('hidden');
             editTransactionModal.classList.add('flex');
@@ -501,7 +547,7 @@
         editRowPasswordModal.classList.remove('flex');
         editRowPasswordInput.value = '';
         editRowPasswordError.textContent = '';
-        currentRowToEdit = null; // Reset
+        currentRowToEdit = null;
     });
 
     cancelEditTransactionBtn.addEventListener('click', () => {
@@ -509,8 +555,7 @@
         editTransactionModal.classList.remove('flex');
         editTransactionForm.reset();
         editTransactionStatus.textContent = '';
-        currentRowToEdit = null; // Reset
-        // Reset backup fields visibility
+        currentRowToEdit = null;
         editBackupHostContainer.classList.add('hidden');
         editBackupAdminContainer.classList.add('hidden');
         editBackupTreatmentContainer.classList.add('hidden');
@@ -519,7 +564,14 @@
     // --- DATA FETCHING & RENDERING LOGIC ---
     async function fetchData() {
         if (isDataFetched) {
-            applyFilters();
+            // Only apply sales report filters if on sales report page
+            if (document.getElementById('salesReportPage').classList.contains('active')) {
+                applySalesReportFilters();
+            } else if (document.getElementById('dashboardPage').classList.contains('active')) {
+                applyFilters(); // This is for dashboard filters
+            } else if (document.getElementById('customerReportPage').classList.contains('active')) {
+                applyCustomerReportFilters();
+            }
             return;
         }
         pageLoader.classList.remove('hidden');
@@ -529,15 +581,23 @@
             const response = await fetch(SCRIPT_URL);
             const result = await response.json();
             if (result.status !== 'success') throw new Error(result.message);
-            // NEW: Tambahkan pengecekan untuk kolom 'Tanggal Input' sebelum mengurutkan
             allData = result.data.sort((a, b) => {
                 const dateA = a['Tanggal Input'] ? new Date(a['Tanggal Input']) : new Date(0);
                 const dateB = b['Tanggal Input'] ? new Date(b['Tanggal Input']) : new Date(0);
                 return dateB - dateA;
             });
             isDataFetched = true;
-            populateFilters();
-            applyFilters();
+            populateFilters(); // Populate filters on dashboard, which in turn calls applyFilters
+            
+            // Re-apply filters based on active page after data fetch
+            if (document.getElementById('salesReportPage').classList.contains('active')) {
+                applySalesReportFilters();
+            } else if (document.getElementById('dashboardPage').classList.contains('active')) {
+                applyFilters(); // This is for dashboard filters
+            } else if (document.getElementById('customerReportPage').classList.contains('active')) {
+                applyCustomerReportFilters();
+            }
+
         } catch (error) {
             pageError.textContent = `Gagal memuat data: ${error.message}.`;
             pageError.classList.remove('hidden');
@@ -546,7 +606,7 @@
         }
     }
 
-    function applyFilters() {
+    function applyFilters() { // This function is for the Dashboard page
         const dashboardSearchCustomer = document.getElementById('dashboardSearchCustomer');
         const dashboardFilterShift = document.getElementById('dashboardFilterShift');
         const dashboardFilterHost = document.getElementById('dashboardFilterHost');
@@ -563,7 +623,7 @@
 
         const filteredData = allData.filter(row => {
             const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
-            const customerMatch = String(row['Nama Customer'] || '').toLowerCase().includes(searchTerm); // Pastikan selalu string            
+            const customerMatch = String(row['Nama Customer'] || '').toLowerCase().includes(searchTerm);
             const shiftMatch = selectedShift ? row.Shift === selectedShift : true;
             const hostMatch = selectedHost ? row['Nama Host'] === selectedHost : true;
             const adminMatch = selectedAdmin ? row['Nama Admin'] === selectedAdmin : true;
@@ -573,8 +633,9 @@
         
         calculateAndRenderStats(filteredData);
         renderDashboardTable(filteredData);
-        applyCustomerReportFilters();
-        applySalesReportFilters();
+        // Do not call customer/sales report filters from here, they have their own filter calls
+        // applyCustomerReportFilters(); // REMOVED
+        // applySalesReportFilters(); // REMOVED
     }
     
     function calculateAndRenderStats(data) {
@@ -610,7 +671,7 @@
 
                 const salesByDay = personSales.reduce((acc, row) => {
                     const day = getJustDate(row['Tanggal Input']);
-                    if (day) { // Ensure day is not null
+                    if (day) {
                         (acc[day] = acc[day] || []).push(row);
                     }
                     return acc;
@@ -657,16 +718,17 @@
         const tbody = document.getElementById('dashboardTableBody');
         tbody.innerHTML = '';
         if (data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-10 text-gray-500">Tidak ada data yang cocok.</td></tr>`; // Updated colspan
+            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-10 text-gray-500">Tidak ada data yang cocok.</td></tr>`;
             return;
         }
         data.forEach(row => {
             const tr = document.createElement('tr');
-            // Store full row data for editing
             tr.dataset.rowData = JSON.stringify(row); 
 
+            const tanggalFormatted = row['Tanggal Input'] ? new Date(row['Tanggal Input']).toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'numeric'}) : '-';
+
             tr.innerHTML = `
-                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-900">${new Date(row['Tanggal Input']).toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'numeric'})}</td>
+                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-900">${tanggalFormatted}</td>
                 <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Nama Customer'] || '-'}</td>
                 <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Shift'] || '-'}</td>
                 <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Nama Host'] || '-'}</td>
@@ -674,14 +736,14 @@
                 <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${Number(row['Total Pcs'] || 0).toLocaleString('id-ID')}</td>
                 <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${formatCurrency(row['Total Omzet'])}</td>
                 <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Jenis Transaksi']}</td>
-                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${Number(row['PCS Treatment'] || 0).toLocaleString('id-ID')}</td> <td class="py-4 px-4 whitespace-nowrap text-right text-sm font-medium">
+                <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${Number(row['PCS Treatment'] || 0).toLocaleString('id-ID')}</td>
+                <td class="py-4 px-4 whitespace-nowrap text-right text-sm font-medium">
                     <button class="text-indigo-600 hover:text-indigo-900 edit-row-btn" data-row-index="${row.rowIndex}">Edit</button>
                 </td>
             `;
             tbody.appendChild(tr);
         });
 
-        // Add event listeners for edit buttons
         document.querySelectorAll('.edit-row-btn').forEach(button => {
             button.addEventListener('click', (e) => {
                 const tr = e.target.closest('tr');
@@ -693,14 +755,12 @@
         });
     }
 
-    // NEW: Function to populate the edit modal
     function populateEditModal(data) {
         editRowIndexInput.value = data.rowIndex;
-        editOriginalTimestampInput.value = data['Tanggal Input']; // Keep original timestamp
+        editOriginalTimestampInput.value = data['Tanggal Input'];
         editTransactionTypeInput.value = data['Jenis Transaksi'] || '';
         editShiftInput.value = data.Shift || '';
 
-        // Populate Host dropdown
         populateDropdown(editHostInput, hostList);
         editHostInput.value = data['Nama Host'] || '';
         if (!hostList.includes(data['Nama Host']) && data['Nama Host']) {
@@ -712,7 +772,6 @@
             editBackupHostInput.value = '';
         }
 
-        // Populate Admin dropdown
         populateDropdown(editAdminInput, adminList);
         editAdminInput.value = data['Nama Admin'] || '';
         if (!adminList.includes(data['Nama Admin']) && data['Nama Admin']) {
@@ -728,7 +787,6 @@
         editPcsInput.value = data['Total Pcs'] || '';
         editOmzetInput.value = formatCurrency(data['Total Omzet']);
         
-        // Populate Treatment Person dropdown (NEW)
         populateDropdown(editOrangTreatmentInput, treatmentPersonList);
         editOrangTreatmentInput.value = data['Orang Treatment'] || '';
         if (!treatmentPersonList.includes(data['Orang Treatment']) && data['Orang Treatment']) {
@@ -741,15 +799,13 @@
         }
         editPcsTreatmentInput.value = data['PCS Treatment'] || '';
 
-        // Event listeners for backup fields in edit modal
         editHostInput.addEventListener('change', () => { editBackupHostContainer.classList.toggle('hidden', editHostInput.value !== 'Backup'); });
         editAdminInput.addEventListener('change', () => { editBackupAdminContainer.classList.toggle('hidden', editAdminInput.value !== 'Backup'); });
-        editOrangTreatmentInput.addEventListener('change', () => { editBackupTreatmentContainer.classList.toggle('hidden', editOrangTreatmentInput.value !== 'Backup'); }); // NEW
+        editOrangTreatmentInput.addEventListener('change', () => { editBackupTreatmentContainer.classList.toggle('hidden', editOrangTreatmentInput.value !== 'Backup'); });
 
         editOmzetInput.addEventListener('input', (e) => { e.target.value = formatCurrency(parseCurrency(e.target.value)); });
     }
 
-    // NEW: Handle save edit transaction
     editTransactionForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const submitBtn = saveEditTransactionBtn;
@@ -760,14 +816,14 @@
 
         const finalHost = editHostInput.value === 'Backup' ? editBackupHostInput.value.trim() : editHostInput.value;
         const finalAdmin = editAdminInput.value === 'Backup' ? editBackupAdminInput.value.trim() : editAdminInput.value;
-        const finalTreatment = editOrangTreatmentInput.value === 'Backup' ? editBackupOrangTreatmentInput.value.trim() : editOrangTreatmentInput.value; // NEW
+        const finalTreatment = editOrangTreatmentInput.value === 'Backup' ? editBackupOrangTreatmentInput.value.trim() : editOrangTreatmentInput.value;
 
         const omzetValue = parseCurrency(editOmzetInput.value);
 
         const formData = {
-            action: 'edit', // Indicate this is an edit operation
+            action: 'edit',
             rowIndex: editRowIndexInput.value,
-            timestamp: editOriginalTimestampInput.value, // Send original timestamp back
+            timestamp: editOriginalTimestampInput.value,
             transactionType: editTransactionTypeInput.value || '',
             shift: editShiftInput.value || '',
             host: finalHost || '',
@@ -775,8 +831,8 @@
             customerName: editCustomerInput.value || '',
             totalPcs: editPcsInput.value || '',
             totalOmzet: omzetValue || '',
-            orangTreatment: finalTreatment || '', // NEW
-            pcsTreatment: editPcsTreatmentInput.value || '' // NEW
+            orangTreatment: finalTreatment || '',
+            pcsTreatment: editPcsTreatmentInput.value || '',
         };
         
         try {
@@ -785,15 +841,14 @@
             if (result.status !== 'success') throw new Error(result.message);
             editTransactionStatus.textContent = `Data berhasil diperbarui!`;
             editTransactionStatus.className = 'mt-4 text-center text-sm h-4 text-green-600';
-            isDataFetched = false; // Force re-fetch to update table
+            isDataFetched = false;
             await fetchData();
-            setTimeout(() => { // Close modal after a short delay
+            setTimeout(() => {
                 editTransactionModal.classList.add('hidden');
                 editTransactionModal.classList.remove('flex');
                 editTransactionForm.reset();
                 editTransactionStatus.textContent = '';
                 currentRowToEdit = null;
-                 // Reset backup fields visibility
                 editBackupHostContainer.classList.add('hidden');
                 editBackupAdminContainer.classList.add('hidden');
                 editBackupTreatmentContainer.classList.add('hidden');
@@ -806,7 +861,7 @@
         }
     });
 
-    function applyCustomerReportFilters() {
+    function applyCustomerReportFilters() { // This function is for Customer Report page
         if (!isDataFetched) return;
         const startDate = customerDatePicker.getStartDate()?.toJSDate();
         const endDate = customerDatePicker.getEndDate()?.toJSDate();
@@ -856,6 +911,7 @@
         renderTopCustomer(topReturnerEl, topReturner);
     }
 
+    // NEW: Sales Report Specific Calculations and Rendering
     function applySalesReportFilters() {
         if (!isDataFetched) return;
         const startDate = salesReportDatePicker.getStartDate()?.toJSDate();
@@ -867,9 +923,137 @@
              const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
              return (!startDate || (rowDate && rowDate >= startDate)) && (!endDate || (rowDate && rowDate <= endDate));
         });
+
+        // Call the scoreboard calculation (existing)
         calculateAndRenderScoreboard(filteredData, 'salesReportHostScoreboardBody', 'salesReportAdminScoreboardBody', 'salesReportTreatmentScoreboardBody');
+
+        // NEW: Calculate and Render Sales Report Insights (points 1-4)
+        const penjualanData = filteredData.filter(r => r['Jenis Transaksi'] === 'Penjualan');
+        const returnData = filteredData.filter(r => r['Jenis Transaksi'] === 'Return');
+        
+        // 1. Net Omzet
+        const totalOmzetPenjualan = penjualanData.reduce((s, r) => s + parseCurrency(r['Total Omzet'] || 0), 0);
+        const totalOmzetReturn = returnData.reduce((s, r) => s + parseCurrency(r['Total Omzet'] || 0), 0);
+        const netOmzet = totalOmzetPenjualan - totalOmzetReturn;
+        salesReportNetOmzet.textContent = formatCurrency(netOmzet);
+
+        // 2. Rasio Return
+        const returnRatio = totalOmzetPenjualan > 0 ? (totalOmzetReturn / totalOmzetPenjualan) * 100 : 0;
+        salesReportReturnRatio.textContent = `${returnRatio.toFixed(2)}%`;
+
+        // 3. Total Customer Unik
+        const uniqueCustomers = new Set(penjualanData.map(r => r['Nama Customer']).filter(Boolean));
+        salesReportUniqueCustomers.textContent = uniqueCustomers.size.toLocaleString('id-ID');
+
+        // 4. Tren Penjualan Bulanan (Chart.js)
+        renderMonthlySalesChart(penjualanData);
+
+        // 5. Top Host Berdasarkan Omzet Penjualan
+        renderTopHostSalesTable(penjualanData);
     }
-    
+
+    // NEW: Function to render Monthly Sales Chart
+    function renderMonthlySalesChart(data) {
+        const monthlyData = data.reduce((acc, row) => {
+            const date = moment(row['Tanggal Input']);
+            if (date.isValid()) {
+                const monthYear = date.format('YYYY-MM'); // e.g., "2023-01"
+                acc[monthYear] = (acc[monthYear] || 0) + parseCurrency(row['Total Omzet'] || 0);
+            }
+            return acc;
+        }, {});
+
+        const sortedMonths = Object.keys(monthlyData).sort();
+        const labels = sortedMonths.map(monthYear => moment(monthYear, 'YYYY-MM').format('MMM YYYY'));
+        const omzetData = sortedMonths.map(month => monthlyData[month]);
+
+        const ctx = document.getElementById('monthlySalesChart').getContext('2d');
+
+        // Destroy existing chart instance if it exists
+        if (monthlySalesChartInstance) {
+            monthlySalesChartInstance.destroy();
+        }
+
+        monthlySalesChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Omzet Penjualan',
+                    data: omzetData,
+                    borderColor: '#EC4899', // pink-500
+                    backgroundColor: 'rgba(236, 72, 153, 0.2)',
+                    fill: true,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Omzet (Rp)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return formatCurrency(value);
+                            }
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Bulan'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${formatCurrency(context.raw)}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // NEW: Function to render Top Host Sales Table
+    function renderTopHostSalesTable(data) {
+        const hostSales = data.reduce((acc, row) => {
+            const hostName = row['Nama Host'] || 'Unknown';
+            acc[hostName] = acc[hostName] || { omzet: 0, pcs: 0 };
+            acc[hostName].omzet += parseCurrency(row['Total Omzet'] || 0);
+            acc[hostName].pcs += Number(row['Total Pcs'] || 0);
+            return acc;
+        }, {});
+
+        const sortedHosts = Object.keys(hostSales).sort((a, b) => hostSales[b].omzet - hostSales[a].omzet);
+        const tbody = salesReportTopHostTable;
+        tbody.innerHTML = '';
+
+        if (sortedHosts.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>`;
+            return;
+        }
+
+        sortedHosts.forEach(host => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="py-2 px-3 text-sm font-medium text-gray-900">${host}</td>
+                <td class="py-2 px-3 text-sm text-gray-500">${formatCurrency(hostSales[host].omzet)}</td>
+                <td class="py-2 px-3 text-sm text-gray-500">${hostSales[host].pcs.toLocaleString('id-ID')}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+
     function populateFilters() {
         const getUniqueValues = (key) => [...new Set(allData.map(item => item[key]).filter(Boolean))];
         const dashboardFilterShift = document.getElementById('dashboardFilterShift');
@@ -912,7 +1096,7 @@
 
             const omzetValue = parseCurrency(formFields.omzet?.value);
             const formData = {
-                action: 'add', // Indicate add operation
+                action: 'add',
                 transactionType: type,
                 shift: formFields.shift?.value || '',
                 host: finalHost || '',
@@ -944,7 +1128,6 @@
 
     // --- INITIALIZATION ---
     document.addEventListener('DOMContentLoaded', () => {
-        // Sidebar toggle
         openSidebarBtn.addEventListener('click', () => {
             sidebar.classList.remove('-translate-x-full');
             sidebarOverlay.classList.remove('hidden');
@@ -965,14 +1148,12 @@
             });
         });
 
-        // Form Setup
         populateDropdown(document.getElementById('penjualanHost'), hostList);
         populateDropdown(document.getElementById('penjualanAdmin'), adminList);
         populateDropdown(document.getElementById('returnHost'), hostList);
         populateDropdown(document.getElementById('returnAdmin'), adminList);
         populateDropdown(document.getElementById('treatmentPerson'), treatmentPersonList);
 
-        // Populate edit modal dropdowns initially (they are hidden but need to be ready)
         populateDropdown(editHostInput, hostList);
         populateDropdown(editAdminInput, adminList);
         populateDropdown(editOrangTreatmentInput, treatmentPersonList);
@@ -998,7 +1179,7 @@
         });
         
         const litepickerOptions = {
-            singleMode: false, format: 'DD MMM YYYY', lang: 'id-ID', numberOfMonths: 2, // Changed format to 'DD MMM YYYY' for consistency
+            singleMode: false, format: 'DD MMM YYYY', lang: 'id-ID', numberOfMonths: 2,
             dropdowns: { minYear: 2020, maxYear: null, months: true, years: true },
             buttonText: {
                 'previousMonth': `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>`,
@@ -1006,20 +1187,20 @@
             },
         };
 
-        // Initialize Litepickers
         dashboardDatePicker = new Litepicker({ element: document.getElementById('dashboardDateRangePicker'), ...litepickerOptions, setup: (picker) => { picker.on('selected', () => applyFilters()); }});
         customerDatePicker = new Litepicker({ element: document.getElementById('customerReportDateRangePicker'), ...litepickerOptions, setup: (picker) => { picker.on('selected', () => applyCustomerReportFilters()); }});
         salesReportDatePicker = new Litepicker({ element: document.getElementById('salesReportDateRangePicker'), ...litepickerOptions, setup: (picker) => { picker.on('selected', () => applySalesReportFilters()); }});
 
-        // Event listeners for filters
         ['input', 'change'].forEach(evt => {
             document.getElementById('dashboardSearchCustomer').addEventListener(evt, applyFilters);
             document.getElementById('dashboardFilterShift').addEventListener(evt, applyFilters);
             document.getElementById('dashboardFilterHost').addEventListener(evt, applyFilters);
             document.getElementById('dashboardFilterAdmin').addEventListener(evt, applyFilters);
         });
+        
+        // NEW: Event listener for salesReportDateRangePicker change
+        salesReportDatePicker.on('selected', () => applySalesReportFilters());
 
-        // Start with PIN screen
         pinInputs[0].focus();
     });
     </script>
