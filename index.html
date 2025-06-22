@@ -192,7 +192,9 @@
                                             <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PCS</th>
                                             <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Omzet</th>
                                             <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Transaksi</th>
-                                            <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PCS Treatment</th> <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th> </tr>
+                                            <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PCS Treatment</th>
+                                            <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                                        </tr>
                                     </thead>
                                     <tbody id="dashboardTableBody" class="bg-white divide-y divide-gray-200"></tbody>
                                 </table>
@@ -310,7 +312,7 @@
                         <input type="text" id="salesReportDateRangePicker" placeholder="Filter data berdasarkan tanggal" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
                     </div>
 
-                    <div id="salesReportInsights" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                    <div id="salesReportInsights" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-6">
                         <div class="stat-card">
                             <p class="text-sm text-gray-500">Net Omzet</p>
                             <p id="salesReportNetOmzet" class="text-2xl font-bold text-blue-600">Rp 0</p>
@@ -323,9 +325,13 @@
                             <p class="text-sm text-gray-500">Total Customer Unik</p>
                             <p id="salesReportUniqueCustomers" class="text-2xl font-bold text-purple-600">0</p>
                         </div>
+                        <div class="stat-card">
+                            <p class="text-sm text-gray-500">Total Customer Repeat</p>
+                            <p id="salesReportRepeatCustomers" class="text-2xl font-bold text-green-600">0</p>
+                        </div>
                     </div>
 
-                    <div class="bg-white p-6 rounded-lg shadow-md mb-6" style="height: 400px;"> 
+                    <div class="bg-white p-6 rounded-lg shadow-md mb-6" style="height: 400px;">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Tren Omzet Penjualan Bulanan</h3>
                         <canvas id="monthlySalesChart"></canvas>
                     </div>
@@ -384,15 +390,15 @@
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzpSVOHsYuDXUoJqHJ4mi2bHiHVT7tqSgD1Q6iq2RKHhwIqszVCfczZUMrNB7zzoFn/exec';
     const CORRECT_PIN = '7501';
     const SALES_REPORT_PASSWORD = 'kuyangora666';
-    const EDIT_PIN = '69960'; // NEW: PIN untuk edit data
+    const EDIT_PIN = '69960';
     const hostList = ['wafa', 'debi', 'bunga'];
     const adminList = ['Bunga', 'Teh Ros'];
     const treatmentPersonList = ['Bunda', 'Resin'];
     let allData = [];
     let isDataFetched = false;
     let dashboardDatePicker, customerDatePicker, salesReportDatePicker;
-    let currentRowToEdit = null; // NEW: Menyimpan data baris yang sedang diedit
-    let monthlySalesChartInstance = null; // NEW: To store Chart.js instance
+    let currentRowToEdit = null;
+    let monthlySalesChartInstance = null;
 
     // --- DOM ELEMENTS ---
     const loginSection = document.getElementById('loginSection');
@@ -413,14 +419,12 @@
     const salesReportPasswordError = document.getElementById('salesReportPasswordError');
     const cancelSalesReportBtn = document.getElementById('cancelSalesReport');
 
-    // NEW: Edit PIN Modal Elements
     const editRowPasswordModal = document.getElementById('editRowPasswordModal');
     const editRowPasswordForm = document.getElementById('editRowPasswordForm');
     const editRowPasswordInput = document.getElementById('editRowPasswordInput');
     const editRowPasswordError = document.getElementById('editRowPasswordError');
     const cancelEditRowBtn = document.getElementById('cancelEditRow');
 
-    // NEW: Edit Transaction Modal Elements
     const editTransactionModal = document.getElementById('editTransactionModal');
     const editTransactionForm = document.getElementById('editTransactionForm');
     const editRowIndexInput = document.getElementById('editRowIndex');
@@ -444,10 +448,10 @@
     const saveEditTransactionBtn = document.getElementById('saveEditTransaction');
     const editTransactionStatus = document.getElementById('editTransactionStatus');
 
-    // NEW: Sales Report Specific Elements
     const salesReportNetOmzet = document.getElementById('salesReportNetOmzet');
     const salesReportReturnRatio = document.getElementById('salesReportReturnRatio');
     const salesReportUniqueCustomers = document.getElementById('salesReportUniqueCustomers');
+    const salesReportRepeatCustomers = document.getElementById('salesReportRepeatCustomers');
     const salesReportTopHostTable = document.getElementById('salesReportTopHostTable');
 
 
@@ -464,6 +468,20 @@
         if(includeBackup) selectElement.add(new Option('Backup (Isi Manual)', 'Backup'));
     }
 
+    // NEW: Fungsi untuk mengecek duplikasi customer di hari yang sama
+    function checkDuplicateCustomerToday(customerName, transactionType) {
+        const today = moment().startOf('day');
+        
+        const transactionsToday = allData.filter(row => {
+            const rowDate = moment(row['Tanggal Input']);
+            return rowDate.isSame(today, 'day') && 
+                   String(row['Nama Customer'] || '').toLowerCase() === customerName.toLowerCase() &&
+                   row['Jenis Transaksi'] === transactionType;
+        });
+        
+        return transactionsToday.length > 0;
+    }
+
     // --- PAGE & NAVIGATION LOGIC ---
     function closeSidebar() {
         sidebar.classList.add('-translate-x-full');
@@ -477,6 +495,7 @@
             closeSidebar();
         }
         if (['dashboardPage', 'customerReportPage', 'salesReportPage'].includes(pageId)) {
+            isDataFetched = false; 
             fetchData();
         }
     }
@@ -525,7 +544,6 @@
         salesReportPasswordError.textContent = '';
     });
 
-    // Edit Row PIN Logic
     editRowPasswordForm.addEventListener('submit', (e) => {
         e.preventDefault();
         if (editRowPasswordInput.value === EDIT_PIN) {
@@ -564,11 +582,10 @@
     // --- DATA FETCHING & RENDERING LOGIC ---
     async function fetchData() {
         if (isDataFetched) {
-            // Only apply sales report filters if on sales report page
             if (document.getElementById('salesReportPage').classList.contains('active')) {
                 applySalesReportFilters();
             } else if (document.getElementById('dashboardPage').classList.contains('active')) {
-                applyFilters(); // This is for dashboard filters
+                applyFilters();
             } else if (document.getElementById('customerReportPage').classList.contains('active')) {
                 applyCustomerReportFilters();
             }
@@ -587,13 +604,12 @@
                 return dateB - dateA;
             });
             isDataFetched = true;
-            populateFilters(); // Populate filters on dashboard, which in turn calls applyFilters
+            populateFilters(); 
             
-            // Re-apply filters based on active page after data fetch
             if (document.getElementById('salesReportPage').classList.contains('active')) {
                 applySalesReportFilters();
             } else if (document.getElementById('dashboardPage').classList.contains('active')) {
-                applyFilters(); // This is for dashboard filters
+                applyFilters();
             } else if (document.getElementById('customerReportPage').classList.contains('active')) {
                 applyCustomerReportFilters();
             }
@@ -606,7 +622,7 @@
         }
     }
 
-    function applyFilters() { // This function is for the Dashboard page
+    function applyFilters() {
         const dashboardSearchCustomer = document.getElementById('dashboardSearchCustomer');
         const dashboardFilterShift = document.getElementById('dashboardFilterShift');
         const dashboardFilterHost = document.getElementById('dashboardFilterHost');
@@ -633,9 +649,6 @@
         
         calculateAndRenderStats(filteredData);
         renderDashboardTable(filteredData);
-        // Do not call customer/sales report filters from here, they have their own filter calls
-        // applyCustomerReportFilters(); // REMOVED
-        // applySalesReportFilters(); // REMOVED
     }
     
     function calculateAndRenderStats(data) {
@@ -681,7 +694,7 @@
                     const dailyPcs = salesByDay[date].reduce((s, r) => s + Number(r[pcsField] || 0), 0);
                     if (dailyPcs >= target) {
                          if (bonusType === 'percentage') {
-                            const dailyOmzet = salesByDay[date].reduce((s, r) => s + Number(r[omzetField] || 0), 0);
+                            const dailyOmzet = salesByDay[date].reduce((s, r) => s + parseCurrency(r[omzetField] || 0), 0);
                             totalBonus += dailyOmzet * bonusRate;
                          } else if (bonusType === 'fixed') {
                             totalBonus += bonusRate;
@@ -799,11 +812,11 @@
         }
         editPcsTreatmentInput.value = data['PCS Treatment'] || '';
 
-        editHostInput.addEventListener('change', () => { editBackupHostContainer.classList.toggle('hidden', editHostInput.value !== 'Backup'); });
-        editAdminInput.addEventListener('change', () => { editBackupAdminContainer.classList.toggle('hidden', editAdminInput.value !== 'Backup'); });
-        editOrangTreatmentInput.addEventListener('change', () => { editBackupTreatmentContainer.classList.toggle('hidden', editOrangTreatmentInput.value !== 'Backup'); });
+        editHostInput.onchange = () => { editBackupHostContainer.classList.toggle('hidden', editHostInput.value !== 'Backup'); };
+        editAdminInput.onchange = () => { editBackupAdminContainer.classList.toggle('hidden', editAdminInput.value !== 'Backup'); };
+        editOrangTreatmentInput.onchange = () => { editBackupTreatmentContainer.classList.toggle('hidden', editOrangTreatmentInput.value !== 'Backup'); };
 
-        editOmzetInput.addEventListener('input', (e) => { e.target.value = formatCurrency(parseCurrency(e.target.value)); });
+        editOmzetInput.oninput = (e) => { e.target.value = formatCurrency(parseCurrency(e.target.value)); };
     }
 
     editTransactionForm.addEventListener('submit', async (e) => {
@@ -861,7 +874,7 @@
         }
     });
 
-    function applyCustomerReportFilters() { // This function is for Customer Report page
+    function applyCustomerReportFilters() {
         if (!isDataFetched) return;
         const startDate = customerDatePicker.getStartDate()?.toJSDate();
         const endDate = customerDatePicker.getEndDate()?.toJSDate();
@@ -886,7 +899,7 @@
                 if(!name || name === '-') return acc;
                 acc[name] = acc[name] || { pcs: 0, omzet: 0 };
                 acc[name].pcs += Number(row[pcsField] || 0);
-                acc[name].omzet += Number(row[omzetField] || 0);
+                acc[name].omzet += parseCurrency(row[omzetField] || 0);
                 return acc;
             }, {});
             const topCustomerName = Object.keys(customerData).sort((a,b) => customerData[b].omzet - customerData[a].omzet)[0];
@@ -911,7 +924,7 @@
         renderTopCustomer(topReturnerEl, topReturner);
     }
 
-    // NEW: Sales Report Specific Calculations and Rendering
+    // Sales Report Specific Calculations and Rendering
     function applySalesReportFilters() {
         if (!isDataFetched) return;
         const startDate = salesReportDatePicker.getStartDate()?.toJSDate();
@@ -924,10 +937,8 @@
              return (!startDate || (rowDate && rowDate >= startDate)) && (!endDate || (rowDate && rowDate <= endDate));
         });
 
-        // Call the scoreboard calculation (existing)
         calculateAndRenderScoreboard(filteredData, 'salesReportHostScoreboardBody', 'salesReportAdminScoreboardBody', 'salesReportTreatmentScoreboardBody');
 
-        // NEW: Calculate and Render Sales Report Insights (points 1-4)
         const penjualanData = filteredData.filter(r => r['Jenis Transaksi'] === 'Penjualan');
         const returnData = filteredData.filter(r => r['Jenis Transaksi'] === 'Return');
         
@@ -942,8 +953,26 @@
         salesReportReturnRatio.textContent = `${returnRatio.toFixed(2)}%`;
 
         // 3. Total Customer Unik
-        const uniqueCustomers = new Set(penjualanData.map(r => r['Nama Customer']).filter(Boolean));
-        salesReportUniqueCustomers.textContent = uniqueCustomers.size.toLocaleString('id-ID');
+        const customerPurchaseCounts = penjualanData.reduce((acc, row) => {
+            const customerName = String(row['Nama Customer'] || '').trim();
+            if (customerName) {
+                acc[customerName] = (acc[customerName] || 0) + 1;
+            }
+            return acc;
+        }, {});
+
+        const uniqueCustomers = Object.keys(customerPurchaseCounts).length;
+        salesReportUniqueCustomers.textContent = uniqueCustomers.toLocaleString('id-ID');
+
+        // NEW: Total Customer Repeat
+        let repeatCustomers = 0;
+        for (const customer in customerPurchaseCounts) {
+            if (customerPurchaseCounts[customer] > 1) {
+                repeatCustomers++;
+            }
+        }
+        salesReportRepeatCustomers.textContent = repeatCustomers.toLocaleString('id-ID');
+
 
         // 4. Tren Penjualan Bulanan (Chart.js)
         renderMonthlySalesChart(penjualanData);
@@ -952,24 +981,23 @@
         renderTopHostSalesTable(penjualanData);
     }
 
-    // NEW: Function to render Monthly Sales Chart
+    // Function to render Monthly Sales Chart
     function renderMonthlySalesChart(data) {
         const monthlyData = data.reduce((acc, row) => {
             const date = moment(row['Tanggal Input']);
             if (date.isValid()) {
-                const monthYear = date.format('YYYY-MM'); // e.g., "2023-01"
+                const monthYear = date.format('YYYY-MM');
                 acc[monthYear] = (acc[monthYear] || 0) + parseCurrency(row['Total Omzet'] || 0);
             }
             return acc;
         }, {});
 
         const sortedMonths = Object.keys(monthlyData).sort();
-        const labels = sortedMonths.map(monthYear => moment(monthYear, 'YYYY-MM').format('MMM YYYY'));
+        const labels = sortedMonths.map(monthYear => moment(monthYear, 'YYYY-MM').format('MMM YY'));
         const omzetData = sortedMonths.map(month => monthlyData[month]);
 
         const ctx = document.getElementById('monthlySalesChart').getContext('2d');
 
-        // Destroy existing chart instance if it exists
         if (monthlySalesChartInstance) {
             monthlySalesChartInstance.destroy();
         }
@@ -981,7 +1009,7 @@
                 datasets: [{
                     label: 'Omzet Penjualan',
                     data: omzetData,
-                    borderColor: '#EC4899', // pink-500
+                    borderColor: '#EC4899',
                     backgroundColor: 'rgba(236, 72, 153, 0.2)',
                     fill: true,
                     tension: 0.1
@@ -1023,7 +1051,7 @@
         });
     }
 
-    // NEW: Function to render Top Host Sales Table
+    // Function to render Top Host Sales Table
     function renderTopHostSalesTable(data) {
         const hostSales = data.reduce((acc, row) => {
             const hostName = row['Nama Host'] || 'Unknown';
@@ -1069,11 +1097,9 @@
         
         formFields.omzet?.addEventListener('input', (e) => { e.target.value = formatCurrency(parseCurrency(e.target.value)); });
         
-        form.addEventListener('change', () => {
-             formFields.backupHostContainer?.classList.toggle('hidden', formFields.host?.value !== 'Backup');
-             formFields.backupAdminContainer?.classList.toggle('hidden', formFields.admin?.value !== 'Backup');
-             formFields.backupTreatmentContainer?.classList.toggle('hidden', formFields.treatment?.value !== 'Backup');
-        });
+        if (formFields.host) formFields.host.onchange = () => { formFields.backupHostContainer?.classList.toggle('hidden', formFields.host.value !== 'Backup'); };
+        if (formFields.admin) formFields.admin.onchange = () => { formFields.backupAdminContainer?.classList.toggle('hidden', formFields.admin.value !== 'Backup'); };
+        if (formFields.treatment) formFields.treatment.onchange = () => { formFields.backupTreatmentContainer?.classList.toggle('hidden', formFields.treatment.value !== 'Backup'); };
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -1088,6 +1114,18 @@
             const btnText = submitBtn.querySelector('span');
             const loader = submitBtn.querySelector('.loader');
             
+            const customerName = formFields.customer?.value.trim();
+            if (customerName && ['Penjualan', 'Return'].includes(type)) {
+                if (checkDuplicateCustomerToday(customerName, type)) {
+                    const confirmSend = window.confirm(`Peringatan: Nama pelanggan "${customerName}" untuk transaksi ${type} sudah terinput di hari ini. Lanjutkan pengiriman?`);
+                    if (!confirmSend) {
+                        formFields.status.textContent = 'Pengiriman dibatalkan.';
+                        formFields.status.className = 'mt-4 text-center text-sm h-4 text-gray-600';
+                        return;
+                    }
+                }
+            }
+
             btnText.classList.add('hidden'); loader.classList.remove('hidden'); submitBtn.disabled = true;
 
             const finalHost = formFields.host?.value === 'Backup' ? formFields.backupHostInput?.value.trim() : formFields.host?.value;
@@ -1101,7 +1139,7 @@
                 shift: formFields.shift?.value || '',
                 host: finalHost || '',
                 adminName: finalAdmin || '',
-                customerName: formFields.customer?.value || '',
+                customerName: customerName || '',
                 totalPcs: formFields.pcs?.value || '',
                 totalOmzet: omzetValue || '',
                 orangTreatment: finalTreatment || '',
@@ -1115,7 +1153,9 @@
                 formFields.status.textContent = `Laporan ${type} berhasil dikirim!`;
                 formFields.status.className = 'mt-4 text-center text-sm h-4 text-green-600';
                 form.reset();
-                form.dispatchEvent(new Event('change'));
+                if (formFields.backupHostContainer) formFields.backupHostContainer.classList.add('hidden');
+                if (formFields.backupAdminContainer) formFields.backupAdminContainer.classList.add('hidden');
+                if (formFields.backupTreatmentContainer) formFields.backupTreatmentContainer.classList.add('hidden');
                 isDataFetched = false;
             } catch (error) {
                 formFields.status.textContent = `Error: ${error.message}`;
@@ -1179,7 +1219,7 @@
         });
         
         const litepickerOptions = {
-            singleMode: false, format: 'DD MMM YYYY', lang: 'id-ID', numberOfMonths: 2,
+            singleMode: false, format: 'DD MMM YY', lang: 'id-ID', numberOfMonths: 2,
             dropdowns: { minYear: 2020, maxYear: null, months: true, years: true },
             buttonText: {
                 'previousMonth': `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>`,
@@ -1198,7 +1238,6 @@
             document.getElementById('dashboardFilterAdmin').addEventListener(evt, applyFilters);
         });
         
-        // NEW: Event listener for salesReportDateRangePicker change
         salesReportDatePicker.on('selected', () => applySalesReportFilters());
 
         pinInputs[0].focus();
