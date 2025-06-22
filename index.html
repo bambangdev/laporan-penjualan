@@ -643,7 +643,7 @@
         }
     }
 
-    function applyFilters() {
+    function applyFilters() { // This function is for the Dashboard page
         const dashboardSearchCustomer = document.getElementById('dashboardSearchCustomer');
         const dashboardFilterShift = document.getElementById('dashboardFilterShift');
         const dashboardFilterHost = document.getElementById('dashboardFilterHost');
@@ -659,7 +659,7 @@
         if(endDate) endDate.setHours(23,59,59,999);
 
         // Filter data berdasarkan kriteria
-        filteredDashboardData = allData.filter(row => { // Simpan ke filteredDashboardData
+        filteredDashboardData = allData.filter(row => {
             const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
             const customerMatch = String(row['Nama Customer'] || '').toLowerCase().includes(searchTerm);
             const shiftMatch = selectedShift ? row.Shift === selectedShift : true;
