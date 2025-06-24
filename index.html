@@ -210,31 +210,32 @@
                                 <button id="nextPageBtn" class="pagination-btn bg-pink-500 hover:bg-pink-600 text-white py-2 px-4 rounded-lg">Berikutnya</button>
                             </div>
                             <div id="editTransactionModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
-                                <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg mx-4">
-                                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Edit Data Transaksi</h2>
-                                    <form id="editTransactionForm" novalidate>
-                                        <input type="hidden" id="editRowIndex">
-                                        <input type="hidden" id="editOriginalTimestamp">
-                                        <div class="space-y-4">
-                                            <div><label for="editTransactionType" class="block text-sm font-medium text-gray-700 mb-1">Jenis Transaksi</label><input type="text" id="editTransactionType" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100"></div>
-                                            <div><label for="editShift" class="block text-sm font-medium text-gray-700 mb-1">Shift</label><select id="editShift" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="">-- Pilih Shift --</option><option value="Shift Pagi">Shift Pagi</option><option value="Shift Siang">Shift Siang</option></select></div>
-                                            <div><label for="editHost" class="block text-sm font-medium text-gray-700 mb-1">Nama Host</label><select id="editHost" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="">-- Pilih Host --</option></select></div>
-                                            <div id="editBackupHostContainer" class="hidden"><label for="editBackupHost" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Host Backup</label><input type="text" id="editBackupHost" placeholder="Ketik nama host pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
-                                            <div><label for="editAdmin" class="block text-sm font-medium text-gray-700 mb-1">Nama Admin</label><select id="editAdmin" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="">-- Pilih Admin --</option></select></div>
-                                            <div id="editBackupAdminContainer" class="hidden"><label for="editBackupAdmin" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Admin Backup</label><input type="text" id="editBackupAdmin" placeholder="Ketik nama admin pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
-                                            <div><label for="editCustomer" class="block text-sm font-medium text-gray-700 mb-1">Nama Customer</label><input type="text" id="editCustomer" placeholder="Ketik nama customer" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
-                                            <div><label for="editPcs" class="block text-sm font-medium text-gray-700 mb-1">Total Pcs</label><input type="number" id="editPcs" placeholder="Contoh: 50" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
-                                            <div><label for="editOmzet" class="block text-sm font-medium text-gray-700 mb-1">Total Omzet (Rp)</label><input type="text" id="editOmzet" placeholder="Contoh: 1.500.000" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
-                                            <div><label for="editOrangTreatment" class="block text-sm font-medium text-gray-700 mb-1">Orang Treatment</label><select id="editOrangTreatment" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="">-- Pilih Nama --</option></select></div>
-                                            <div id="editBackupTreatmentContainer" class="hidden"><label for="editBackupOrangTreatment" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Pengganti</label><input type="text" id="editBackupOrangTreatment" placeholder="Ketik nama pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
-                                            <div><label for="editPcsTreatment" class="block text-sm font-medium text-gray-700 mb-1">PCS Treatment</label><input type="number" id="editPcsTreatment" placeholder="Contoh: 35" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
-                                        </div>
-                                        <div class="flex space-x-4 mt-6">
+                                <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 flex flex-col max-h-[90vh]"> <h2 class="text-2xl font-bold text-gray-800 p-8 pb-4">Edit Data Transaksi</h2> <div class="px-8 pb-4 overflow-y-auto flex-grow"> <form id="editTransactionForm" novalidate class="space-y-4"> <input type="hidden" id="editRowIndex">
+                                            <input type="hidden" id="editOriginalTimestamp">
+                                            
+                                            <div class="space-y-4"> 
+                                                <div><label for="editTransactionType" class="block text-sm font-medium text-gray-700 mb-1">Jenis Transaksi</label><input type="text" id="editTransactionType" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100"></div>
+                                                <div><label for="editShift" class="block text-sm font-medium text-gray-700 mb-1">Shift</label><select id="editShift" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="">-- Pilih Shift --</option><option value="Shift Pagi">Shift Pagi</option><option value="Shift Siang">Shift Siang</option></select></div>
+                                                <div><label for="editHost" class="block text-sm font-medium text-gray-700 mb-1">Nama Host</label><select id="editHost" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="">-- Pilih Host --</option></select></div>
+                                                <div id="editBackupHostContainer" class="hidden"><label for="editBackupHost" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Host Backup</label><input type="text" id="editBackupHost" placeholder="Ketik nama host pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                                                <div><label for="editAdmin" class="block text-sm font-medium text-gray-700 mb-1">Nama Admin</label><select id="editAdmin" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="">-- Pilih Admin --</option></select></div>
+                                                <div id="editBackupAdminContainer" class="hidden"><label for="editBackupAdmin" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Admin Backup</label><input type="text" id="editBackupAdmin" placeholder="Ketik nama admin pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                                                <div><label for="editCustomer" class="block text-sm font-medium text-gray-700 mb-1">Nama Customer</label><input type="text" id="editCustomer" placeholder="Ketik nama customer" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                                                <div><label for="editPcs" class="block text-sm font-medium text-gray-700 mb-1">Total Pcs</label><input type="number" id="editPcs" placeholder="Contoh: 50" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                                                <div><label for="editOmzet" class="block text-sm font-medium text-gray-700 mb-1">Total Omzet (Rp)</label><input type="text" id="editOmzet" placeholder="Contoh: 1.500.000" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                                                <div><label for="editOrangTreatment" class="block text-sm font-medium text-gray-700 mb-1">Orang Treatment</label><select id="editOrangTreatment" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="">-- Pilih Nama --</option></select></div>
+                                                <div id="editBackupTreatmentContainer" class="hidden"><label for="editBackupOrangTreatment" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Pengganti</label><input type="text" id="editBackupOrangTreatment" placeholder="Ketik nama pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                                                <div><label for="editPcsTreatment" class="block text-sm font-medium text-gray-700 mb-1">PCS Treatment</label><input type="number" id="editPcsTreatment" placeholder="Contoh: 35" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    
+                                    <div class="p-8 pt-4 bg-white border-t border-gray-200"> <div class="flex space-x-4">
                                             <button type="button" id="cancelEditTransaction" class="w-full py-2 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300">Batal</button>
-                                            <button type="submit" id="saveEditTransaction" class="w-full py-2 px-4 bg-pink-600 text-white font-semibold rounded-lg hover:bg-pink-700 flex items-center justify-center"><span>Simpan Perubahan</span><div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 ml-3 hidden"></div></button>
+                                            <button type="submit" form="editTransactionForm" id="saveEditTransaction" class="w-full py-2 px-4 bg-pink-600 text-white font-semibold rounded-lg hover:bg-pink-700 flex items-center justify-center"><span>Simpan Perubahan</span><div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 ml-3 hidden"></div></button>
                                         </div>
                                         <p id="editTransactionStatus" class="mt-4 text-center text-sm h-4"></p>
-                                    </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -413,7 +414,7 @@
     // --- Pagination variables for Dashboard Table ---
     let filteredDashboardData = []; // Menyimpan data yang sudah difilter untuk dashboard
     let currentPage = 1;
-    const rowsPerPage = 30; // 100 baris per halaman
+    const rowsPerPage = 30; // Jumlah baris per halaman, diubah dari 100 ke 30
 
     // --- DOM ELEMENTS ---
     const loginSection = document.getElementById('loginSection');
