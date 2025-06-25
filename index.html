@@ -210,7 +210,12 @@
                                 <button id="nextPageBtn" class="pagination-btn bg-pink-500 hover:bg-pink-600 text-white py-2 px-4 rounded-lg">Berikutnya</button>
                             </div>
                             <div id="editTransactionModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
-                                <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 flex flex-col max-h-[90vh]"> <h2 class="text-2xl font-bold text-gray-800 p-8 pb-4">Edit Data Transaksi</h2> <div class="px-8 pb-4 overflow-y-auto flex-grow"> <form id="editTransactionForm" novalidate class="space-y-4"> <input type="hidden" id="editRowIndex">
+                                <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 flex flex-col max-h-[90vh]">
+                                    <h2 class="text-2xl font-bold text-gray-800 p-8 pb-4">Edit Data Transaksi</h2>
+                                    
+                                    <div class="px-8 pb-4 overflow-y-auto flex-grow">
+                                        <form id="editTransactionForm" novalidate class="space-y-4">
+                                            <input type="hidden" id="editRowIndex">
                                             <input type="hidden" id="editOriginalTimestamp">
                                             
                                             <div class="space-y-4"> 
@@ -230,7 +235,8 @@
                                         </form>
                                     </div>
                                     
-                                    <div class="p-8 pt-4 bg-white border-t border-gray-200"> <div class="flex space-x-4">
+                                    <div class="p-8 pt-4 bg-white border-t border-gray-200">
+                                        <div class="flex space-x-4">
                                             <button type="button" id="cancelEditTransaction" class="w-full py-2 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300">Batal</button>
                                             <button type="submit" form="editTransactionForm" id="saveEditTransaction" class="w-full py-2 px-4 bg-pink-600 text-white font-semibold rounded-lg hover:bg-pink-700 flex items-center justify-center"><span>Simpan Perubahan</span><div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 ml-3 hidden"></div></button>
                                         </div>
@@ -340,6 +346,18 @@
                             <p class="text-sm text-gray-500">Total Customer Repeat</p>
                             <p id="salesReportRepeatCustomers" class="text-2xl font-bold text-green-600">0</p>
                         </div>
+                        <div class="stat-card">
+                            <p class="text-sm text-gray-500">Estimasi Gaji Host</p>
+                            <p id="salesReportHostSalary" class="text-2xl font-bold text-gray-900">Rp 0</p>
+                        </div>
+                        <div class="stat-card">
+                            <p class="text-sm text-gray-500">Estimasi Gaji Admin</p>
+                            <p id="salesReportAdminSalary" class="text-2xl font-bold text-gray-900">Rp 0</p>
+                        </div>
+                        <div class="stat-card">
+                            <p class="text-sm text-gray-500">Estimasi Gaji Treatment</p>
+                            <p id="salesReportTreatmentSalary" class="text-2xl font-bold text-gray-900">Rp 0</p>
+                        </div>
                     </div>
 
                     <div class="bg-white p-6 rounded-lg shadow-md mb-6" style="height: 400px;">
@@ -412,9 +430,9 @@
     let monthlySalesChartInstance = null;
 
     // --- Pagination variables for Dashboard Table ---
-    let filteredDashboardData = []; // Menyimpan data yang sudah difilter untuk dashboard
+    let filteredDashboardData = [];
     let currentPage = 1;
-    const rowsPerPage = 30; // Jumlah baris per halaman, diubah dari 100 ke 30
+    const rowsPerPage = 30;
 
     // --- DOM ELEMENTS ---
     const loginSection = document.getElementById('loginSection');
@@ -469,8 +487,12 @@
     const salesReportUniqueCustomers = document.getElementById('salesReportUniqueCustomers');
     const salesReportRepeatCustomers = document.getElementById('salesReportRepeatCustomers');
     const salesReportTopHostTable = document.getElementById('salesReportTopHostTable');
+    // NEW: Estimasi Gaji Elements
+    const salesReportHostSalary = document.getElementById('salesReportHostSalary');
+    const salesReportAdminSalary = document.getElementById('salesReportAdminSalary');
+    const salesReportTreatmentSalary = document.getElementById('salesReportTreatmentSalary');
 
-    // NEW: Pagination DOM Elements
+
     const prevPageBtn = document.getElementById('prevPageBtn');
     const nextPageBtn = document.getElementById('nextPageBtn');
     const currentPageSpan = document.getElementById('currentPageSpan');
@@ -993,7 +1015,8 @@
 
         const penjualanData = filteredData.filter(r => r['Jenis Transaksi'] === 'Penjualan');
         const returnData = filteredData.filter(r => r['Jenis Transaksi'] === 'Return');
-        
+        const treatmentData = filteredData.filter(r => r['Jenis Transaksi'] === 'Treatment'); // Untuk estimasi gaji treatment
+
         // 1. Net Omzet
         const totalOmzetPenjualan = penjualanData.reduce((s, r) => s + parseCurrency(r['Total Omzet'] || 0), 0);
         const totalOmzetReturn = returnData.reduce((s, r) => s + parseCurrency(r['Total Omzet'] || 0), 0);
@@ -1024,6 +1047,50 @@
             }
         }
         salesReportRepeatCustomers.textContent = repeatCustomers.toLocaleString('id-ID');
+
+        // NEW: Estimasi Gaji
+        const getUniqueDays = (dataArray, personField) => {
+            const uniqueDates = new Set();
+            dataArray.forEach(row => {
+                const date = moment(row['Tanggal Input']);
+                const person = String(row[personField] || '').trim();
+                if (date.isValid() && person) {
+                    uniqueDates.add(date.format('YYYY-MM-DD') + '-' + person); // Combine date and person to ensure unique day per person
+                }
+            });
+            // We need unique days PER PERSON, so let's adjust this
+            const personDays = {};
+            dataArray.forEach(row => {
+                const date = moment(row['Tanggal Input']);
+                const person = String(row[personField] || '').trim();
+                if (date.isValid() && person) {
+                    personDays[person] = personDays[person] || new Set();
+                    personDays[person].add(date.format('YYYY-MM-DD'));
+                }
+            });
+            let totalUniqueDays = 0;
+            for (const person in personDays) {
+                totalUniqueDays += personDays[person].size;
+            }
+            return totalUniqueDays;
+        };
+
+        const uniqueHostDays = getUniqueDays(penjualanData, 'Nama Host');
+        const uniqueAdminDays = getUniqueDays(penjualanData, 'Nama Admin');
+        const uniqueTreatmentDays = getUniqueDays(treatmentData, 'Orang Treatment');
+
+        const hostSalaryRate = 80000;
+        const adminSalaryRate = 60000;
+        const treatmentSalaryRate = 12500; // Ini per PCS Treatment, bukan per hari. Jadi kita harus hitung total PCS Treatment
+
+        // Re-calculate Treatment Salary based on Total PCS Treatment
+        const totalPcsTreatment = treatmentData.reduce((s, r) => s + Number(r['PCS Treatment'] || 0), 0);
+        const estimatedTreatmentSalary = totalPcsTreatment * treatmentSalaryRate;
+
+
+        salesReportHostSalary.textContent = formatCurrency(uniqueHostDays * hostSalaryRate);
+        salesReportAdminSalary.textContent = formatCurrency(uniqueAdminDays * adminSalaryRate);
+        salesReportTreatmentSalary.textContent = formatCurrency(estimatedTreatmentSalary); // Menggunakan total PCS Treatment
 
 
         // 4. Tren Penjualan Bulanan (Chart.js)
