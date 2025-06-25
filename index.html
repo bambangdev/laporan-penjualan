@@ -346,19 +346,62 @@
                             <p class="text-sm text-gray-500">Total Customer Repeat</p>
                             <p id="salesReportRepeatCustomers" class="text-2xl font-bold text-green-600">0</p>
                         </div>
-                        <div class="stat-card">
-                            <p class="text-sm text-gray-500">Estimasi Gaji Host</p>
-                            <p id="salesReportHostSalary" class="text-2xl font-bold text-gray-900">Rp 0</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-6">
+                        <div>
+                            <h4 class="font-semibold text-gray-700 mb-2">Estimasi Gaji Host</h4>
+                            <div class="table-responsive border rounded-lg">
+                                <table class="min-w-full bg-white">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Hari Unik</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Estimasi Gaji</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="salesReportHostSalaryTable" class="divide-y divide-gray-200">
+                                        <tr><td colspan="3" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                        <div class="stat-card">
-                            <p class="text-sm text-gray-500">Estimasi Gaji Admin</p>
-                            <p id="salesReportAdminSalary" class="text-2xl font-bold text-gray-900">Rp 0</p>
+                        <div>
+                            <h4 class="font-semibold text-gray-700 mb-2">Estimasi Gaji Admin</h4>
+                            <div class="table-responsive border rounded-lg">
+                                <table class="min-w-full bg-white">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Hari Unik</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Estimasi Gaji</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="salesReportAdminSalaryTable" class="divide-y divide-gray-200">
+                                        <tr><td colspan="3" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                        <div class="stat-card">
-                            <p class="text-sm text-gray-500">Estimasi Gaji Treatment</p>
-                            <p id="salesReportTreatmentSalary" class="text-2xl font-bold text-gray-900">Rp 0</p>
+                        <div>
+                            <h4 class="font-semibold text-gray-700 mb-2">Estimasi Gaji Treatment</h4>
+                            <div class="table-responsive border rounded-lg">
+                                <table class="min-w-full bg-white">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Total PCS</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Estimasi Gaji</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="salesReportTreatmentSalaryTable" class="divide-y divide-gray-200">
+                                        <tr><td colspan="3" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
+
 
                     <div class="bg-white p-6 rounded-lg shadow-md mb-6" style="height: 400px;">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Tren Omzet Penjualan Bulanan</h3>
@@ -384,7 +427,7 @@
                     </div>
 
 
-                     <div id="salesReportScoreboard">
+                    <div id="salesReportScoreboard">
                          <h3 class="text-lg font-semibold text-gray-800 mb-4">Scoreboard Estimasi Bonus Harian</h3>
                          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                              <div>
@@ -487,10 +530,10 @@
     const salesReportUniqueCustomers = document.getElementById('salesReportUniqueCustomers');
     const salesReportRepeatCustomers = document.getElementById('salesReportRepeatCustomers');
     const salesReportTopHostTable = document.getElementById('salesReportTopHostTable');
-    // NEW: Estimasi Gaji Elements
-    const salesReportHostSalary = document.getElementById('salesReportHostSalary');
-    const salesReportAdminSalary = document.getElementById('salesReportAdminSalary');
-    const salesReportTreatmentSalary = document.getElementById('salesReportTreatmentSalary');
+    // NEW: Estimasi Gaji Table Elements
+    const salesReportHostSalaryTable = document.getElementById('salesReportHostSalaryTable');
+    const salesReportAdminSalaryTable = document.getElementById('salesReportAdminSalaryTable');
+    const salesReportTreatmentSalaryTable = document.getElementById('salesReportTreatmentSalaryTable');
 
 
     const prevPageBtn = document.getElementById('prevPageBtn');
@@ -1015,7 +1058,7 @@
 
         const penjualanData = filteredData.filter(r => r['Jenis Transaksi'] === 'Penjualan');
         const returnData = filteredData.filter(r => r['Jenis Transaksi'] === 'Return');
-        const treatmentData = filteredData.filter(r => r['Jenis Transaksi'] === 'Treatment'); // Untuk estimasi gaji treatment
+        const treatmentData = filteredData.filter(r => r['Jenis Transaksi'] === 'Treatment');
 
         // 1. Net Omzet
         const totalOmzetPenjualan = penjualanData.reduce((s, r) => s + parseCurrency(r['Total Omzet'] || 0), 0);
@@ -1048,49 +1091,67 @@
         }
         salesReportRepeatCustomers.textContent = repeatCustomers.toLocaleString('id-ID');
 
-        // NEW: Estimasi Gaji
-        const getUniqueDays = (dataArray, personField) => {
-            const uniqueDates = new Set();
+        // NEW: Estimasi Gaji Calculation and Rendering for tables
+        const getPersonDailyData = (dataArray, personField) => {
+            const dailyData = {};
             dataArray.forEach(row => {
                 const date = moment(row['Tanggal Input']);
                 const person = String(row[personField] || '').trim();
                 if (date.isValid() && person) {
-                    uniqueDates.add(date.format('YYYY-MM-DD') + '-' + person); // Combine date and person to ensure unique day per person
+                    const dayKey = date.format('YYYY-MM-DD');
+                    dailyData[person] = dailyData[person] || new Set();
+                    dailyData[person].add(dayKey);
                 }
             });
-            // We need unique days PER PERSON, so let's adjust this
-            const personDays = {};
-            dataArray.forEach(row => {
-                const date = moment(row['Tanggal Input']);
-                const person = String(row[personField] || '').trim();
-                if (date.isValid() && person) {
-                    personDays[person] = personDays[person] || new Set();
-                    personDays[person].add(date.format('YYYY-MM-DD'));
-                }
-            });
-            let totalUniqueDays = 0;
-            for (const person in personDays) {
-                totalUniqueDays += personDays[person].size;
-            }
-            return totalUniqueDays;
+            return dailyData;
         };
-
-        const uniqueHostDays = getUniqueDays(penjualanData, 'Nama Host');
-        const uniqueAdminDays = getUniqueDays(penjualanData, 'Nama Admin');
-        const uniqueTreatmentDays = getUniqueDays(treatmentData, 'Orang Treatment');
+        
+        const hostDailyData = getPersonDailyData(penjualanData, 'Nama Host');
+        const adminDailyData = getPersonDailyData(penjualanData, 'Nama Admin');
+        const treatmentPcsData = treatmentData.reduce((acc, row) => {
+            const person = String(row['Orang Treatment'] || '').trim();
+            if (person) {
+                acc[person] = (acc[person] || 0) + Number(row['PCS Treatment'] || 0);
+            }
+            return acc;
+        }, {});
 
         const hostSalaryRate = 80000;
         const adminSalaryRate = 60000;
-        const treatmentSalaryRate = 12500; // Ini per PCS Treatment, bukan per hari. Jadi kita harus hitung total PCS Treatment
+        const treatmentPerPcsRate = 12500;
 
-        // Re-calculate Treatment Salary based on Total PCS Treatment
-        const totalPcsTreatment = treatmentData.reduce((s, r) => s + Number(r['PCS Treatment'] || 0), 0);
-        const estimatedTreatmentSalary = totalPcsTreatment * treatmentSalaryRate;
+        const renderSalaryTable = (tbodyElement, dataMap, rate, isPcsRate = false) => {
+            tbodyElement.innerHTML = '';
+            if (Object.keys(dataMap).length === 0) {
+                tbodyElement.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>`;
+                return;
+            }
 
+            const sortedNames = Object.keys(dataMap).sort(); // Sort alphabetically for consistent order
+            sortedNames.forEach(name => {
+                let count = 0;
+                let estimatedSalary = 0;
+                if (isPcsRate) {
+                    count = dataMap[name]; // Ini adalah total PCS
+                    estimatedSalary = count * rate;
+                } else {
+                    count = dataMap[name].size; // Ini adalah jumlah hari unik
+                    estimatedSalary = count * rate;
+                }
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="py-2 px-3 text-sm font-medium text-gray-900">${name}</td>
+                    <td class="py-2 px-3 text-sm text-gray-500">${isPcsRate ? count.toLocaleString('id-ID') + ' PCS' : count.toLocaleString('id-ID') + ' Hari'}</td>
+                    <td class="py-2 px-3 text-sm font-semibold text-gray-800">${formatCurrency(estimatedSalary)}</td>
+                `;
+                tbodyElement.appendChild(tr);
+            });
+        };
 
-        salesReportHostSalary.textContent = formatCurrency(uniqueHostDays * hostSalaryRate);
-        salesReportAdminSalary.textContent = formatCurrency(uniqueAdminDays * adminSalaryRate);
-        salesReportTreatmentSalary.textContent = formatCurrency(estimatedTreatmentSalary); // Menggunakan total PCS Treatment
+        renderSalaryTable(salesReportHostSalaryTable, hostDailyData, hostSalaryRate, false);
+        renderSalaryTable(salesReportAdminSalaryTable, adminDailyData, adminSalaryRate, false);
+        renderSalaryTable(salesReportTreatmentSalaryTable, treatmentPcsData, treatmentPerPcsRate, true);
 
 
         // 4. Tren Penjualan Bulanan (Chart.js)
