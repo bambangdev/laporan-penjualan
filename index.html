@@ -357,11 +357,12 @@
                                         <tr>
                                             <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
                                             <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Hari Unik</th>
-                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Estimasi Gaji</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Gaji Pokok</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Total Gaji</th>
                                         </tr>
                                     </thead>
                                     <tbody id="salesReportHostSalaryTable" class="divide-y divide-gray-200">
-                                        <tr><td colspan="3" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>
+                                        <tr><td colspan="4" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -374,11 +375,12 @@
                                         <tr>
                                             <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
                                             <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Hari Unik</th>
-                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Estimasi Gaji</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Gaji Pokok</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Total Gaji</th>
                                         </tr>
                                     </thead>
                                     <tbody id="salesReportAdminSalaryTable" class="divide-y divide-gray-200">
-                                        <tr><td colspan="3" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>
+                                        <tr><td colspan="4" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -390,8 +392,8 @@
                                     <thead class="bg-gray-50">
                                         <tr>
                                             <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
-                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Total PCS</th>
-                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Estimasi Gaji</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Hari Unik</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Gaji Pokok</th>
                                         </tr>
                                     </thead>
                                     <tbody id="salesReportTreatmentSalaryTable" class="divide-y divide-gray-200">
@@ -1092,66 +1094,115 @@
         salesReportRepeatCustomers.textContent = repeatCustomers.toLocaleString('id-ID');
 
         // NEW: Estimasi Gaji Calculation and Rendering for tables
-        const getPersonDailyData = (dataArray, personField) => {
-            const dailyData = {};
+        // Helper untuk menghitung hari unik per orang
+        const getPersonUniqueDays = (dataArray, personField) => {
+            const personDays = {};
             dataArray.forEach(row => {
                 const date = moment(row['Tanggal Input']);
                 const person = String(row[personField] || '').trim();
                 if (date.isValid() && person) {
-                    const dayKey = date.format('YYYY-MM-DD');
-                    dailyData[person] = dailyData[person] || new Set();
-                    dailyData[person].add(dayKey);
+                    personDays[person] = personDays[person] || new Set();
+                    personDays[person].add(date.format('YYYY-MM-DD'));
                 }
             });
-            return dailyData;
+            return personDays; // Mengembalikan map nama -> Set hari unik
         };
-        
-        const hostDailyData = getPersonDailyData(penjualanData, 'Nama Host');
-        const adminDailyData = getPersonDailyData(penjualanData, 'Nama Admin');
-        const treatmentPcsData = treatmentData.reduce((acc, row) => {
-            const person = String(row['Orang Treatment'] || '').trim();
-            if (person) {
-                acc[person] = (acc[person] || 0) + Number(row['PCS Treatment'] || 0);
+
+        // Helper untuk mendapatkan total bonus per orang (dari fungsi calculateAndRenderScoreboard)
+        // Kita akan re-run sebagian logika calculateAndRenderScoreboard untuk mendapatkan total bonus per individu
+        const getPersonBonus = (sourceData, groupByField, pcsField, omzetField, bonusRate, bonusType, target) => {
+            const performance = {};
+            const salesByPerson = sourceData.reduce((acc, row) => {
+                const key = row[groupByField];
+                if (key) (acc[key] = acc[key] || []).push(row);
+                return acc;
+            }, {});
+
+            const getJustDate = (isoString) => isoString ? isoString.split('T')[0] : null; // Define locally if not global
+
+            for (const name in salesByPerson) {
+                const personSales = salesByPerson[name];
+                let totalBonus = 0;
+
+                const salesByDay = personSales.reduce((acc, row) => {
+                    const day = getJustDate(row['Tanggal Input']);
+                    if (day) {
+                        (acc[day] = acc[day] || []).push(row);
+                    }
+                    return acc;
+                }, {});
+
+                for (const date in salesByDay) {
+                    const dailyPcs = salesByDay[date].reduce((s, r) => s + Number(r[pcsField] || 0), 0);
+                    if (dailyPcs >= target) {
+                         if (bonusType === 'percentage') {
+                            const dailyOmzet = salesByDay[date].reduce((s, r) => s + parseCurrency(r[omzetField] || 0), 0);
+                            totalBonus += dailyOmzet * bonusRate;
+                         } else if (bonusType === 'fixed') {
+                            totalBonus += bonusRate;
+                         }
+                    }
+                }
+                performance[name] = { totalBonus };
             }
-            return acc;
-        }, {});
+            return performance;
+        };
+
+
+        const hostDailyData = getPersonUniqueDays(penjualanData, 'Nama Host');
+        const adminDailyData = getPersonUniqueDays(penjualanData, 'Nama Admin');
+        const treatmentDailyData = getPersonUniqueDays(treatmentData, 'Orang Treatment'); // Gaji treatment berdasarkan hari unik
+
+        const hostBonusData = getPersonBonus(penjualanData, 'Nama Host', 'Total Pcs', 'Total Omzet', 0.03, 'percentage', 40);
+        const adminBonusData = getPersonBonus(penjualanData, 'Nama Admin', 'Total Pcs', 'Total Omzet', 0.01, 'percentage', 40);
 
         const hostSalaryRate = 80000;
         const adminSalaryRate = 60000;
-        const treatmentPerPcsRate = 12500;
+        const treatmentDailyRate = 12500; // Tarif gaji treatment per hari unik
 
-        const renderSalaryTable = (tbodyElement, dataMap, rate, isPcsRate = false) => {
+
+        const renderSalaryTable = (tbodyElement, dailyDataMap, bonusDataMap, rate, isTreatment = false) => {
             tbodyElement.innerHTML = '';
-            if (Object.keys(dataMap).length === 0) {
-                tbodyElement.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>`;
+            const allNames = new Set([...Object.keys(dailyDataMap), ...Object.keys(bonusDataMap)]);
+            const sortedNames = Array.from(allNames).sort();
+
+            if (sortedNames.length === 0) {
+                if (isTreatment) {
+                    tbodyElement.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>`;
+                } else {
+                    tbodyElement.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>`;
+                }
                 return;
             }
 
-            const sortedNames = Object.keys(dataMap).sort(); // Sort alphabetically for consistent order
             sortedNames.forEach(name => {
-                let count = 0;
-                let estimatedSalary = 0;
-                if (isPcsRate) {
-                    count = dataMap[name]; // Ini adalah total PCS
-                    estimatedSalary = count * rate;
-                } else {
-                    count = dataMap[name].size; // Ini adalah jumlah hari unik
-                    estimatedSalary = count * rate;
-                }
+                const uniqueDays = dailyDataMap[name] ? dailyDataMap[name].size : 0;
+                const basicSalary = uniqueDays * rate;
+                const totalBonus = bonusDataMap[name] ? bonusDataMap[name].totalBonus : 0;
+                const totalSalary = basicSalary + totalBonus;
                 
                 const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="py-2 px-3 text-sm font-medium text-gray-900">${name}</td>
-                    <td class="py-2 px-3 text-sm text-gray-500">${isPcsRate ? count.toLocaleString('id-ID') + ' PCS' : count.toLocaleString('id-ID') + ' Hari'}</td>
-                    <td class="py-2 px-3 text-sm font-semibold text-gray-800">${formatCurrency(estimatedSalary)}</td>
-                `;
+                if (isTreatment) {
+                    tr.innerHTML = `
+                        <td class="py-2 px-3 text-sm font-medium text-gray-900">${name}</td>
+                        <td class="py-2 px-3 text-sm text-gray-500">${uniqueDays.toLocaleString('id-ID')} Hari</td>
+                        <td class="py-2 px-3 text-sm font-semibold text-gray-800">${formatCurrency(basicSalary)}</td>
+                    `;
+                } else {
+                    tr.innerHTML = `
+                        <td class="py-2 px-3 text-sm font-medium text-gray-900">${name}</td>
+                        <td class="py-2 px-3 text-sm text-gray-500">${uniqueDays.toLocaleString('id-ID')} Hari</td>
+                        <td class="py-2 px-3 text-sm text-gray-500">${formatCurrency(basicSalary)}</td>
+                        <td class="py-2 px-3 text-sm font-semibold text-green-600">${formatCurrency(totalSalary)}</td>
+                    `;
+                }
                 tbodyElement.appendChild(tr);
             });
         };
 
-        renderSalaryTable(salesReportHostSalaryTable, hostDailyData, hostSalaryRate, false);
-        renderSalaryTable(salesReportAdminSalaryTable, adminDailyData, adminSalaryRate, false);
-        renderSalaryTable(salesReportTreatmentSalaryTable, treatmentPcsData, treatmentPerPcsRate, true);
+        renderSalaryTable(salesReportHostSalaryTable, hostDailyData, hostBonusData, hostSalaryRate, false);
+        renderSalaryTable(salesReportAdminSalaryTable, adminDailyData, adminBonusData, adminSalaryRate, false);
+        renderSalaryTable(salesReportTreatmentSalaryTable, treatmentDailyData, {}, treatmentDailyRate, true); // Treatment tidak ada bonus
 
 
         // 4. Tren Penjualan Bulanan (Chart.js)
