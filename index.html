@@ -171,6 +171,12 @@
                              <select id="dashboardFilterShift" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="">Semua Shift</option></select>
                              <select id="dashboardFilterHost" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="">Semua Host</option></select>
                              <select id="dashboardFilterAdmin" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="">Semua Admin</option></select>
+                             <select id="dashboardFilterTransactionType" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
+                                <option value="">Semua Jenis Transaksi</option>
+                                <option value="Penjualan">Penjualan</option>
+                                <option value="Return">Return</option>
+                                <option value="Treatment">Treatment</option>
+                             </select>
                              <div class="col-span-1 sm:col-span-2 lg:col-span-4">
                                 <input type="text" id="dashboardDateRangePicker" placeholder="Pilih rentang tanggal" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
                              </div>
@@ -185,6 +191,13 @@
                         
                         <div class="mt-8">
                             <h3 class="text-lg font-semibold text-gray-800 mb-4">Data Transaksi</h3>
+                            <div class="flex justify-end mb-4">
+                                <button id="exportExcelBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-9.293a1 1 0 011.414 0L10 9.586l1.293-1.293a1 1 0 111.414 1.414l-2 2a1 1 0 01-1.414 0l-2-2a1 1 0 010-1.414z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M9 2a1 1 0 011 1v7a1 1 0 11-2 0V3a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                                    Export Excel
+                                </button>
+                            </div>
+
                             <div id="dashboardTableContainer" class="table-responsive">
                                 <table class="min-w-full bg-white">
                                     <thead class="bg-gray-50">
@@ -210,7 +223,12 @@
                                 <button id="nextPageBtn" class="pagination-btn bg-pink-500 hover:bg-pink-600 text-white py-2 px-4 rounded-lg">Berikutnya</button>
                             </div>
                             <div id="editTransactionModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
-                                <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 flex flex-col max-h-[90vh]"> <h2 class="text-2xl font-bold text-gray-800 p-8 pb-4">Edit Data Transaksi</h2> <div class="px-8 pb-4 overflow-y-auto flex-grow"> <form id="editTransactionForm" novalidate class="space-y-4"> <input type="hidden" id="editRowIndex">
+                                <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 flex flex-col max-h-[90vh]">
+                                    <h2 class="text-2xl font-bold text-gray-800 p-8 pb-4">Edit Data Transaksi</h2>
+                                    
+                                    <div class="px-8 pb-4 overflow-y-auto flex-grow">
+                                        <form id="editTransactionForm" novalidate class="space-y-4">
+                                            <input type="hidden" id="editRowIndex">
                                             <input type="hidden" id="editOriginalTimestamp">
                                             
                                             <div class="space-y-4"> 
@@ -230,7 +248,8 @@
                                         </form>
                                     </div>
                                     
-                                    <div class="p-8 pt-4 bg-white border-t border-gray-200"> <div class="flex space-x-4">
+                                    <div class="p-8 pt-4 bg-white border-t border-gray-200">
+                                        <div class="flex space-x-4">
                                             <button type="button" id="cancelEditTransaction" class="w-full py-2 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300">Batal</button>
                                             <button type="submit" form="editTransactionForm" id="saveEditTransaction" class="w-full py-2 px-4 bg-pink-600 text-white font-semibold rounded-lg hover:bg-pink-700 flex items-center justify-center"><span>Simpan Perubahan</span><div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 ml-3 hidden"></div></button>
                                         </div>
@@ -342,6 +361,65 @@
                         </div>
                     </div>
 
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-6">
+                        <div>
+                            <h4 class="font-semibold text-gray-700 mb-2">Estimasi Gaji & Bonus Host</h4>
+                            <div class="table-responsive border rounded-lg">
+                                <table class="min-w-full bg-white">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Hari Unik</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Gaji Pokok</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Bonus</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="salesReportHostCombinedTable" class="divide-y divide-gray-200">
+                                        <tr><td colspan="5" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-700 mb-2">Estimasi Gaji & Bonus Admin</h4>
+                            <div class="table-responsive border rounded-lg">
+                                <table class="min-w-full bg-white">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Hari Unik</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Gaji Pokok</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Bonus</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="salesReportAdminCombinedTable" class="divide-y divide-gray-200">
+                                        <tr><td colspan="5" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-700 mb-2">Estimasi Gaji Treatment</h4>
+                            <div class="table-responsive border rounded-lg">
+                                <table class="min-w-full bg-white">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Hari Unik</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Gaji Pokok</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="salesReportTreatmentCombinedTable" class="divide-y divide-gray-200">
+                                        <tr><td colspan="3" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+
                     <div class="bg-white p-6 rounded-lg shadow-md mb-6" style="height: 400px;">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Tren Omzet Penjualan Bulanan</h3>
                         <canvas id="monthlySalesChart"></canvas>
@@ -366,7 +444,7 @@
                     </div>
 
 
-                     <div id="salesReportScoreboard">
+                    <div id="salesReportBonusScoreboard">
                          <h3 class="text-lg font-semibold text-gray-800 mb-4">Scoreboard Estimasi Bonus Harian</h3>
                          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                              <div>
@@ -412,9 +490,9 @@
     let monthlySalesChartInstance = null;
 
     // --- Pagination variables for Dashboard Table ---
-    let filteredDashboardData = []; // Menyimpan data yang sudah difilter untuk dashboard
+    let filteredDashboardData = [];
     let currentPage = 1;
-    const rowsPerPage = 30; // Jumlah baris per halaman, diubah dari 100 ke 30
+    const rowsPerPage = 30;
 
     // --- DOM ELEMENTS ---
     const loginSection = document.getElementById('loginSection');
@@ -469,12 +547,18 @@
     const salesReportUniqueCustomers = document.getElementById('salesReportUniqueCustomers');
     const salesReportRepeatCustomers = document.getElementById('salesReportRepeatCustomers');
     const salesReportTopHostTable = document.getElementById('salesReportTopHostTable');
+    // Estimasi Gaji Table Elements
+    const salesReportHostCombinedTable = document.getElementById('salesReportHostCombinedTable');
+    const salesReportAdminCombinedTable = document.getElementById('salesReportAdminCombinedTable');
+    const salesReportTreatmentCombinedTable = document.getElementById('salesReportTreatmentCombinedTable');
 
-    // NEW: Pagination DOM Elements
+
     const prevPageBtn = document.getElementById('prevPageBtn');
     const nextPageBtn = document.getElementById('nextPageBtn');
     const currentPageSpan = document.getElementById('currentPageSpan');
     const totalPagesSpan = document.getElementById('totalPagesSpan');
+
+    const exportExcelBtn = document.getElementById('exportExcelBtn');
 
 
     // --- HELPER FUNCTIONS ---
@@ -649,11 +733,13 @@
         const dashboardFilterShift = document.getElementById('dashboardFilterShift');
         const dashboardFilterHost = document.getElementById('dashboardFilterHost');
         const dashboardFilterAdmin = document.getElementById('dashboardFilterAdmin');
+        const dashboardFilterTransactionType = document.getElementById('dashboardFilterTransactionType');
         
         const searchTerm = dashboardSearchCustomer.value.toLowerCase();
         const selectedShift = dashboardFilterShift.value;
         const selectedHost = dashboardFilterHost.value;
         const selectedAdmin = dashboardFilterAdmin.value;
+        const selectedTransactionType = dashboardFilterTransactionType.value;
         const startDate = dashboardDatePicker.getStartDate()?.toJSDate();
         const endDate = dashboardDatePicker.getEndDate()?.toJSDate();
         if(startDate) startDate.setHours(0,0,0,0);
@@ -666,8 +752,9 @@
             const shiftMatch = selectedShift ? row.Shift === selectedShift : true;
             const hostMatch = selectedHost ? row['Nama Host'] === selectedHost : true;
             const adminMatch = selectedAdmin ? row['Nama Admin'] === selectedAdmin : true;
+            const transactionTypeMatch = selectedTransactionType ? row['Jenis Transaksi'] === selectedTransactionType : true;
             const dateMatch = (!startDate || (rowDate && rowDate >= startDate)) && (!endDate || (rowDate && rowDate <= endDate));
-            return customerMatch && shiftMatch && hostMatch && adminMatch && dateMatch;
+            return customerMatch && shiftMatch && hostMatch && adminMatch && transactionTypeMatch && dateMatch;
         });
         
         // Reset halaman saat filter berubah
@@ -692,6 +779,21 @@
         statOmzetReturn.textContent = formatCurrency(returnData.reduce((s, r) => s + Number(r['Total Omzet'] || 0), 0));
     }
     
+    // Dipindahkan ke luar agar bisa diakses oleh applySalesReportFilters
+    function renderScoreboardTable(tbody, performanceData) {
+        tbody.innerHTML = '';
+        // Ubah sorting menjadi berdasarkan bonus untuk tampilan yang lebih relevan untuk bonus
+        const sortedNames = Object.keys(performanceData).sort((a,b) => performanceData[b].totalBonus - performanceData[a].totalBonus);
+        if (sortedNames.length === 0) {
+             tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>`;
+             return;
+        }
+        sortedNames.forEach(name => {
+            const perf = performanceData[name];
+            tbody.innerHTML += `<tr><td class="py-2 px-3 text-sm font-medium text-gray-900">${name}</td><td class="py-2 px-3 text-sm text-gray-500">${perf.totalPcs.toLocaleString('id-ID')}</td><td class="py-2 px-3 text-sm font-semibold text-pink-600">${formatCurrency(perf.totalBonus)}</td></tr>`;
+        });
+    }
+
     function calculateAndRenderScoreboard(data, hostTbodyId, adminTbodyId, treatmentTbodyId) {
         const getJustDate = (isoString) => isoString ? isoString.split('T')[0] : null;
 
@@ -730,19 +832,6 @@
                 performance[name] = { totalPcs, totalBonus };
             }
             return performance;
-        };
-        
-        const renderScoreboardTable = (tbody, performanceData) => {
-            tbody.innerHTML = '';
-            const sortedNames = Object.keys(performanceData).sort((a,b) => performanceData[b].totalBonus - performanceData[a].totalBonus);
-            if (sortedNames.length === 0) {
-                 tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>`;
-                 return;
-            }
-            sortedNames.forEach(name => {
-                const perf = performanceData[name];
-                tbody.innerHTML += `<tr><td class="py-2 px-3 text-sm font-medium text-gray-900">${name}</td><td class="py-2 px-3 text-sm text-gray-500">${perf.totalPcs.toLocaleString('id-ID')}</td><td class="py-2 px-3 text-sm font-semibold text-pink-600">${formatCurrency(perf.totalBonus)}</td></tr>`;
-            });
         };
         
         const salesData = data.filter(r => r['Jenis Transaksi'] === 'Penjualan');
@@ -819,6 +908,52 @@
         }
         renderDashboardTable(); // Render ulang tabel dengan halaman baru
     }
+
+    // Fungsi untuk export data ke Excel (CSV)
+    function exportDashboardToExcel() {
+        if (filteredDashboardData.length === 0) {
+            alert('Tidak ada data untuk diekspor.');
+            return;
+        }
+
+        // Headers (sesuai urutan kolom di tabel)
+        const headers = [
+            'Tanggal', 'Customer', 'Shift', 'Host', 'Admin',
+            'PCS', 'Omzet', 'Jenis Transaksi', 'PCS Treatment'
+        ];
+
+        let csvContent = headers.join(',') + '\n'; // Baris header CSV
+
+        filteredDashboardData.forEach(row => {
+            const rowValues = [
+                row['Tanggal Input'] ? new Date(row['Tanggal Input']).toLocaleDateString('id-ID') : '', // Format tanggal
+                `"${String(row['Nama Customer'] || '').replace(/"/g, '""')}"`, // Bungkus dengan quote untuk koma atau karakter khusus
+                `"${String(row['Shift'] || '').replace(/"/g, '""')}"`,
+                `"${String(row['Nama Host'] || '').replace(/"/g, '""')}"`,
+                `"${String(row['Nama Admin'] || '').replace(/"/g, '""')}"`,
+                Number(row['Total Pcs'] || 0),
+                Number(row['Total Omzet'] || 0), // Biarkan angka mentah untuk Excel
+                `"${String(row['Jenis Transaksi'] || '').replace(/"/g, '""')}"`,
+                Number(row['PCS Treatment'] || 0)
+            ];
+            csvContent += rowValues.join(',') + '\n';
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'Laporan_Dashboard_InfiniThree_' + moment().format('YYYYMMDD_HHmmss') + '.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } else {
+            alert('Browser Anda tidak mendukung pengunduhan file secara langsung. Silakan salin data secara manual.');
+        }
+    }
+
 
     function populateEditModal(data) {
         editRowIndexInput.value = data.rowIndex;
@@ -989,11 +1124,13 @@
              return (!startDate || (rowDate && rowDate >= startDate)) && (!endDate || (rowDate && rowDate <= endDate));
         });
 
-        calculateAndRenderScoreboard(filteredData, 'salesReportHostScoreboardBody', 'salesReportAdminScoreboardBody', 'salesReportTreatmentScoreboardBody');
+        // Panggil scoreboard lama jika masih ingin ditampilkan (sebelumnya di sini)
+        // calculateAndRenderScoreboard(filteredData, 'salesReportHostScoreboardBody', 'salesReportAdminScoreboardBody', 'salesReportTreatmentScoreboardBody');
 
         const penjualanData = filteredData.filter(r => r['Jenis Transaksi'] === 'Penjualan');
         const returnData = filteredData.filter(r => r['Jenis Transaksi'] === 'Return');
-        
+        const treatmentData = filteredData.filter(r => r['Jenis Transaksi'] === 'Treatment');
+
         // 1. Net Omzet
         const totalOmzetPenjualan = penjualanData.reduce((s, r) => s + parseCurrency(r['Total Omzet'] || 0), 0);
         const totalOmzetReturn = returnData.reduce((s, r) => s + parseCurrency(r['Total Omzet'] || 0), 0);
@@ -1024,6 +1161,120 @@
             }
         }
         salesReportRepeatCustomers.textContent = repeatCustomers.toLocaleString('id-ID');
+
+        // Estimasi Gaji & Bonus Calculations
+        const getPersonUniqueDays = (dataArray, personField) => {
+            const personDays = {};
+            dataArray.forEach(row => {
+                const date = moment(row['Tanggal Input']);
+                const person = String(row[personField] || '').trim();
+                if (date.isValid() && person) {
+                    personDays[person] = personDays[person] || new Set();
+                    personDays[person].add(date.format('YYYY-MM-DD'));
+                }
+            });
+            return personDays;
+        };
+
+        const getPersonBonus = (sourceData, groupByField, pcsField, omzetField, bonusRate, bonusType, target) => {
+            const performance = {};
+            const getJustDate = (isoString) => isoString ? isoString.split('T')[0] : null;
+
+            sourceData.forEach(row => {
+                const name = String(row[groupByField] || '').trim();
+                const day = getJustDate(row['Tanggal Input']);
+                
+                if (name && day) {
+                    performance[name] = performance[name] || { totalPcsDaily: {}, totalOmzetDaily: {} };
+                    performance[name].totalPcsDaily[day] = (performance[name].totalPcsDaily[day] || 0) + Number(row[pcsField] || 0);
+                    if (omzetField) {
+                        performance[name].totalOmzetDaily[day] = (performance[name].totalOmzetDaily[day] || 0) + parseCurrency(row[omzetField] || 0);
+                    }
+                }
+            });
+
+            const bonusSummary = {};
+            for (const name in performance) {
+                let currentPersonTotalBonus = 0;
+                let currentPersonTotalPcs = 0;
+                for (const day in performance[name].totalPcsDaily) {
+                    const dailyPcs = performance[name].totalPcsDaily[day];
+                    currentPersonTotalPcs += dailyPcs;
+                    if (dailyPcs >= target) {
+                        if (bonusType === 'percentage') {
+                            const dailyOmzet = performance[name].totalOmzetDaily[day] || 0;
+                            currentPersonTotalBonus += dailyOmzet * bonusRate;
+                        } else if (bonusType === 'fixed') {
+                            currentPersonTotalBonus += bonusRate;
+                        }
+                    }
+                }
+                bonusSummary[name] = {
+                    totalPcs: currentPersonTotalPcs,
+                    totalBonus: currentPersonTotalBonus
+                };
+            }
+            return bonusSummary;
+        }
+
+        const hostDailyData = getPersonUniqueDays(penjualanData, 'Nama Host');
+        const adminDailyData = getPersonUniqueDays(penjualanData, 'Nama Admin');
+        const treatmentDailyData = getPersonUniqueDays(treatmentData, 'Orang Treatment'); // Hari unik untuk treatment
+
+        const hostBonusData = getPersonBonus(penjualanData, 'Nama Host', 'Total Pcs', 'Total Omzet', 0.03, 'percentage', 40);
+        const adminBonusData = getPersonBonus(penjualanData, 'Nama Admin', 'Total Pcs', 'Total Omzet', 0.01, 'percentage', 40);
+        const treatmentBonusData = getPersonBonus(treatmentData, 'Orang Treatment', 'PCS Treatment', null, 2500, 'fixed', 30); // Untuk bonus treatment jika ada target PCS treatment harian
+
+        const hostSalaryRate = 80000;
+        const adminSalaryRate = 60000;
+        const treatmentDailyRate = 12500; // Gaji pokok treatment per hari unik
+
+
+        // NEW: Fungsi rendering tabel gabungan Gaji Pokok, Bonus, dan Total Gaji
+        const renderCombinedSalaryBonusTable = (tbodyElement, dailyDataMap, bonusDataMap, rate, type) => {
+            tbodyElement.innerHTML = '';
+            const allNames = new Set([...Object.keys(dailyDataMap), ...Object.keys(bonusDataMap)]);
+            const sortedNames = Array.from(allNames).sort();
+
+            if (sortedNames.length === 0) {
+                if (type === 'Treatment') {
+                    tbodyElement.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>`;
+                } else {
+                    tbodyElement.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>`;
+                }
+                return;
+            }
+
+            sortedNames.forEach(name => {
+                const uniqueDays = dailyDataMap[name] ? dailyDataMap[name].size : 0;
+                const basicSalary = uniqueDays * rate;
+                const bonus = bonusDataMap[name] ? bonusDataMap[name].totalBonus : 0;
+                const totalCombinedSalary = basicSalary + bonus;
+                
+                const tr = document.createElement('tr');
+                if (type === 'Treatment') {
+                    tr.innerHTML = `
+                        <td class="py-2 px-3 text-sm font-medium text-gray-900">${name}</td>
+                        <td class="py-2 px-3 text-sm text-gray-500">${uniqueDays.toLocaleString('id-ID')} Hari</td>
+                        <td class="py-2 px-3 text-sm font-semibold text-gray-800">${formatCurrency(basicSalary)}</td>
+                    `;
+                } else {
+                    tr.innerHTML = `
+                        <td class="py-2 px-3 text-sm font-medium text-gray-900">${name}</td>
+                        <td class="py-2 px-3 text-sm text-gray-500">${uniqueDays.toLocaleString('id-ID')} Hari</td>
+                        <td class="py-2 px-3 text-sm text-gray-500">${formatCurrency(basicSalary)}</td>
+                        <td class="py-2 px-3 text-sm text-green-600">${formatCurrency(bonus)}</td>
+                        <td class="py-2 px-3 text-sm font-semibold text-blue-600">${formatCurrency(totalCombinedSalary)}</td>
+                    `;
+                }
+                tbodyElement.appendChild(tr);
+            });
+        };
+
+        // Render combined tables
+        renderCombinedSalaryBonusTable(salesReportHostCombinedTable, hostDailyData, hostBonusData, hostSalaryRate, 'Host');
+        renderCombinedSalaryBonusTable(salesReportAdminCombinedTable, adminDailyData, adminBonusData, adminSalaryRate, 'Admin');
+        renderCombinedSalaryBonusTable(salesReportTreatmentCombinedTable, treatmentDailyData, treatmentBonusData, treatmentDailyRate, 'Treatment');
 
 
         // 4. Tren Penjualan Bulanan (Chart.js)
@@ -1288,13 +1539,17 @@
             document.getElementById('dashboardFilterShift').addEventListener(evt, applyFilters);
             document.getElementById('dashboardFilterHost').addEventListener(evt, applyFilters);
             document.getElementById('dashboardFilterAdmin').addEventListener(evt, applyFilters);
+            document.getElementById('dashboardFilterTransactionType').addEventListener(evt, applyFilters);
         });
         
         salesReportDatePicker.on('selected', () => applySalesReportFilters());
 
-        // NEW: Event listeners for pagination buttons
+        // Event listeners for pagination buttons
         prevPageBtn.addEventListener('click', () => changePage('prev'));
         nextPageBtn.addEventListener('click', () => changePage('next'));
+
+        // Event listener for Export Excel button
+        exportExcelBtn.addEventListener('click', exportDashboardToExcel);
 
         pinInputs[0].focus();
     });
