@@ -444,7 +444,8 @@
                     </div>
 
 
-                    <div id="salesReportBonusScoreboard"> <h3 class="text-lg font-semibold text-gray-800 mb-4">Scoreboard Estimasi Bonus Harian</h3>
+                    <div id="salesReportBonusScoreboard">
+                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Scoreboard Estimasi Bonus Harian</h3>
                          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                              <div>
                                  <h4 class="font-semibold text-gray-700 mb-2">Estimasi Bonus Host</h4>
@@ -513,7 +514,7 @@
     const cancelSalesReportBtn = document.getElementById('cancelSalesReport');
 
     const editRowPasswordModal = document.getElementById('editRowPasswordModal');
-    const editRowPasswordForm = document = document.getElementById('editRowPasswordForm'); // Corrected typo
+    const editRowPasswordForm = document.getElementById('editRowPasswordForm');
     const editRowPasswordInput = document.getElementById('editRowPasswordInput');
     const editRowPasswordError = document.getElementById('editRowPasswordError');
     const cancelEditRowBtn = document.getElementById('cancelEditRow');
@@ -547,9 +548,9 @@
     const salesReportRepeatCustomers = document.getElementById('salesReportRepeatCustomers');
     const salesReportTopHostTable = document.getElementById('salesReportTopHostTable');
     // Estimasi Gaji Table Elements
-    const salesReportHostCombinedTable = document.getElementById('salesReportHostCombinedTable'); // Changed ID
-    const salesReportAdminCombinedTable = document.getElementById('salesReportAdminCombinedTable'); // Changed ID
-    const salesReportTreatmentCombinedTable = document.getElementById('salesReportTreatmentCombinedTable'); // Changed ID
+    const salesReportHostCombinedTable = document.getElementById('salesReportHostCombinedTable');
+    const salesReportAdminCombinedTable = document.getElementById('salesReportAdminCombinedTable');
+    const salesReportTreatmentCombinedTable = document.getElementById('salesReportTreatmentCombinedTable');
 
 
     const prevPageBtn = document.getElementById('prevPageBtn');
@@ -778,6 +779,21 @@
         statOmzetReturn.textContent = formatCurrency(returnData.reduce((s, r) => s + Number(r['Total Omzet'] || 0), 0));
     }
     
+    // Dipindahkan ke luar agar bisa diakses oleh applySalesReportFilters
+    function renderScoreboardTable(tbody, performanceData) {
+        tbody.innerHTML = '';
+        // Ubah sorting menjadi berdasarkan bonus untuk tampilan yang lebih relevan untuk bonus
+        const sortedNames = Object.keys(performanceData).sort((a,b) => performanceData[b].totalBonus - performanceData[a].totalBonus);
+        if (sortedNames.length === 0) {
+             tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>`;
+             return;
+        }
+        sortedNames.forEach(name => {
+            const perf = performanceData[name];
+            tbody.innerHTML += `<tr><td class="py-2 px-3 text-sm font-medium text-gray-900">${name}</td><td class="py-2 px-3 text-sm text-gray-500">${perf.totalPcs.toLocaleString('id-ID')}</td><td class="py-2 px-3 text-sm font-semibold text-pink-600">${formatCurrency(perf.totalBonus)}</td></tr>`;
+        });
+    }
+
     function calculateAndRenderScoreboard(data, hostTbodyId, adminTbodyId, treatmentTbodyId) {
         const getJustDate = (isoString) => isoString ? isoString.split('T')[0] : null;
 
@@ -816,19 +832,6 @@
                 performance[name] = { totalPcs, totalBonus };
             }
             return performance;
-        };
-        
-        const renderScoreboardTable = (tbody, performanceData) => {
-            tbody.innerHTML = '';
-            const sortedNames = Object.keys(performanceData).sort((a,b) => performanceData[b].totalBonus - performanceData[a].totalBonus);
-            if (sortedNames.length === 0) {
-                 tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>`;
-                 return;
-            }
-            sortedNames.forEach(name => {
-                const perf = performanceData[name];
-                tbody.innerHTML += `<tr><td class="py-2 px-3 text-sm font-medium text-gray-900">${name}</td><td class="py-2 px-3 text-sm text-gray-500">${perf.totalPcs.toLocaleString('id-ID')}</td><td class="py-2 px-3 text-sm font-semibold text-pink-600">${formatCurrency(perf.totalBonus)}</td></tr>`;
-            });
         };
         
         const salesData = data.filter(r => r['Jenis Transaksi'] === 'Penjualan');
@@ -1121,16 +1124,8 @@
              return (!startDate || (rowDate && rowDate >= startDate)) && (!endDate || (rowDate && rowDate <= endDate));
         });
 
-        // Still call the old scoreboard to get bonus data for combining
-        const hostBonusDataRaw = getPersonBonusDataForScoreboard(filteredData.filter(r => r['Jenis Transaksi'] === 'Penjualan'), 'Nama Host', 'Total Pcs', 'Total Omzet', 0.03, 'percentage', 40);
-        const adminBonusDataRaw = getPersonBonusDataForScoreboard(filteredData.filter(r => r['Jenis Transaksi'] === 'Penjualan'), 'Nama Admin', 'Total Pcs', 'Total Omzet', 0.01, 'percentage', 40);
-        const treatmentBonusDataRaw = getPersonBonusDataForScoreboard(filteredData.filter(r => r['Jenis Transaksi'] === 'Treatment'), 'Orang Treatment', 'PCS Treatment', null, 2500, 'fixed', 30);
-        
-        // Render the old scoreboard (if still desired, otherwise remove this line)
-        renderScoreboardTable(document.getElementById('salesReportHostScoreboardBody'), hostBonusDataRaw,);
-        renderScoreboardTable(document.getElementById('salesReportAdminScoreboardBody'), adminBonusDataRaw,);
-        renderScoreboardTable(document.getElementById('salesReportTreatmentScoreboardBody'), treatmentBonusDataRaw);
-
+        // Panggil scoreboard lama jika masih ingin ditampilkan (sebelumnya di sini)
+        // calculateAndRenderScoreboard(filteredData, 'salesReportHostScoreboardBody', 'salesReportAdminScoreboardBody', 'salesReportTreatmentScoreboardBody');
 
         const penjualanData = filteredData.filter(r => r['Jenis Transaksi'] === 'Penjualan');
         const returnData = filteredData.filter(r => r['Jenis Transaksi'] === 'Return');
@@ -1167,8 +1162,7 @@
         }
         salesReportRepeatCustomers.textContent = repeatCustomers.toLocaleString('id-ID');
 
-        // Estimasi Gaji Calculation and Rendering for tables
-        // Helper untuk menghitung hari unik per orang
+        // Estimasi Gaji & Bonus Calculations
         const getPersonUniqueDays = (dataArray, personField) => {
             const personDays = {};
             dataArray.forEach(row => {
@@ -1179,11 +1173,10 @@
                     personDays[person].add(date.format('YYYY-MM-DD'));
                 }
             });
-            return personDays; // Mengembalikan map nama -> Set hari unik
+            return personDays;
         };
 
-        // NEW: Refactored getPersonBonusDataForScoreboard to be used here
-        function getPersonBonusDataForScoreboard(sourceData, groupByField, pcsField, omzetField, bonusRate, bonusType, target) {
+        const getPersonBonus = (sourceData, groupByField, pcsField, omzetField, bonusRate, bonusType, target) => {
             const performance = {};
             const getJustDate = (isoString) => isoString ? isoString.split('T')[0] : null;
 
@@ -1203,10 +1196,10 @@
             const bonusSummary = {};
             for (const name in performance) {
                 let currentPersonTotalBonus = 0;
-                let currentPersonTotalPcs = 0; // Keep track of total PCS for scoreboard as well
+                let currentPersonTotalPcs = 0;
                 for (const day in performance[name].totalPcsDaily) {
                     const dailyPcs = performance[name].totalPcsDaily[day];
-                    currentPersonTotalPcs += dailyPcs; // Sum up all daily PCS for overall total
+                    currentPersonTotalPcs += dailyPcs;
                     if (dailyPcs >= target) {
                         if (bonusType === 'percentage') {
                             const dailyOmzet = performance[name].totalOmzetDaily[day] || 0;
@@ -1217,34 +1210,29 @@
                     }
                 }
                 bonusSummary[name] = {
-                    totalPcs: currentPersonTotalPcs, // For the original scoreboard if needed
+                    totalPcs: currentPersonTotalPcs,
                     totalBonus: currentPersonTotalBonus
                 };
             }
-            return bonusSummary; // Returns { name: { totalPcs, totalBonus } }
+            return bonusSummary;
         }
-
 
         const hostDailyData = getPersonUniqueDays(penjualanData, 'Nama Host');
         const adminDailyData = getPersonUniqueDays(penjualanData, 'Nama Admin');
-        const treatmentDailyData = getPersonUniqueDays(treatmentData, 'Orang Treatment');
+        const treatmentDailyData = getPersonUniqueDays(treatmentData, 'Orang Treatment'); // Hari unik untuk treatment
 
-        const hostBonusData = getPersonBonusDataForScoreboard(penjualanData, 'Nama Host', 'Total Pcs', 'Total Omzet', 0.03, 'percentage', 40);
-        const adminBonusData = getPersonBonusDataForScoreboard(penjualanData, 'Nama Admin', 'Total Pcs', 'Total Omzet', 0.01, 'percentage', 40);
-        // Treatment does not have bonus from getPersonBonusDataForScoreboard based on your original logic
-        // So, treatment bonus is 0 for combined table purposes if not specifically calculated by another rule
-        const treatmentBonusData = getPersonBonusDataForScoreboard(treatmentData, 'Orang Treatment', 'PCS Treatment', null, 2500, 'fixed', 30); // Use it to get treatment bonus if any
-
+        const hostBonusData = getPersonBonus(penjualanData, 'Nama Host', 'Total Pcs', 'Total Omzet', 0.03, 'percentage', 40);
+        const adminBonusData = getPersonBonus(penjualanData, 'Nama Admin', 'Total Pcs', 'Total Omzet', 0.01, 'percentage', 40);
+        const treatmentBonusData = getPersonBonus(treatmentData, 'Orang Treatment', 'PCS Treatment', null, 2500, 'fixed', 30); // Untuk bonus treatment jika ada target PCS treatment harian
 
         const hostSalaryRate = 80000;
         const adminSalaryRate = 60000;
-        const treatmentDailyRate = 12500; // Tarif gaji treatment per hari unik
+        const treatmentDailyRate = 12500; // Gaji pokok treatment per hari unik
 
 
-        // NEW: Combined render function for Salary and Bonus
+        // NEW: Fungsi rendering tabel gabungan Gaji Pokok, Bonus, dan Total Gaji
         const renderCombinedSalaryBonusTable = (tbodyElement, dailyDataMap, bonusDataMap, rate, type) => {
             tbodyElement.innerHTML = '';
-            // Combine all names from both maps
             const allNames = new Set([...Object.keys(dailyDataMap), ...Object.keys(bonusDataMap)]);
             const sortedNames = Array.from(allNames).sort();
 
@@ -1260,7 +1248,6 @@
             sortedNames.forEach(name => {
                 const uniqueDays = dailyDataMap[name] ? dailyDataMap[name].size : 0;
                 const basicSalary = uniqueDays * rate;
-                // Get bonus for current person, default to 0 if not found
                 const bonus = bonusDataMap[name] ? bonusDataMap[name].totalBonus : 0;
                 const totalCombinedSalary = basicSalary + bonus;
                 
@@ -1287,7 +1274,7 @@
         // Render combined tables
         renderCombinedSalaryBonusTable(salesReportHostCombinedTable, hostDailyData, hostBonusData, hostSalaryRate, 'Host');
         renderCombinedSalaryBonusTable(salesReportAdminCombinedTable, adminDailyData, adminBonusData, adminSalaryRate, 'Admin');
-        renderCombinedSalaryBonusTable(salesReportTreatmentCombinedTable, treatmentDailyData, treatmentBonusData, treatmentDailyRate, 'Treatment'); // Pass treatmentBonusData
+        renderCombinedSalaryBonusTable(salesReportTreatmentCombinedTable, treatmentDailyData, treatmentBonusData, treatmentDailyRate, 'Treatment');
 
 
         // 4. Tren Penjualan Bulanan (Chart.js)
