@@ -556,7 +556,6 @@
     const currentPageSpan = document.getElementById('currentPageSpan');
     const totalPagesSpan = document.getElementById('totalPagesSpan');
 
-    // NEW: Export Excel Button Element
     const exportExcelBtn = document.getElementById('exportExcelBtn');
 
 
@@ -732,13 +731,13 @@
         const dashboardFilterShift = document.getElementById('dashboardFilterShift');
         const dashboardFilterHost = document.getElementById('dashboardFilterHost');
         const dashboardFilterAdmin = document.getElementById('dashboardFilterAdmin');
-        const dashboardFilterTransactionType = document.getElementById('dashboardFilterTransactionType'); // NEW filter
+        const dashboardFilterTransactionType = document.getElementById('dashboardFilterTransactionType');
         
         const searchTerm = dashboardSearchCustomer.value.toLowerCase();
         const selectedShift = dashboardFilterShift.value;
         const selectedHost = dashboardFilterHost.value;
         const selectedAdmin = dashboardFilterAdmin.value;
-        const selectedTransactionType = dashboardFilterTransactionType.value; // NEW filter value
+        const selectedTransactionType = dashboardFilterTransactionType.value;
         const startDate = dashboardDatePicker.getStartDate()?.toJSDate();
         const endDate = dashboardDatePicker.getEndDate()?.toJSDate();
         if(startDate) startDate.setHours(0,0,0,0);
@@ -751,9 +750,9 @@
             const shiftMatch = selectedShift ? row.Shift === selectedShift : true;
             const hostMatch = selectedHost ? row['Nama Host'] === selectedHost : true;
             const adminMatch = selectedAdmin ? row['Nama Admin'] === selectedAdmin : true;
-            const transactionTypeMatch = selectedTransactionType ? row['Jenis Transaksi'] === selectedTransactionType : true; // NEW filter logic
+            const transactionTypeMatch = selectedTransactionType ? row['Jenis Transaksi'] === selectedTransactionType : true;
             const dateMatch = (!startDate || (rowDate && rowDate >= startDate)) && (!endDate || (rowDate && rowDate <= endDate));
-            return customerMatch && shiftMatch && hostMatch && adminMatch && transactionTypeMatch && dateMatch; // Update filter conditions
+            return customerMatch && shiftMatch && hostMatch && adminMatch && transactionTypeMatch && dateMatch;
         });
         
         // Reset halaman saat filter berubah
@@ -905,6 +904,52 @@
         }
         renderDashboardTable(); // Render ulang tabel dengan halaman baru
     }
+
+    // NEW: Fungsi untuk export data ke Excel (CSV)
+    function exportDashboardToExcel() {
+        if (filteredDashboardData.length === 0) {
+            alert('Tidak ada data untuk diekspor.');
+            return;
+        }
+
+        // Headers (sesuai urutan kolom di tabel)
+        const headers = [
+            'Tanggal', 'Customer', 'Shift', 'Host', 'Admin',
+            'PCS', 'Omzet', 'Jenis Transaksi', 'PCS Treatment'
+        ];
+
+        let csvContent = headers.join(',') + '\n'; // Baris header CSV
+
+        filteredDashboardData.forEach(row => {
+            const rowValues = [
+                row['Tanggal Input'] ? new Date(row['Tanggal Input']).toLocaleDateString('id-ID') : '', // Format tanggal
+                `"${String(row['Nama Customer'] || '').replace(/"/g, '""')}"`, // Bungkus dengan quote untuk koma atau karakter khusus
+                `"${String(row['Shift'] || '').replace(/"/g, '""')}"`,
+                `"${String(row['Nama Host'] || '').replace(/"/g, '""')}"`,
+                `"${String(row['Nama Admin'] || '').replace(/"/g, '""')}"`,
+                Number(row['Total Pcs'] || 0),
+                Number(row['Total Omzet'] || 0), // Biarkan angka mentah untuk Excel
+                `"${String(row['Jenis Transaksi'] || '').replace(/"/g, '""')}"`,
+                Number(row['PCS Treatment'] || 0)
+            ];
+            csvContent += rowValues.join(',') + '\n';
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'Laporan_Dashboard_InfiniThree_' + moment().format('YYYYMMDD_HHmmss') + '.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } else {
+            alert('Browser Anda tidak mendukung pengunduhan file secara langsung. Silakan salin data secara manual.');
+        }
+    }
+
 
     function populateEditModal(data) {
         editRowIndexInput.value = data.rowIndex;
@@ -1171,14 +1216,14 @@
 
         const hostDailyData = getPersonUniqueDays(penjualanData, 'Nama Host');
         const adminDailyData = getPersonUniqueDays(penjualanData, 'Nama Admin');
-        const treatmentDailyData = getPersonUniqueDays(treatmentData, 'Orang Treatment'); // Gaji treatment berdasarkan hari unik
+        const treatmentDailyData = getPersonUniqueDays(treatmentData, 'Orang Treatment');
 
         const hostBonusData = getPersonBonus(penjualanData, 'Nama Host', 'Total Pcs', 'Total Omzet', 0.03, 'percentage', 40);
         const adminBonusData = getPersonBonus(penjualanData, 'Nama Admin', 'Total Pcs', 'Total Omzet', 0.01, 'percentage', 40);
 
         const hostSalaryRate = 80000;
         const adminSalaryRate = 60000;
-        const treatmentDailyRate = 12500; // Tarif gaji treatment per hari unik
+        const treatmentDailyRate = 12500;
 
 
         const renderSalaryTable = (tbodyElement, dailyDataMap, bonusDataMap, rate, isTreatment = false) => {
@@ -1198,8 +1243,8 @@
             sortedNames.forEach(name => {
                 const uniqueDays = dailyDataMap[name] ? dailyDataMap[name].size : 0;
                 const basicSalary = uniqueDays * rate;
-                const totalBonus = bonusDataMap[name] ? bonusDataMap[name].totalBonus : 0; // Get bonus
-                const totalSalary = basicSalary + totalBonus; // Total gaji = basic + bonus
+                const totalBonus = bonusDataMap[name] ? bonusDataMap[name].totalBonus : 0;
+                const totalSalary = basicSalary + totalBonus;
                 
                 const tr = document.createElement('tr');
                 if (isTreatment) {
@@ -1487,7 +1532,7 @@
             document.getElementById('dashboardFilterShift').addEventListener(evt, applyFilters);
             document.getElementById('dashboardFilterHost').addEventListener(evt, applyFilters);
             document.getElementById('dashboardFilterAdmin').addEventListener(evt, applyFilters);
-            document.getElementById('dashboardFilterTransactionType').addEventListener(evt, applyFilters); // NEW listener
+            document.getElementById('dashboardFilterTransactionType').addEventListener(evt, applyFilters); // Listener untuk filter baru
         });
         
         salesReportDatePicker.on('selected', () => applySalesReportFilters());
