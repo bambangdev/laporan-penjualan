@@ -97,17 +97,10 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                         Dashboard
                     </a>
-                    <a href="#inputPenjualan" class="sidebar-link" data-page="inputPenjualanPage">
+                    <!-- IMPROVEMENT: Unified input link -->
+                    <a href="#inputTransaksi" class="sidebar-link" data-page="inputTransaksiPage">
                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                        Input Penjualan
-                    </a>
-                    <a href="#inputReturn" class="sidebar-link" data-page="inputReturnPage">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l-3 3m3-3l3-3m-3 3h6a4 4 0 014 4v1m-6 0h6m-6 0H6a2 2 0 01-2-2V7a2 2 0 012-2h10a2 2 0 012 2v1"></path></svg>
-                        Input Return
-                    </a>
-                     <a href="#inputTreatment" class="sidebar-link" data-page="inputTreatmentPage">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 16l-4 1 1-4 9.293-9.293a1 1 0 011.414 0z"></path></svg>
-                        Input Treatment
+                        Input Transaksi
                     </a>
                     <a href="#customerReport" class="sidebar-link" data-page="customerReportPage">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
@@ -154,7 +147,6 @@
                             <div class="stat-card"><p class="text-sm text-gray-500">Total Omzet Penjualan</p><p id="statOmzetPenjualan" class="text-2xl font-bold text-green-600">Rp 0</p></div>
                             <div class="stat-card"><p class="text-sm text-gray-500">Total PCS Return</p><p id="statPcsReturn" class="text-2xl font-bold text-gray-900">0</p></div>
                             <div class="stat-card"><p class="text-sm text-gray-500">Total Omzet Return</p><p id="statOmzetReturn" class="text-2xl font-bold text-red-600">Rp 0</p></div>
-                            <!-- IMPROVEMENT: Added Treatment Scoreboard -->
                             <div class="stat-card"><p class="text-sm text-gray-500">Total PCS Treatment</p><p id="statPcsTreatment" class="text-2xl font-bold text-blue-600">0</p></div>
                         </div>
                         
@@ -230,54 +222,47 @@
                     </div>
                 </div>
 
-                <!-- Halaman Input Penjualan -->
-                <div id="inputPenjualanPage" class="page">
-                    <h1 class="text-3xl font-bold text-gray-800 mb-6">Input Laporan Penjualan</h1>
-                     <form id="penjualanForm" novalidate class="max-w-md mx-auto p-6 bg-white rounded-lg shadow">
+                <!-- IMPROVEMENT: Unified Input Page -->
+                <div id="inputTransaksiPage" class="page">
+                    <h1 class="text-3xl font-bold text-gray-800 mb-6">Input Transaksi Baru</h1>
+                     <form id="unifiedForm" novalidate class="max-w-md mx-auto p-6 bg-white rounded-lg shadow">
                         <div class="space-y-4">
-                            <div><label for="penjualanShift" class="block text-sm font-medium text-gray-700 mb-1">Shift</label><select id="penjualanShift" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="" disabled selected>-- Pilih Shift --</option><option value="Shift Pagi">Shift Pagi</option><option value="Shift Siang">Shift Siang</option></select></div>
-                            <div><label for="penjualanHost" class="block text-sm font-medium text-gray-700 mb-1">Nama Host</label><select id="penjualanHost" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="" disabled selected>-- Pilih Host --</option></select></div>
-                            <div id="penjualanBackupHostContainer" class="hidden"><label for="penjualanBackupHost" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Host Backup</label><input type="text" id="penjualanBackupHost" placeholder="Ketik nama host pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
-                            <div><label for="penjualanAdmin" class="block text-sm font-medium text-gray-700 mb-1">Nama Admin</label><select id="penjualanAdmin" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="" disabled selected>-- Pilih Admin --</option></select></div>
-                            <div id="penjualanBackupAdminContainer" class="hidden"><label for="penjualanBackupAdmin" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Admin Backup</label><input type="text" id="penjualanBackupAdmin" placeholder="Ketik nama admin pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
-                            <div><label for="penjualanCustomer" class="block text-sm font-medium text-gray-700 mb-1">Nama Customer</label><input type="text" id="penjualanCustomer" required placeholder="Ketik nama customer" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
-                            <div><label for="penjualanPcs" class="block text-sm font-medium text-gray-700 mb-1">Total Pcs</label><input type="number" id="penjualanPcs" required placeholder="Contoh: 50" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
-                            <div><label for="penjualanOmzet" class="block text-sm font-medium text-gray-700 mb-1">Total Omzet (Rp)</label><input type="text" id="penjualanOmzet" required placeholder="Contoh: 1.500.000" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
-                        </div>
-                        <button type="submit" id="penjualanSubmitBtn" class="w-full bg-pink-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 transition duration-150 ease-in-out flex items-center justify-center mt-6"><span>Kirim Penjualan</span><div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 ml-3 hidden"></div></button>
-                        <p id="penjualanStatus" class="mt-4 text-center text-sm h-4"></p>
-                    </form>
-                </div>
+                            <!-- Transaction Type Selector -->
+                            <div>
+                                <label for="transactionType" class="block text-sm font-medium text-gray-700 mb-1">Jenis Transaksi</label>
+                                <select id="transactionType" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
+                                    <option value="" disabled selected>-- Pilih Jenis Transaksi --</option>
+                                    <option value="Penjualan">Penjualan</option>
+                                    <option value="Return">Return</option>
+                                    <option value="Treatment">Treatment</option>
+                                </select>
+                            </div>
 
-                <!-- Halaman Input Return -->
-                <div id="inputReturnPage" class="page">
-                     <h1 class="text-3xl font-bold text-gray-800 mb-6">Input Laporan Return</h1>
-                     <form id="returnForm" novalidate class="max-w-md mx-auto p-6 bg-white rounded-lg shadow">
-                        <div class="space-y-4">
-                            <div><label for="returnHost" class="block text-sm font-medium text-gray-700 mb-1">Nama Host</label><select id="returnHost" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="" disabled selected>-- Pilih Host --</option></select></div>
-                            <div id="returnBackupHostContainer" class="hidden"><label for="returnBackupHost" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Host Backup</label><input type="text" id="returnBackupHost" placeholder="Ketik nama host pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
-                            <div><label for="returnAdmin" class="block text-sm font-medium text-gray-700 mb-1">Nama Admin</label><select id="returnAdmin" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="">-- Pilih Admin --</option></select></div>
-                            <div id="returnBackupAdminContainer" class="hidden"><label for="returnBackupAdmin" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Admin Backup</label><input type="text" id="returnBackupAdmin" placeholder="Ketik nama admin pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
-                            <div><label for="returnCustomer" class="block text-sm font-medium text-gray-700 mb-1">Nama Customer</label><input type="text" id="returnCustomer" required placeholder="Ketik nama customer" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
-                            <div><label for="returnPcs" class="block text-sm font-medium text-gray-700 mb-1">Total Pcs</label><input type="number" id="returnPcs" required placeholder="Contoh: 5" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
-                            <div><label for="returnOmzet" class="block text-sm font-medium text-gray-700 mb-1">Total Omzet (Rp)</label><input type="text" id="returnOmzet" required placeholder="Contoh: 150.000" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                            <!-- Fields for Penjualan -->
+                            <div id="penjualanFields" class="hidden space-y-4">
+                                <div><label for="penjualanShift" class="block text-sm font-medium text-gray-700 mb-1">Shift</label><select id="penjualanShift" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="" disabled selected>-- Pilih Shift --</option><option value="Shift Pagi">Shift Pagi</option><option value="Shift Siang">Shift Siang</option></select></div>
+                            </div>
+
+                            <!-- Fields for Penjualan & Return -->
+                            <div id="salesReturnFields" class="hidden space-y-4">
+                                <div><label for="salesReturnHost" class="block text-sm font-medium text-gray-700 mb-1">Nama Host</label><select id="salesReturnHost" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="" disabled selected>-- Pilih Host --</option></select></div>
+                                <div id="salesReturnBackupHostContainer" class="hidden"><label for="salesReturnBackupHost" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Host Backup</label><input type="text" id="salesReturnBackupHost" placeholder="Ketik nama host pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                                <div><label for="salesReturnAdmin" class="block text-sm font-medium text-gray-700 mb-1">Nama Admin</label><select id="salesReturnAdmin" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="" disabled selected>-- Pilih Admin --</option></select></div>
+                                <div id="salesReturnBackupAdminContainer" class="hidden"><label for="salesReturnBackupAdmin" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Admin Backup</label><input type="text" id="salesReturnBackupAdmin" placeholder="Ketik nama admin pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                                <div><label for="salesReturnCustomer" class="block text-sm font-medium text-gray-700 mb-1">Nama Customer</label><input type="text" id="salesReturnCustomer" placeholder="Ketik nama customer" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                                <div><label for="salesReturnPcs" class="block text-sm font-medium text-gray-700 mb-1">Total Pcs</label><input type="number" id="salesReturnPcs" placeholder="Contoh: 50" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                                <div><label for="salesReturnOmzet" class="block text-sm font-medium text-gray-700 mb-1">Total Omzet (Rp)</label><input type="text" id="salesReturnOmzet" placeholder="Contoh: 1.500.000" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                            </div>
+
+                            <!-- Fields for Treatment -->
+                            <div id="treatmentFields" class="hidden space-y-4">
+                                <div><label for="treatmentPerson" class="block text-sm font-medium text-gray-700 mb-1">Nama Orang Treatment</label><select id="treatmentPerson" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="" disabled selected>-- Pilih Nama --</option></select></div>
+                                <div id="treatmentBackupContainer" class="hidden"><label for="treatmentBackupPerson" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Pengganti</label><input type="text" id="treatmentBackupPerson" placeholder="Ketik nama pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                                <div><label for="treatmentPcs" class="block text-sm font-medium text-gray-700 mb-1">Jumlah PCS di-Treatment</label><input type="number" id="treatmentPcs" placeholder="Contoh: 35" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
+                            </div>
                         </div>
-                        <button type="submit" id="returnSubmitBtn" class="w-full bg-pink-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 transition duration-150 ease-in-out flex items-center justify-center mt-6"><span>Kirim Return</span><div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 ml-3 hidden"></div></button>
-                        <p id="returnStatus" class="mt-4 text-center text-sm h-4"></p>
-                    </form>
-                </div>
-                
-                <!-- Halaman Input Treatment -->
-                <div id="inputTreatmentPage" class="page">
-                     <h1 class="text-3xl font-bold text-gray-800 mb-6">Input Data Treatment</h1>
-                     <form id="treatmentForm" novalidate class="max-w-md mx-auto p-6 bg-white rounded-lg shadow">
-                        <div class="space-y-4">
-                            <div><label for="treatmentPerson" class="block text-sm font-medium text-gray-700 mb-1">Nama Orang Treatment</label><select id="treatmentPerson" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="" disabled selected>-- Pilih Nama --</option></select></div>
-                             <div id="treatmentBackupContainer" class="hidden"><label for="treatmentBackupPerson" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Pengganti</label><input type="text" id="treatmentBackupPerson" placeholder="Ketik nama pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
-                            <div><label for="treatmentPcs" class="block text-sm font-medium text-gray-700 mb-1">Jumlah PCS di-Treatment</label><input type="number" id="treatmentPcs" required placeholder="Contoh: 35" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
-                        </div>
-                        <button type="submit" id="treatmentSubmitBtn" class="w-full bg-pink-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 transition duration-150 ease-in-out flex items-center justify-center mt-6"><span>Kirim Data Treatment</span><div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 ml-3 hidden"></div></button>
-                        <p id="treatmentStatus" class="mt-4 text-center text-sm h-4"></p>
+                        <button type="submit" id="unifiedSubmitBtn" class="w-full bg-pink-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 transition duration-150 ease-in-out flex items-center justify-center mt-6"><span>Kirim Transaksi</span><div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 ml-3 hidden"></div></button>
+                        <p id="unifiedFormStatus" class="mt-4 text-center text-sm h-4"></p>
                     </form>
                 </div>
 
@@ -288,7 +273,6 @@
                         <label for="customerReportDateRangePicker" class="block text-sm font-medium text-gray-700 mb-1">Pilih Rentang Tanggal</label>
                         <input type="text" id="customerReportDateRangePicker" placeholder="Filter data berdasarkan tanggal" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
                     </div>
-                     <!-- IMPROVEMENT: Changed to leaderboard tables -->
                      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div>
                             <h4 class="text-lg font-semibold text-gray-800 mb-2">Top 10 Customer (Pembelian Terbanyak)</h4>
@@ -342,7 +326,6 @@
                             <p class="text-sm text-gray-500">Rasio Return (%)</p>
                             <p id="salesReportReturnRatio" class="text-2xl font-bold text-red-600">0.00%</p>
                         </div>
-                         <!-- IMPROVEMENT: Added cursor-pointer and hover effects -->
                          <div id="uniqueCustomersCard" class="stat-card cursor-pointer hover:bg-gray-200 transition">
                             <p class="text-sm text-gray-500">Total Customer Unik</p>
                             <p id="salesReportUniqueCustomers" class="text-2xl font-bold text-purple-600">0</p>
@@ -411,7 +394,6 @@
                         </div>
                     </div>
 
-                    <!-- IMPROVEMENT: Changed chart title -->
                     <div class="bg-white p-6 rounded-lg shadow-md mb-6" style="height: 400px;">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Tren Penjualan Harian</h3>
                         <canvas id="dailySalesChart"></canvas>
