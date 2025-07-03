@@ -2,7 +2,7 @@
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzpSVOHsYuDXUoJqHJ4mi2bHiHVT7tqSgD1Q6iq2RKHhwIqszVCfczZUMrNB7zzoFn/exec';
 const CORRECT_PIN = '7501';
 const SALES_REPORT_PIN = 'yanto1'; 
-const EDIT_PIN = '69960';
+const EDIT_PIN = 'yanto1';
 const hostList = ['wafa', 'debi', 'bunga'];
 const adminList = ['Bunga', 'Teh Ros'];
 const treatmentPersonList = ['Bunda', 'Resin'];
@@ -105,6 +105,14 @@ const salesReturnFields = document.getElementById('salesReturnFields');
 const treatmentFields = document.getElementById('treatmentFields');
 const unifiedSubmitBtn = document.getElementById('unifiedSubmitBtn');
 const unifiedFormStatus = document.getElementById('unifiedFormStatus');
+// BUG FIX: Get elements for backup functionality in unified form
+const salesReturnHostSelect = document.getElementById('salesReturnHost');
+const salesReturnAdminSelect = document.getElementById('salesReturnAdmin');
+const treatmentPersonSelect = document.getElementById('treatmentPerson');
+const salesReturnBackupHostContainer = document.getElementById('salesReturnBackupHostContainer');
+const salesReturnBackupAdminContainer = document.getElementById('salesReturnBackupAdminContainer');
+const treatmentBackupContainer = document.getElementById('treatmentBackupContainer');
+const salesReturnOmzetInput = document.getElementById('salesReturnOmzet');
 
 
 // --- HELPER FUNCTIONS ---
@@ -818,6 +826,20 @@ function setupUnifiedForm() {
         }
     });
 
+    // BUG FIX: Add event listeners for backup functionality
+    salesReturnHostSelect.addEventListener('change', () => {
+        salesReturnBackupHostContainer.classList.toggle('hidden', salesReturnHostSelect.value !== 'Backup');
+    });
+    salesReturnAdminSelect.addEventListener('change', () => {
+        salesReturnBackupAdminContainer.classList.toggle('hidden', salesReturnAdminSelect.value !== 'Backup');
+    });
+    treatmentPersonSelect.addEventListener('change', () => {
+        treatmentBackupContainer.classList.toggle('hidden', treatmentPersonSelect.value !== 'Backup');
+    });
+    salesReturnOmzetInput.addEventListener('input', (e) => {
+        e.target.value = formatCurrency(parseCurrency(e.target.value));
+    });
+
     unifiedForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
@@ -841,8 +863,8 @@ function setupUnifiedForm() {
 
         if (selectedType === 'Penjualan' || selectedType === 'Return') {
             customerName = document.getElementById('salesReturnCustomer').value.trim();
-            const finalHost = document.getElementById('salesReturnHost').value === 'Backup' ? document.getElementById('salesReturnBackupHost').value.trim() : document.getElementById('salesReturnHost').value;
-            const finalAdmin = document.getElementById('salesReturnAdmin').value === 'Backup' ? document.getElementById('salesReturnBackupAdmin').value.trim() : document.getElementById('salesReturnAdmin').value;
+            const finalHost = salesReturnHostSelect.value === 'Backup' ? document.getElementById('salesReturnBackupHost').value.trim() : salesReturnHostSelect.value;
+            const finalAdmin = salesReturnAdminSelect.value === 'Backup' ? document.getElementById('salesReturnBackupAdmin').value.trim() : salesReturnAdminSelect.value;
             
             Object.assign(formData, {
                 shift: selectedType === 'Penjualan' ? document.getElementById('penjualanShift').value : '',
@@ -850,10 +872,10 @@ function setupUnifiedForm() {
                 adminName: finalAdmin,
                 customerName: customerName,
                 totalPcs: document.getElementById('salesReturnPcs').value,
-                totalOmzet: parseCurrency(document.getElementById('salesReturnOmzet').value)
+                totalOmzet: parseCurrency(salesReturnOmzetInput.value)
             });
         } else if (selectedType === 'Treatment') {
-            const finalTreatment = document.getElementById('treatmentPerson').value === 'Backup' ? document.getElementById('treatmentBackupPerson').value.trim() : document.getElementById('treatmentPerson').value;
+            const finalTreatment = treatmentPersonSelect.value === 'Backup' ? document.getElementById('treatmentBackupPerson').value.trim() : treatmentPersonSelect.value;
             Object.assign(formData, {
                 orangTreatment: finalTreatment,
                 pcsTreatment: document.getElementById('treatmentPcs').value
@@ -917,9 +939,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Populate dropdowns for the unified form
-    populateDropdown(document.getElementById('salesReturnHost'), hostList);
-    populateDropdown(document.getElementById('salesReturnAdmin'), adminList);
-    populateDropdown(document.getElementById('treatmentPerson'), treatmentPersonList);
+    populateDropdown(salesReturnHostSelect, hostList);
+    populateDropdown(salesReturnAdminSelect, adminList);
+    populateDropdown(treatmentPersonSelect, treatmentPersonList);
 
     // Populate dropdowns for the edit modal
     populateDropdown(editHostInput, hostList);
