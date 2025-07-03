@@ -10,7 +10,7 @@ let allData = [];
 let isDataFetched = false;
 let dashboardDatePicker, customerDatePicker, salesReportDatePicker;
 let currentRowToEdit = null;
-let dailySalesChartInstance = null; // IMPROVEMENT: Renamed chart instance
+let dailySalesChartInstance = null;
 
 // --- Storing customer lists for modals ---
 let uniqueCustomerList = [];
@@ -86,7 +86,7 @@ const totalPagesSpan = document.getElementById('totalPagesSpan');
 
 const exportExcelBtn = document.getElementById('exportExcelBtn');
 
-// IMPROVEMENT: New DOM elements
+// New DOM elements from improvements
 const statPcsTreatment = document.getElementById('statPcsTreatment');
 const topBuyersTable = document.getElementById('topBuyersTable');
 const topReturnersTable = document.getElementById('topReturnersTable');
@@ -96,6 +96,15 @@ const customerListModal = document.getElementById('customerListModal');
 const customerListModalTitle = document.getElementById('customerListModalTitle');
 const customerListModalBody = document.getElementById('customerListModalBody');
 const closeCustomerListModal = document.getElementById('closeCustomerListModal');
+
+// Unified Form DOM Elements
+const unifiedForm = document.getElementById('unifiedForm');
+const transactionTypeSelect = document.getElementById('transactionType');
+const penjualanFields = document.getElementById('penjualanFields');
+const salesReturnFields = document.getElementById('salesReturnFields');
+const treatmentFields = document.getElementById('treatmentFields');
+const unifiedSubmitBtn = document.getElementById('unifiedSubmitBtn');
+const unifiedFormStatus = document.getElementById('unifiedFormStatus');
 
 
 // --- HELPER FUNCTIONS ---
@@ -136,7 +145,6 @@ function switchPage(pageId) {
     if (window.innerWidth < 1024) {
         closeSidebar();
     }
-    // IMPROVEMENT: Set default dates for all report pages
     if (['dashboardPage', 'customerReportPage', 'salesReportPage'].includes(pageId)) {
         if (pageId === 'dashboardPage' && !dashboardDatePicker.getStartDate()) {
             dashboardDatePicker.setDateRange(moment().startOf('month').toDate(), moment().endOf('month').toDate());
@@ -231,7 +239,6 @@ cancelEditTransactionBtn.addEventListener('click', () => {
     editBackupTreatmentContainer.classList.add('hidden');
 });
 
-// IMPROVEMENT: Logic for customer list modal
 function showCustomerListModal(title, customers) {
     customerListModalTitle.textContent = title;
     customerListModalBody.innerHTML = '';
@@ -288,6 +295,7 @@ async function fetchData() {
     }
 }
 
+// --- DASHBOARD LOGIC ---
 function applyFilters() {
     const searchTerm = document.getElementById('dashboardSearchCustomer').value.toLowerCase();
     const selectedShift = document.getElementById('dashboardFilterShift').value;
@@ -318,14 +326,12 @@ function applyFilters() {
 function calculateAndRenderStats(data) {
     const penjualanData = data.filter(r => r['Jenis Transaksi'] === 'Penjualan');
     const returnData = data.filter(r => r['Jenis Transaksi'] === 'Return');
-    // IMPROVEMENT: Calculate treatment data
     const treatmentData = data.filter(r => r['Jenis Transaksi'] === 'Treatment');
 
     document.getElementById('statPcsPenjualan').textContent = penjualanData.reduce((s, r) => s + Number(r['Total Pcs'] || 0), 0).toLocaleString('id-ID');
     document.getElementById('statOmzetPenjualan').textContent = formatCurrency(penjualanData.reduce((s, r) => s + parseCurrency(r['Total Omzet'] || 0), 0));
     document.getElementById('statPcsReturn').textContent = returnData.reduce((s, r) => s + Number(r['Total Pcs'] || 0), 0).toLocaleString('id-ID');
     document.getElementById('statOmzetReturn').textContent = formatCurrency(returnData.reduce((s, r) => s + parseCurrency(r['Total Omzet'] || 0), 0));
-    // IMPROVEMENT: Render treatment stats
     statPcsTreatment.textContent = treatmentData.reduce((s, r) => s + Number(r['PCS Treatment'] || 0), 0).toLocaleString('id-ID');
 }
 
@@ -538,7 +544,6 @@ function applyCustomerReportFilters() {
     calculateAndRenderCustomerLeaderboards(filteredData);
 }
 
-// IMPROVEMENT: Reworked to generate top 10 leaderboards
 function calculateAndRenderCustomerLeaderboards(data) {
     const getTop10 = (sourceData, pcsField, omzetField, sortField = 'omzet') => {
         if (sourceData.length === 0) return [];
@@ -603,7 +608,6 @@ function applySalesReportFilters() {
     salesReportNetOmzet.textContent = formatCurrency(totalOmzetPenjualan - totalOmzetReturn);
     salesReportReturnRatio.textContent = `${(totalOmzetPenjualan > 0 ? (totalOmzetReturn / totalOmzetPenjualan) * 100 : 0).toFixed(2)}%`;
 
-    // IMPROVEMENT: Calculate and store customer lists
     const customerPurchaseCounts = penjualanData.reduce((acc, row) => {
         const customerName = String(row['Nama Customer'] || '').trim();
         if (customerName) acc[customerName] = (acc[customerName] || 0) + 1;
@@ -700,11 +704,9 @@ function applySalesReportFilters() {
     renderTopHostSalesTable(penjualanData);
 }
 
-// IMPROVEMENT: Reworked to be a daily trend chart
 function renderDailySalesChart(data, startDate, endDate) {
     const dailyData = {};
     
-    // Initialize all days in the range with 0 omzet
     if (startDate && endDate) {
         let currentDay = moment(startDate);
         while(currentDay.isSameOrBefore(endDate, 'day')) {
@@ -713,7 +715,6 @@ function renderDailySalesChart(data, startDate, endDate) {
         }
     }
     
-    // Populate with actual data
     data.forEach(row => {
         const date = moment(row['Tanggal Input']);
         if (date.isValid()) {
@@ -795,77 +796,103 @@ function populateFilters() {
     populateDropdown(dashboardFilterAdmin, getUniqueValues('Nama Admin'), false);
 }
 
-function setupForm(formId, type, formFields) {
-    const form = document.getElementById(formId);
-    
-    formFields.omzet?.addEventListener('input', (e) => { e.target.value = formatCurrency(parseCurrency(e.target.value)); });
-    
-    if (formFields.host) formFields.host.onchange = () => { formFields.backupHostContainer?.classList.toggle('hidden', formFields.host.value !== 'Backup'); };
-    if (formFields.admin) formFields.admin.onchange = () => { formFields.backupAdminContainer?.classList.toggle('hidden', formFields.admin.value !== 'Backup'); };
-    if (formFields.treatment) formFields.treatment.onchange = () => { formFields.backupTreatmentContainer?.classList.toggle('hidden', formFields.treatment.value !== 'Backup'); };
+// --- UNIFIED FORM LOGIC ---
+function setupUnifiedForm() {
+    const formFields = {
+        'Penjualan': ['penjualanFields', 'salesReturnFields'],
+        'Return': ['salesReturnFields'],
+        'Treatment': ['treatmentFields']
+    };
 
-    form.addEventListener('submit', async (e) => {
+    const allFieldsets = [penjualanFields, salesReturnFields, treatmentFields];
+
+    transactionTypeSelect.addEventListener('change', () => {
+        const selectedType = transactionTypeSelect.value;
+        
+        allFieldsets.forEach(fs => fs.classList.add('hidden'));
+
+        if (formFields[selectedType]) {
+            formFields[selectedType].forEach(fieldId => {
+                document.getElementById(fieldId).classList.remove('hidden');
+            });
+        }
+    });
+
+    unifiedForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (!form.checkValidity()) {
-            form.querySelector(':invalid')?.focus();
-            formFields.status.textContent = 'Error: Mohon isi semua kolom.';
-            formFields.status.className = 'mt-4 text-center text-sm h-4 text-red-600';
+        
+        const selectedType = transactionTypeSelect.value;
+        if (!selectedType) {
+            unifiedFormStatus.textContent = 'Error: Mohon pilih jenis transaksi.';
+            unifiedFormStatus.className = 'mt-4 text-center text-sm h-4 text-red-600';
             return;
         }
-        formFields.status.textContent = '';
-        const submitBtn = document.getElementById(formFields.submitBtnId);
-        const btnText = submitBtn.querySelector('span');
-        const loader = submitBtn.querySelector('.loader');
+
+        unifiedFormStatus.textContent = '';
+        const btnText = unifiedSubmitBtn.querySelector('span');
+        const loader = unifiedSubmitBtn.querySelector('.loader');
         
-        const customerName = formFields.customer?.value.trim();
-        if (customerName && ['Penjualan', 'Return'].includes(type)) {
-            if (checkDuplicateCustomerToday(customerName, type)) {
-                if (!window.confirm(`Peringatan: Nama pelanggan "${customerName}" untuk transaksi ${type} sudah terinput di hari ini. Lanjutkan pengiriman?`)) {
-                    formFields.status.textContent = 'Pengiriman dibatalkan.';
-                    formFields.status.className = 'mt-4 text-center text-sm h-4 text-gray-600';
+        btnText.classList.add('hidden');
+        loader.classList.remove('hidden');
+        unifiedSubmitBtn.disabled = true;
+
+        let formData = { action: 'add', transactionType: selectedType };
+        let customerName = '';
+
+        if (selectedType === 'Penjualan' || selectedType === 'Return') {
+            customerName = document.getElementById('salesReturnCustomer').value.trim();
+            const finalHost = document.getElementById('salesReturnHost').value === 'Backup' ? document.getElementById('salesReturnBackupHost').value.trim() : document.getElementById('salesReturnHost').value;
+            const finalAdmin = document.getElementById('salesReturnAdmin').value === 'Backup' ? document.getElementById('salesReturnBackupAdmin').value.trim() : document.getElementById('salesReturnAdmin').value;
+            
+            Object.assign(formData, {
+                shift: selectedType === 'Penjualan' ? document.getElementById('penjualanShift').value : '',
+                host: finalHost,
+                adminName: finalAdmin,
+                customerName: customerName,
+                totalPcs: document.getElementById('salesReturnPcs').value,
+                totalOmzet: parseCurrency(document.getElementById('salesReturnOmzet').value)
+            });
+        } else if (selectedType === 'Treatment') {
+            const finalTreatment = document.getElementById('treatmentPerson').value === 'Backup' ? document.getElementById('treatmentBackupPerson').value.trim() : document.getElementById('treatmentPerson').value;
+            Object.assign(formData, {
+                orangTreatment: finalTreatment,
+                pcsTreatment: document.getElementById('treatmentPcs').value
+            });
+        }
+
+        if (customerName && ['Penjualan', 'Return'].includes(selectedType)) {
+            if (checkDuplicateCustomerToday(customerName, selectedType)) {
+                if (!window.confirm(`Peringatan: Nama pelanggan "${customerName}" untuk transaksi ${selectedType} sudah terinput hari ini. Lanjutkan?`)) {
+                    unifiedFormStatus.textContent = 'Pengiriman dibatalkan.';
+                    unifiedFormStatus.className = 'mt-4 text-center text-sm h-4 text-gray-600';
+                    btnText.classList.remove('hidden');
+                    loader.classList.add('hidden');
+                    unifiedSubmitBtn.disabled = false;
                     return;
                 }
             }
         }
-
-        btnText.classList.add('hidden'); loader.classList.remove('hidden'); submitBtn.disabled = true;
-
-        const finalHost = formFields.host?.value === 'Backup' ? formFields.backupHostInput?.value.trim() : formFields.host?.value;
-        const finalAdmin = formFields.admin?.value === 'Backup' ? formFields.backupAdminInput?.value.trim() : formFields.admin?.value;
-        const finalTreatment = formFields.treatment?.value === 'Backup' ? formFields.backupTreatmentInput?.value.trim() : formFields.treatment?.value;
-
-        const formData = {
-            action: 'add',
-            transactionType: type,
-            shift: formFields.shift?.value || '',
-            host: finalHost || '',
-            adminName: finalAdmin || '',
-            customerName: customerName || '',
-            totalPcs: formFields.pcs?.value || '',
-            totalOmzet: parseCurrency(formFields.omzet?.value) || '',
-            orangTreatment: finalTreatment || '',
-            pcsTreatment: formFields.pcsTreatment?.value || '',
-        };
         
         try {
             const response = await fetch(SCRIPT_URL, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(formData) });
             const result = await response.json();
             if (result.status !== 'success') throw new Error(result.message);
-            formFields.status.textContent = `Laporan ${type} berhasil dikirim!`;
-            formFields.status.className = 'mt-4 text-center text-sm h-4 text-green-600';
-            form.reset();
-            if (formFields.backupHostContainer) formFields.backupHostContainer.classList.add('hidden');
-            if (formFields.backupAdminContainer) formFields.backupAdminContainer.classList.add('hidden');
-            if (formFields.backupTreatmentContainer) formFields.backupTreatmentContainer.classList.add('hidden');
+            unifiedFormStatus.textContent = `Laporan ${selectedType} berhasil dikirim!`;
+            unifiedFormStatus.className = 'mt-4 text-center text-sm h-4 text-green-600';
+            unifiedForm.reset();
+            allFieldsets.forEach(fs => fs.classList.add('hidden'));
             isDataFetched = false;
         } catch (error) {
-            formFields.status.textContent = `Error: ${error.message}`;
-            formFields.status.className = 'mt-4 text-center text-sm h-4 text-red-600';
+            unifiedFormStatus.textContent = `Error: ${error.message}`;
+            unifiedFormStatus.className = 'mt-4 text-center text-sm h-4 text-red-600';
         } finally {
-            btnText.classList.remove('hidden'); loader.classList.add('hidden'); submitBtn.disabled = false;
+            btnText.classList.remove('hidden');
+            loader.classList.add('hidden');
+            unifiedSubmitBtn.disabled = false;
         }
     });
 }
+
 
 // --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -889,34 +916,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    populateDropdown(document.getElementById('penjualanHost'), hostList);
-    populateDropdown(document.getElementById('penjualanAdmin'), adminList);
-    populateDropdown(document.getElementById('returnHost'), hostList);
-    populateDropdown(document.getElementById('returnAdmin'), adminList);
+    // Populate dropdowns for the unified form
+    populateDropdown(document.getElementById('salesReturnHost'), hostList);
+    populateDropdown(document.getElementById('salesReturnAdmin'), adminList);
     populateDropdown(document.getElementById('treatmentPerson'), treatmentPersonList);
+
+    // Populate dropdowns for the edit modal
     populateDropdown(editHostInput, hostList);
     populateDropdown(editAdminInput, adminList);
     populateDropdown(editOrangTreatmentInput, treatmentPersonList);
 
-    setupForm('penjualanForm', 'Penjualan', {
-         shift: document.getElementById('penjualanShift'), host: document.getElementById('penjualanHost'), admin: document.getElementById('penjualanAdmin'), customer: document.getElementById('penjualanCustomer'), pcs: document.getElementById('penjualanPcs'), omzet: document.getElementById('penjualanOmzet'),
-         backupHostContainer: document.getElementById('penjualanBackupHostContainer'), backupAdminContainer: document.getElementById('penjualanBackupAdminContainer'),
-         backupHostInput: document.getElementById('penjualanBackupHost'), backupAdminInput: document.getElementById('penjualanBackupAdmin'),
-         submitBtnId: 'penjualanSubmitBtn', status: document.getElementById('penjualanStatus'),
-    });
-    
-    setupForm('returnForm', 'Return', {
-         host: document.getElementById('returnHost'), admin: document.getElementById('returnAdmin'), customer: document.getElementById('returnCustomer'), pcs: document.getElementById('returnPcs'), omzet: document.getElementById('returnOmzet'),
-         backupHostContainer: document.getElementById('returnBackupHostContainer'), backupAdminContainer: document.getElementById('returnBackupAdminContainer'),
-         backupHostInput: document.getElementById('returnBackupHost'), backupAdminInput: document.getElementById('returnBackupAdmin'),
-         submitBtnId: 'returnSubmitBtn', status: document.getElementById('returnStatus'),
-    });
-
-    setupForm('treatmentForm', 'Treatment', {
-         treatment: document.getElementById('treatmentPerson'), pcsTreatment: document.getElementById('treatmentPcs'),
-         backupTreatmentContainer: document.getElementById('treatmentBackupContainer'), backupTreatmentInput: document.getElementById('treatmentBackupPerson'),
-         submitBtnId: 'treatmentSubmitBtn', status: document.getElementById('treatmentStatus'),
-    });
+    // Setup the unified form logic
+    setupUnifiedForm();
     
     const litepickerOptions = {
         singleMode: false, format: 'DD MMM YY', lang: 'id-ID', numberOfMonths: 2,
@@ -931,7 +942,6 @@ document.addEventListener('DOMContentLoaded', () => {
     customerDatePicker = new Litepicker({ element: document.getElementById('customerReportDateRangePicker'), ...litepickerOptions, setup: (picker) => { picker.on('selected', applyCustomerReportFilters); }});
     salesReportDatePicker = new Litepicker({ element: document.getElementById('salesReportDateRangePicker'), ...litepickerOptions, setup: (picker) => { picker.on('selected', applySalesReportFilters); }});
 
-    // IMPROVEMENT: Set default date ranges on load
     dashboardDatePicker.setDateRange(moment().startOf('month').toDate(), moment().endOf('month').toDate());
     customerDatePicker.setDateRange(moment().startOf('month').toDate(), moment().endOf('month').toDate());
     salesReportDatePicker.setDateRange(moment().subtract(6, 'days').toDate(), moment().toDate());
@@ -948,7 +958,6 @@ document.addEventListener('DOMContentLoaded', () => {
     nextPageBtn.addEventListener('click', () => changePage('next'));
     exportExcelBtn.addEventListener('click', exportDashboardToExcel);
 
-    // IMPROVEMENT: Add event listeners for clickable cards
     uniqueCustomersCard.addEventListener('click', () => showCustomerListModal('Daftar Customer Unik', uniqueCustomerList));
     repeatCustomersCard.addEventListener('click', () => showCustomerListModal('Daftar Customer Repeat', repeatCustomerList));
 
