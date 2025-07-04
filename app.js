@@ -78,6 +78,7 @@ const salesReportHostCombinedTable = document.getElementById('salesReportHostCom
 const salesReportAdminCombinedTable = document.getElementById('salesReportAdminCombinedTable');
 const salesReportTreatmentCombinedTable = document.getElementById('salesReportTreatmentCombinedTable');
 
+
 const prevPageBtn = document.getElementById('prevPageBtn');
 const nextPageBtn = document.getElementById('nextPageBtn');
 const currentPageSpan = document.getElementById('currentPageSpan');
@@ -85,7 +86,6 @@ const totalPagesSpan = document.getElementById('totalPagesSpan');
 
 const exportExcelBtn = document.getElementById('exportExcelBtn');
 
-// New DOM elements from improvements
 const statPcsTreatment = document.getElementById('statPcsTreatment');
 const topBuyersTable = document.getElementById('topBuyersTable');
 const topReturnersTable = document.getElementById('topReturnersTable');
@@ -96,7 +96,6 @@ const customerListModalTitle = document.getElementById('customerListModalTitle')
 const customerListModalBody = document.getElementById('customerListModalBody');
 const closeCustomerListModal = document.getElementById('closeCustomerListModal');
 
-// Unified Form DOM Elements
 const unifiedForm = document.getElementById('unifiedForm');
 const transactionTypeSelect = document.getElementById('transactionType');
 const penjualanFields = document.getElementById('penjualanFields');
@@ -111,6 +110,11 @@ const salesReturnBackupHostContainer = document.getElementById('salesReturnBacku
 const salesReturnBackupAdminContainer = document.getElementById('salesReturnBackupAdminContainer');
 const treatmentBackupContainer = document.getElementById('treatmentBackupContainer');
 const salesReturnOmzetInput = document.getElementById('salesReturnOmzet');
+
+// --- NEW LOADER ELEMENTS ---
+const dashboardLoader = document.getElementById('dashboardLoader');
+const customerLoader = document.getElementById('customerLoader');
+const salesLoader = document.getElementById('salesLoader');
 
 
 // --- HELPER FUNCTIONS ---
@@ -152,17 +156,13 @@ function switchPage(pageId) {
         closeSidebar();
     }
     if (['dashboardPage', 'customerReportPage', 'salesReportPage'].includes(pageId)) {
-        if (pageId === 'dashboardPage' && !dashboardDatePicker.getStartDate()) {
-            dashboardDatePicker.setDateRange(moment().startOf('month').toDate(), moment().endOf('month').toDate());
+        if (!isDataFetched) {
+            fetchData();
+        } else {
+            if (pageId === 'dashboardPage') applyFilters();
+            if (pageId === 'customerReportPage') applyCustomerReportFilters();
+            if (pageId === 'salesReportPage') applySalesReportFilters();
         }
-        if (pageId === 'customerReportPage' && !customerDatePicker.getStartDate()) {
-            customerDatePicker.setDateRange(moment().startOf('month').toDate(), moment().endOf('month').toDate());
-        }
-        if (pageId === 'salesReportPage' && !salesReportDatePicker.getStartDate()) {
-            salesReportDatePicker.setDateRange(moment().subtract(6, 'days').toDate(), moment().toDate());
-        }
-        isDataFetched = false; 
-        fetchData();
     }
 }
 
@@ -272,18 +272,10 @@ closeCustomerListModal.addEventListener('click', () => {
 
 // --- DATA FETCHING & RENDERING LOGIC ---
 async function fetchData() {
-    if (isDataFetched) {
-        if (document.getElementById('dashboardPage').classList.contains('active')) applyFilters();
-        else if (document.getElementById('customerReportPage').classList.contains('active')) applyCustomerReportFilters();
-        else if (document.getElementById('salesReportPage').classList.contains('active')) applySalesReportFilters();
-        return;
-    }
     pageLoader.classList.remove('hidden');
+    pageLoader.classList.add('flex');
     pageError.classList.add('hidden');
     
-    // Hide content while fetching for the first time
-    document.getElementById('dashboardContent').classList.add('hidden');
-
     try {
         const response = await fetch(SCRIPT_URL);
         const result = await response.json();
@@ -301,17 +293,15 @@ async function fetchData() {
         pageError.classList.remove('hidden');
     } finally {
         pageLoader.classList.add('hidden');
-        document.getElementById('dashboardContent').classList.remove('hidden');
+        pageLoader.classList.remove('flex');
     }
 }
 
-// --- DASHBOARD LOGIC (IMPROVED WITH LOADING STATE) ---
+// --- DASHBOARD LOGIC ---
 function applyFilters() {
-    const statsContainer = document.getElementById('statsContainer');
-    const tableContainer = document.getElementById('dashboardTableContainer');
-
-    statsContainer.classList.add('content-processing');
-    tableContainer.classList.add('content-processing');
+    if (!isDataFetched) return;
+    dashboardLoader.classList.remove('hidden');
+    dashboardLoader.classList.add('flex');
 
     setTimeout(() => {
         const searchTerm = document.getElementById('dashboardSearchCustomer').value.toLowerCase();
@@ -321,8 +311,8 @@ function applyFilters() {
         const selectedTransactionType = document.getElementById('dashboardFilterTransactionType').value;
         const startDate = dashboardDatePicker.getStartDate()?.toJSDate();
         const endDate = dashboardDatePicker.getEndDate()?.toJSDate();
-        if (startDate) startDate.setHours(0, 0, 0, 0);
-        if (endDate) endDate.setHours(23, 59, 59, 999);
+        if(startDate) startDate.setHours(0,0,0,0);
+        if(endDate) endDate.setHours(23,59,59,999);
 
         filteredDashboardData = allData.filter(row => {
             const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
@@ -334,16 +324,15 @@ function applyFilters() {
             const dateMatch = (!startDate || !rowDate) ? true : (rowDate >= startDate && rowDate <= endDate);
             return customerMatch && shiftMatch && hostMatch && adminMatch && transactionTypeMatch && dateMatch;
         });
-
+        
         currentPage = 1;
         calculateAndRenderStats(filteredDashboardData);
         renderDashboardTable();
-
-        statsContainer.classList.remove('content-processing');
-        tableContainer.classList.remove('content-processing');
-    }, 10);
+        
+        dashboardLoader.classList.add('hidden');
+        dashboardLoader.classList.remove('flex');
+    }, 50); // Jeda agar browser render loader
 }
-
 
 function calculateAndRenderStats(data) {
     const penjualanData = data.filter(r => r['Jenis Transaksi'] === 'Penjualan');
@@ -552,30 +541,27 @@ editTransactionForm.addEventListener('submit', async (e) => {
     }
 });
 
-// --- CUSTOMER REPORT LOGIC (IMPROVED WITH LOADING STATE) ---
+// --- CUSTOMER REPORT LOGIC ---
 function applyCustomerReportFilters() {
     if (!isDataFetched) return;
-    const topBuyersContainer = topBuyersTable.closest('.table-responsive');
-    const topReturnersContainer = topReturnersTable.closest('.table-responsive');
-
-    topBuyersContainer.classList.add('content-processing');
-    topReturnersContainer.classList.add('content-processing');
+    customerLoader.classList.remove('hidden');
+    customerLoader.classList.add('flex');
 
     setTimeout(() => {
         const startDate = customerDatePicker.getStartDate()?.toJSDate();
         const endDate = customerDatePicker.getEndDate()?.toJSDate();
-        if (startDate) startDate.setHours(0, 0, 0, 0);
-        if (endDate) endDate.setHours(23, 59, 59, 999);
-
+        if(startDate) startDate.setHours(0,0,0,0);
+        if(endDate) endDate.setHours(23,59,59,999);
+        
         const filteredData = allData.filter(row => {
-            const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
-            return (!startDate || !rowDate) ? true : (rowDate >= startDate && rowDate <= endDate);
+             const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
+             return (!startDate || !rowDate) ? true : (rowDate >= startDate && rowDate <= endDate);
         });
         calculateAndRenderCustomerLeaderboards(filteredData);
-
-        topBuyersContainer.classList.remove('content-processing');
-        topReturnersContainer.classList.remove('content-processing');
-    }, 10);
+        
+        customerLoader.classList.add('hidden');
+        customerLoader.classList.remove('flex');
+    }, 50);
 }
 
 function calculateAndRenderCustomerLeaderboards(data) {
@@ -620,24 +606,21 @@ function calculateAndRenderCustomerLeaderboards(data) {
     renderLeaderboard(topReturnersTable, topReturners);
 }
 
-// --- SALES REPORT LOGIC (IMPROVED WITH LOADING STATE) ---
+// --- SALES REPORT LOGIC ---
 function applySalesReportFilters() {
     if (!isDataFetched) return;
-    const insightsContainer = document.getElementById('salesReportInsights');
-    const contentContainers = document.querySelectorAll('#salesReportPage .space-y-8, #salesReportPage .bg-white');
-
-    insightsContainer.classList.add('content-processing');
-    contentContainers.forEach(c => c.classList.add('content-processing'));
+    salesLoader.classList.remove('hidden');
+    salesLoader.classList.add('flex');
 
     setTimeout(() => {
         const startDate = salesReportDatePicker.getStartDate()?.toJSDate();
         const endDate = salesReportDatePicker.getEndDate()?.toJSDate();
-        if (startDate) startDate.setHours(0, 0, 0, 0);
-        if (endDate) endDate.setHours(23, 59, 59, 999);
-
+        if(startDate) startDate.setHours(0,0,0,0);
+        if(endDate) endDate.setHours(23,59,59,999);
+        
         const filteredData = allData.filter(row => {
-            const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
-            return (!startDate || !rowDate) ? true : (rowDate >= startDate && rowDate <= endDate);
+             const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
+             return (!startDate || !rowDate) ? true : (rowDate >= startDate && rowDate <= endDate);
         });
 
         const penjualanData = filteredData.filter(r => r['Jenis Transaksi'] === 'Penjualan');
@@ -744,11 +727,10 @@ function applySalesReportFilters() {
         renderDailySalesChart(penjualanData, startDate, endDate);
         renderTopHostSalesTable(penjualanData);
 
-        insightsContainer.classList.remove('content-processing');
-        contentContainers.forEach(c => c.classList.remove('content-processing'));
-    }, 10);
+        salesLoader.classList.add('hidden');
+        salesLoader.classList.remove('flex');
+    }, 50);
 }
-
 
 function renderDailySalesChart(data, startDate, endDate) {
     const dailyData = {};
@@ -986,7 +968,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupUnifiedForm();
     
     const litepickerOptions = {
-        singleMode: false, format: 'DD MMM YYYY', lang: 'id-ID', numberOfMonths: 2,
+        singleMode: false, format: 'DD MMM YY', lang: 'id-ID', numberOfMonths: 2,
         dropdowns: { minYear: 2020, maxYear: null, months: true, years: true },
         buttonText: {
             'previousMonth': `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>`,
@@ -997,6 +979,10 @@ document.addEventListener('DOMContentLoaded', () => {
     dashboardDatePicker = new Litepicker({ element: document.getElementById('dashboardDateRangePicker'), ...litepickerOptions, setup: (picker) => { picker.on('selected', applyFilters); }});
     customerDatePicker = new Litepicker({ element: document.getElementById('customerReportDateRangePicker'), ...litepickerOptions, setup: (picker) => { picker.on('selected', applyCustomerReportFilters); }});
     salesReportDatePicker = new Litepicker({ element: document.getElementById('salesReportDateRangePicker'), ...litepickerOptions, setup: (picker) => { picker.on('selected', applySalesReportFilters); }});
+
+    dashboardDatePicker.setDateRange(moment().startOf('month').toDate(), moment().endOf('month').toDate());
+    customerDatePicker.setDateRange(moment().startOf('month').toDate(), moment().endOf('month').toDate());
+    salesReportDatePicker.setDateRange(moment().subtract(6, 'days').toDate(), moment().toDate());
 
     document.getElementById('dashboardSearchCustomer').addEventListener('input', applyFilters);
     document.getElementById('dashboardFilterShift').addEventListener('change', applyFilters);
