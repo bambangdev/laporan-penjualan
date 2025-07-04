@@ -58,3 +58,10 @@ body {
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/* Tambahkan ini di akhir file style.css */
+.content-processing {
+    opacity: 0.5;
+    transition: opacity 0.2s ease-in-out;
+    pointer-events: none; /* Mencegah interaksi saat loading */
+}
