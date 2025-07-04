@@ -78,7 +78,6 @@ const salesReportHostCombinedTable = document.getElementById('salesReportHostCom
 const salesReportAdminCombinedTable = document.getElementById('salesReportAdminCombinedTable');
 const salesReportTreatmentCombinedTable = document.getElementById('salesReportTreatmentCombinedTable');
 
-
 const prevPageBtn = document.getElementById('prevPageBtn');
 const nextPageBtn = document.getElementById('nextPageBtn');
 const currentPageSpan = document.getElementById('currentPageSpan');
@@ -105,7 +104,6 @@ const salesReturnFields = document.getElementById('salesReturnFields');
 const treatmentFields = document.getElementById('treatmentFields');
 const unifiedSubmitBtn = document.getElementById('unifiedSubmitBtn');
 const unifiedFormStatus = document.getElementById('unifiedFormStatus');
-// BUG FIX: Get elements for backup functionality in unified form
 const salesReturnHostSelect = document.getElementById('salesReturnHost');
 const salesReturnAdminSelect = document.getElementById('salesReturnAdmin');
 const treatmentPersonSelect = document.getElementById('treatmentPerson');
@@ -283,6 +281,9 @@ async function fetchData() {
     pageLoader.classList.remove('hidden');
     pageError.classList.add('hidden');
     
+    // Hide content while fetching for the first time
+    document.getElementById('dashboardContent').classList.add('hidden');
+
     try {
         const response = await fetch(SCRIPT_URL);
         const result = await response.json();
@@ -300,36 +301,49 @@ async function fetchData() {
         pageError.classList.remove('hidden');
     } finally {
         pageLoader.classList.add('hidden');
+        document.getElementById('dashboardContent').classList.remove('hidden');
     }
 }
 
-// --- DASHBOARD LOGIC ---
+// --- DASHBOARD LOGIC (IMPROVED WITH LOADING STATE) ---
 function applyFilters() {
-    const searchTerm = document.getElementById('dashboardSearchCustomer').value.toLowerCase();
-    const selectedShift = document.getElementById('dashboardFilterShift').value;
-    const selectedHost = document.getElementById('dashboardFilterHost').value;
-    const selectedAdmin = document.getElementById('dashboardFilterAdmin').value;
-    const selectedTransactionType = document.getElementById('dashboardFilterTransactionType').value;
-    const startDate = dashboardDatePicker.getStartDate()?.toJSDate();
-    const endDate = dashboardDatePicker.getEndDate()?.toJSDate();
-    if(startDate) startDate.setHours(0,0,0,0);
-    if(endDate) endDate.setHours(23,59,59,999);
+    const statsContainer = document.getElementById('statsContainer');
+    const tableContainer = document.getElementById('dashboardTableContainer');
 
-    filteredDashboardData = allData.filter(row => {
-        const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
-        const customerMatch = String(row['Nama Customer'] || '').toLowerCase().includes(searchTerm);
-        const shiftMatch = selectedShift ? row.Shift === selectedShift : true;
-        const hostMatch = selectedHost ? row['Nama Host'] === selectedHost : true;
-        const adminMatch = selectedAdmin ? row['Nama Admin'] === selectedAdmin : true;
-        const transactionTypeMatch = selectedTransactionType ? row['Jenis Transaksi'] === selectedTransactionType : true;
-        const dateMatch = (!startDate || !rowDate) ? true : (rowDate >= startDate && rowDate <= endDate);
-        return customerMatch && shiftMatch && hostMatch && adminMatch && transactionTypeMatch && dateMatch;
-    });
-    
-    currentPage = 1;
-    calculateAndRenderStats(filteredDashboardData);
-    renderDashboardTable();
+    statsContainer.classList.add('content-processing');
+    tableContainer.classList.add('content-processing');
+
+    setTimeout(() => {
+        const searchTerm = document.getElementById('dashboardSearchCustomer').value.toLowerCase();
+        const selectedShift = document.getElementById('dashboardFilterShift').value;
+        const selectedHost = document.getElementById('dashboardFilterHost').value;
+        const selectedAdmin = document.getElementById('dashboardFilterAdmin').value;
+        const selectedTransactionType = document.getElementById('dashboardFilterTransactionType').value;
+        const startDate = dashboardDatePicker.getStartDate()?.toJSDate();
+        const endDate = dashboardDatePicker.getEndDate()?.toJSDate();
+        if (startDate) startDate.setHours(0, 0, 0, 0);
+        if (endDate) endDate.setHours(23, 59, 59, 999);
+
+        filteredDashboardData = allData.filter(row => {
+            const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
+            const customerMatch = String(row['Nama Customer'] || '').toLowerCase().includes(searchTerm);
+            const shiftMatch = selectedShift ? row.Shift === selectedShift : true;
+            const hostMatch = selectedHost ? row['Nama Host'] === selectedHost : true;
+            const adminMatch = selectedAdmin ? row['Nama Admin'] === selectedAdmin : true;
+            const transactionTypeMatch = selectedTransactionType ? row['Jenis Transaksi'] === selectedTransactionType : true;
+            const dateMatch = (!startDate || !rowDate) ? true : (rowDate >= startDate && rowDate <= endDate);
+            return customerMatch && shiftMatch && hostMatch && adminMatch && transactionTypeMatch && dateMatch;
+        });
+
+        currentPage = 1;
+        calculateAndRenderStats(filteredDashboardData);
+        renderDashboardTable();
+
+        statsContainer.classList.remove('content-processing');
+        tableContainer.classList.remove('content-processing');
+    }, 10);
 }
+
 
 function calculateAndRenderStats(data) {
     const penjualanData = data.filter(r => r['Jenis Transaksi'] === 'Penjualan');
@@ -381,7 +395,7 @@ function renderDashboardTable() {
     }
 
     currentPageSpan.textContent = currentPage;
-    totalPagesSpan.textContent = totalPages;
+    totalPagesSpan.textContent = totalPages > 0 ? totalPages : 1;
     prevPageBtn.disabled = currentPage === 1;
     nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
 
@@ -397,9 +411,10 @@ function renderDashboardTable() {
 }
 
 function changePage(direction) {
+    const totalPages = Math.ceil(filteredDashboardData.length / rowsPerPage);
     if (direction === 'prev' && currentPage > 1) {
         currentPage--;
-    } else if (direction === 'next' && currentPage < Math.ceil(filteredDashboardData.length / rowsPerPage)) {
+    } else if (direction === 'next' && currentPage < totalPages) {
         currentPage++;
     }
     renderDashboardTable();
@@ -420,13 +435,13 @@ function exportDashboardToExcel() {
             `"${String(row['Nama Host'] || '').replace(/"/g, '""')}"`,
             `"${String(row['Nama Admin'] || '').replace(/"/g, '""')}"`,
             Number(row['Total Pcs'] || 0),
-            Number(row['Total Omzet'] || 0),
+            parseCurrency(row['Total Omzet'] || 0),
             `"${String(row['Jenis Transaksi'] || '').replace(/"/g, '""')}"`,
             Number(row['PCS Treatment'] || 0)
         ];
         csvContent += rowValues.join(',') + '\n';
     });
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     if (link.download !== undefined) {
         const url = URL.createObjectURL(blob);
@@ -510,7 +525,7 @@ editTransactionForm.addEventListener('submit', async (e) => {
         shift: editShiftInput.value,
         host: finalHost,
         adminName: finalAdmin,
-        customerName: editCustomerInput.value,
+        customerName: editCustomerInput.value.trim(),
         totalPcs: editPcsInput.value,
         totalOmzet: parseCurrency(editOmzetInput.value),
         orangTreatment: finalTreatment,
@@ -537,19 +552,30 @@ editTransactionForm.addEventListener('submit', async (e) => {
     }
 });
 
-// --- CUSTOMER REPORT LOGIC ---
+// --- CUSTOMER REPORT LOGIC (IMPROVED WITH LOADING STATE) ---
 function applyCustomerReportFilters() {
     if (!isDataFetched) return;
-    const startDate = customerDatePicker.getStartDate()?.toJSDate();
-    const endDate = customerDatePicker.getEndDate()?.toJSDate();
-    if(startDate) startDate.setHours(0,0,0,0);
-    if(endDate) endDate.setHours(23,59,59,999);
-    
-    const filteredData = allData.filter(row => {
-         const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
-         return (!startDate || !rowDate) ? true : (rowDate >= startDate && rowDate <= endDate);
-    });
-    calculateAndRenderCustomerLeaderboards(filteredData);
+    const topBuyersContainer = topBuyersTable.closest('.table-responsive');
+    const topReturnersContainer = topReturnersTable.closest('.table-responsive');
+
+    topBuyersContainer.classList.add('content-processing');
+    topReturnersContainer.classList.add('content-processing');
+
+    setTimeout(() => {
+        const startDate = customerDatePicker.getStartDate()?.toJSDate();
+        const endDate = customerDatePicker.getEndDate()?.toJSDate();
+        if (startDate) startDate.setHours(0, 0, 0, 0);
+        if (endDate) endDate.setHours(23, 59, 59, 999);
+
+        const filteredData = allData.filter(row => {
+            const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
+            return (!startDate || !rowDate) ? true : (rowDate >= startDate && rowDate <= endDate);
+        });
+        calculateAndRenderCustomerLeaderboards(filteredData);
+
+        topBuyersContainer.classList.remove('content-processing');
+        topReturnersContainer.classList.remove('content-processing');
+    }, 10);
 }
 
 function calculateAndRenderCustomerLeaderboards(data) {
@@ -594,123 +620,135 @@ function calculateAndRenderCustomerLeaderboards(data) {
     renderLeaderboard(topReturnersTable, topReturners);
 }
 
-// --- SALES REPORT LOGIC ---
+// --- SALES REPORT LOGIC (IMPROVED WITH LOADING STATE) ---
 function applySalesReportFilters() {
     if (!isDataFetched) return;
-    const startDate = salesReportDatePicker.getStartDate()?.toJSDate();
-    const endDate = salesReportDatePicker.getEndDate()?.toJSDate();
-    if(startDate) startDate.setHours(0,0,0,0);
-    if(endDate) endDate.setHours(23,59,59,999);
-    
-    const filteredData = allData.filter(row => {
-         const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
-         return (!startDate || !rowDate) ? true : (rowDate >= startDate && rowDate <= endDate);
-    });
+    const insightsContainer = document.getElementById('salesReportInsights');
+    const contentContainers = document.querySelectorAll('#salesReportPage .space-y-8, #salesReportPage .bg-white');
 
-    const penjualanData = filteredData.filter(r => r['Jenis Transaksi'] === 'Penjualan');
-    const returnData = filteredData.filter(r => r['Jenis Transaksi'] === 'Return');
-    const treatmentData = filteredData.filter(r => r['Jenis Transaksi'] === 'Treatment');
+    insightsContainer.classList.add('content-processing');
+    contentContainers.forEach(c => c.classList.add('content-processing'));
 
-    const totalOmzetPenjualan = penjualanData.reduce((s, r) => s + parseCurrency(r['Total Omzet'] || 0), 0);
-    const totalOmzetReturn = returnData.reduce((s, r) => s + parseCurrency(r['Total Omzet'] || 0), 0);
-    salesReportNetOmzet.textContent = formatCurrency(totalOmzetPenjualan - totalOmzetReturn);
-    salesReportReturnRatio.textContent = `${(totalOmzetPenjualan > 0 ? (totalOmzetReturn / totalOmzetPenjualan) * 100 : 0).toFixed(2)}%`;
+    setTimeout(() => {
+        const startDate = salesReportDatePicker.getStartDate()?.toJSDate();
+        const endDate = salesReportDatePicker.getEndDate()?.toJSDate();
+        if (startDate) startDate.setHours(0, 0, 0, 0);
+        if (endDate) endDate.setHours(23, 59, 59, 999);
 
-    const customerPurchaseCounts = penjualanData.reduce((acc, row) => {
-        const customerName = String(row['Nama Customer'] || '').trim();
-        if (customerName) acc[customerName] = (acc[customerName] || 0) + 1;
-        return acc;
-    }, {});
-
-    uniqueCustomerList = Object.keys(customerPurchaseCounts);
-    repeatCustomerList = Object.keys(customerPurchaseCounts).filter(name => customerPurchaseCounts[name] > 1);
-    
-    salesReportUniqueCustomers.textContent = uniqueCustomerList.length.toLocaleString('id-ID');
-    salesReportRepeatCustomers.textContent = repeatCustomerList.length.toLocaleString('id-ID');
-
-    const getPersonUniqueDays = (dataArray, personField) => {
-        const personDays = {};
-        dataArray.forEach(row => {
-            const date = moment(row['Tanggal Input']);
-            const person = String(row[personField] || '').trim();
-            if (date.isValid() && person) {
-                personDays[person] = personDays[person] || new Set();
-                personDays[person].add(date.format('YYYY-MM-DD'));
-            }
-        });
-        return personDays;
-    };
-
-    const getPersonBonus = (sourceData, groupByField, pcsField, omzetField, bonusRate, bonusType, target) => {
-        const performance = {};
-        const getJustDate = (isoString) => isoString ? isoString.split('T')[0] : null;
-
-        sourceData.forEach(row => {
-            const name = String(row[groupByField] || '').trim();
-            const day = getJustDate(row['Tanggal Input']);
-            if (name && day) {
-                performance[name] = performance[name] || { totalPcsDaily: {}, totalOmzetDaily: {} };
-                performance[name].totalPcsDaily[day] = (performance[name].totalPcsDaily[day] || 0) + Number(row[pcsField] || 0);
-                if (omzetField) {
-                    performance[name].totalOmzetDaily[day] = (performance[name].totalOmzetDaily[day] || 0) + parseCurrency(row[omzetField] || 0);
-                }
-            }
+        const filteredData = allData.filter(row => {
+            const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
+            return (!startDate || !rowDate) ? true : (rowDate >= startDate && rowDate <= endDate);
         });
 
-        const bonusSummary = {};
-        for (const name in performance) {
-            let totalBonus = 0;
-            for (const day in performance[name].totalPcsDaily) {
-                if (performance[name].totalPcsDaily[day] >= target) {
-                    if (bonusType === 'percentage') totalBonus += (performance[name].totalOmzetDaily[day] || 0) * bonusRate;
-                    else if (bonusType === 'fixed') totalBonus += bonusRate;
+        const penjualanData = filteredData.filter(r => r['Jenis Transaksi'] === 'Penjualan');
+        const returnData = filteredData.filter(r => r['Jenis Transaksi'] === 'Return');
+        const treatmentData = filteredData.filter(r => r['Jenis Transaksi'] === 'Treatment');
+
+        const totalOmzetPenjualan = penjualanData.reduce((s, r) => s + parseCurrency(r['Total Omzet'] || 0), 0);
+        const totalOmzetReturn = returnData.reduce((s, r) => s + parseCurrency(r['Total Omzet'] || 0), 0);
+        salesReportNetOmzet.textContent = formatCurrency(totalOmzetPenjualan - totalOmzetReturn);
+        salesReportReturnRatio.textContent = `${(totalOmzetPenjualan > 0 ? (totalOmzetReturn / totalOmzetPenjualan) * 100 : 0).toFixed(2)}%`;
+
+        const customerPurchaseCounts = penjualanData.reduce((acc, row) => {
+            const customerName = String(row['Nama Customer'] || '').trim();
+            if (customerName && customerName !== '-') acc[customerName] = (acc[customerName] || 0) + 1;
+            return acc;
+        }, {});
+
+        uniqueCustomerList = Object.keys(customerPurchaseCounts);
+        repeatCustomerList = Object.keys(customerPurchaseCounts).filter(name => customerPurchaseCounts[name] > 1);
+        
+        salesReportUniqueCustomers.textContent = uniqueCustomerList.length.toLocaleString('id-ID');
+        salesReportRepeatCustomers.textContent = repeatCustomerList.length.toLocaleString('id-ID');
+
+        const getPersonUniqueDays = (dataArray, personField) => {
+            const personDays = {};
+            dataArray.forEach(row => {
+                const date = moment(row['Tanggal Input']);
+                const person = String(row[personField] || '').trim();
+                if (date.isValid() && person) {
+                    personDays[person] = personDays[person] || new Set();
+                    personDays[person].add(date.format('YYYY-MM-DD'));
                 }
+            });
+            return personDays;
+        };
+
+        const getPersonBonus = (sourceData, groupByField, pcsField, omzetField, bonusRate, bonusType, target) => {
+            const performance = {};
+            const getJustDate = (isoString) => isoString ? isoString.split('T')[0] : null;
+
+            sourceData.forEach(row => {
+                const name = String(row[groupByField] || '').trim();
+                const day = getJustDate(row['Tanggal Input']);
+                if (name && day) {
+                    performance[name] = performance[name] || { totalPcsDaily: {}, totalOmzetDaily: {} };
+                    performance[name].totalPcsDaily[day] = (performance[name].totalPcsDaily[day] || 0) + Number(row[pcsField] || 0);
+                    if (omzetField) {
+                        performance[name].totalOmzetDaily[day] = (performance[name].totalOmzetDaily[day] || 0) + parseCurrency(row[omzetField] || 0);
+                    }
+                }
+            });
+
+            const bonusSummary = {};
+            for (const name in performance) {
+                let totalBonus = 0;
+                for (const day in performance[name].totalPcsDaily) {
+                    if (performance[name].totalPcsDaily[day] >= target) {
+                        if (bonusType === 'percentage') totalBonus += (performance[name].totalOmzetDaily[day] || 0) * bonusRate;
+                        else if (bonusType === 'fixed') totalBonus += bonusRate;
+                    }
+                }
+                bonusSummary[name] = { totalBonus };
             }
-            bonusSummary[name] = { totalBonus };
-        }
-        return bonusSummary;
-    }
-
-    const hostDailyData = getPersonUniqueDays(penjualanData, 'Nama Host');
-    const adminDailyData = getPersonUniqueDays(penjualanData, 'Nama Admin');
-    const treatmentDailyData = getPersonUniqueDays(treatmentData, 'Orang Treatment');
-    const hostBonusData = getPersonBonus(penjualanData, 'Nama Host', 'Total Pcs', 'Total Omzet', 0.03, 'percentage', 40);
-    const adminBonusData = getPersonBonus(penjualanData, 'Nama Admin', 'Total Pcs', 'Total Omzet', 0.01, 'percentage', 40);
-    const treatmentBonusData = getPersonBonus(treatmentData, 'Orang Treatment', 'PCS Treatment', null, 2500, 'fixed', 30);
-    const hostSalaryRate = 80000, adminSalaryRate = 60000, treatmentDailyRate = 12500;
-
-    const renderCombinedSalaryBonusTable = (tbody, dataMap, bonusMap, rate, type) => {
-        tbody.innerHTML = '';
-        const allNames = new Set([...Object.keys(dataMap), ...Object.keys(bonusMap)]);
-        const sortedNames = Array.from(allNames).sort();
-
-        if (sortedNames.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="${type === 'Treatment' ? 3 : 5}" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>`;
-            return;
+            return bonusSummary;
         }
 
-        sortedNames.forEach(name => {
-            const uniqueDays = dataMap[name] ? dataMap[name].size : 0;
-            const basicSalary = uniqueDays * rate;
-            const bonus = bonusMap[name] ? bonusMap[name].totalBonus : 0;
-            const total = basicSalary + bonus;
-            const tr = document.createElement('tr');
-            if (type === 'Treatment') {
-                tr.innerHTML = `<td class="py-2 px-3 text-sm font-medium text-gray-900">${name}</td><td class="py-2 px-3 text-sm text-gray-500">${uniqueDays} Hari</td><td class="py-2 px-3 text-sm font-semibold text-gray-800">${formatCurrency(basicSalary)}</td>`;
-            } else {
-                tr.innerHTML = `<td class="py-2 px-3 text-sm font-medium text-gray-900">${name}</td><td class="py-2 px-3 text-sm text-gray-500">${uniqueDays} Hari</td><td class="py-2 px-3 text-sm text-gray-500">${formatCurrency(basicSalary)}</td><td class="py-2 px-3 text-sm text-green-600">${formatCurrency(bonus)}</td><td class="py-2 px-3 text-sm font-semibold text-blue-600">${formatCurrency(total)}</td>`;
+        const hostDailyData = getPersonUniqueDays(penjualanData, 'Nama Host');
+        const adminDailyData = getPersonUniqueDays(penjualanData, 'Nama Admin');
+        const treatmentDailyData = getPersonUniqueDays(treatmentData, 'Orang Treatment');
+        const hostBonusData = getPersonBonus(penjualanData, 'Nama Host', 'Total Pcs', 'Total Omzet', 0.03, 'percentage', 40);
+        const adminBonusData = getPersonBonus(penjualanData, 'Nama Admin', 'Total Pcs', 'Total Omzet', 0.01, 'percentage', 40);
+        const treatmentBonusData = getPersonBonus(treatmentData, 'Orang Treatment', 'PCS Treatment', null, 2500, 'fixed', 30);
+        const hostSalaryRate = 80000, adminSalaryRate = 60000, treatmentDailyRate = 12500;
+
+        const renderCombinedSalaryBonusTable = (tbody, dataMap, bonusMap, rate, type) => {
+            tbody.innerHTML = '';
+            const allNames = new Set([...Object.keys(dataMap), ...Object.keys(bonusMap)]);
+            const sortedNames = Array.from(allNames).sort();
+
+            if (sortedNames.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="${type === 'Treatment' ? 3 : 5}" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>`;
+                return;
             }
-            tbody.appendChild(tr);
-        });
-    };
 
-    renderCombinedSalaryBonusTable(salesReportHostCombinedTable, hostDailyData, hostBonusData, hostSalaryRate, 'Host');
-    renderCombinedSalaryBonusTable(salesReportAdminCombinedTable, adminDailyData, adminBonusData, adminSalaryRate, 'Admin');
-    renderCombinedSalaryBonusTable(salesReportTreatmentCombinedTable, treatmentDailyData, treatmentBonusData, treatmentDailyRate, 'Treatment');
+            sortedNames.forEach(name => {
+                const uniqueDays = dataMap[name] ? dataMap[name].size : 0;
+                const basicSalary = uniqueDays * rate;
+                const bonus = bonusMap[name] ? bonusMap[name].totalBonus : 0;
+                const total = basicSalary + bonus;
+                const tr = document.createElement('tr');
+                if (type === 'Treatment') {
+                    tr.innerHTML = `<td class="py-2 px-3 text-sm font-medium text-gray-900">${name}</td><td class="py-2 px-3 text-sm text-gray-500">${uniqueDays} Hari</td><td class="py-2 px-3 text-sm font-semibold text-gray-800">${formatCurrency(basicSalary)}</td>`;
+                } else {
+                    tr.innerHTML = `<td class="py-2 px-3 text-sm font-medium text-gray-900">${name}</td><td class="py-2 px-3 text-sm text-gray-500">${uniqueDays} Hari</td><td class="py-2 px-3 text-sm text-gray-500">${formatCurrency(basicSalary)}</td><td class="py-2 px-3 text-sm text-green-600">${formatCurrency(bonus)}</td><td class="py-2 px-3 text-sm font-semibold text-blue-600">${formatCurrency(total)}</td>`;
+                }
+                tbody.appendChild(tr);
+            });
+        };
 
-    renderDailySalesChart(penjualanData, startDate, endDate);
-    renderTopHostSalesTable(penjualanData);
+        renderCombinedSalaryBonusTable(salesReportHostCombinedTable, hostDailyData, hostBonusData, hostSalaryRate, 'Host');
+        renderCombinedSalaryBonusTable(salesReportAdminCombinedTable, adminDailyData, adminBonusData, adminSalaryRate, 'Admin');
+        renderCombinedSalaryBonusTable(salesReportTreatmentCombinedTable, treatmentDailyData, treatmentBonusData, treatmentDailyRate, 'Treatment');
+
+        renderDailySalesChart(penjualanData, startDate, endDate);
+        renderTopHostSalesTable(penjualanData);
+
+        insightsContainer.classList.remove('content-processing');
+        contentContainers.forEach(c => c.classList.remove('content-processing'));
+    }, 10);
 }
+
 
 function renderDailySalesChart(data, startDate, endDate) {
     const dailyData = {};
@@ -757,7 +795,7 @@ function renderDailySalesChart(data, startDate, endDate) {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                y: { beginAtZero: true, title: { display: true, text: 'Omzet (Rp)' }, ticks: { callback: value => formatCurrency(value) } },
+                y: { beginAtZero: true, title: { display: true, text: 'Omzet (Rp)' }, ticks: { callback: value => formatCurrency(value).replace('Rp ', '') } },
                 x: { title: { display: true, text: 'Tanggal' } }
             },
             plugins: { tooltip: { callbacks: { label: context => `${context.dataset.label}: ${formatCurrency(context.raw)}` } } }
@@ -795,7 +833,7 @@ function renderTopHostSalesTable(data) {
 }
 
 function populateFilters() {
-    const getUniqueValues = (key) => [...new Set(allData.map(item => item[key]).filter(Boolean))];
+    const getUniqueValues = (key) => [...new Set(allData.map(item => item[key]).filter(Boolean).sort())];
     const dashboardFilterShift = document.getElementById('dashboardFilterShift');
     const dashboardFilterHost = document.getElementById('dashboardFilterHost');
     const dashboardFilterAdmin = document.getElementById('dashboardFilterAdmin');
@@ -826,7 +864,6 @@ function setupUnifiedForm() {
         }
     });
 
-    // BUG FIX: Add event listeners for backup functionality
     salesReturnHostSelect.addEventListener('change', () => {
         salesReturnBackupHostContainer.classList.toggle('hidden', salesReturnHostSelect.value !== 'Backup');
     });
@@ -884,7 +921,7 @@ function setupUnifiedForm() {
 
         if (customerName && ['Penjualan', 'Return'].includes(selectedType)) {
             if (checkDuplicateCustomerToday(customerName, selectedType)) {
-                if (!window.confirm(`Peringatan: Nama pelanggan "${customerName}" untuk transaksi ${selectedType} sudah terinput hari ini. Lanjutkan?`)) {
+                if (!confirm(`Peringatan: Nama pelanggan "${customerName}" untuk transaksi ${selectedType} sudah terinput hari ini. Lanjutkan?`)) {
                     unifiedFormStatus.textContent = 'Pengiriman dibatalkan.';
                     unifiedFormStatus.className = 'mt-4 text-center text-sm h-4 text-gray-600';
                     btnText.classList.remove('hidden');
@@ -938,21 +975,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Populate dropdowns for the unified form
     populateDropdown(salesReturnHostSelect, hostList);
     populateDropdown(salesReturnAdminSelect, adminList);
     populateDropdown(treatmentPersonSelect, treatmentPersonList);
 
-    // Populate dropdowns for the edit modal
     populateDropdown(editHostInput, hostList);
     populateDropdown(editAdminInput, adminList);
     populateDropdown(editOrangTreatmentInput, treatmentPersonList);
 
-    // Setup the unified form logic
     setupUnifiedForm();
     
     const litepickerOptions = {
-        singleMode: false, format: 'DD MMM YY', lang: 'id-ID', numberOfMonths: 2,
+        singleMode: false, format: 'DD MMM YYYY', lang: 'id-ID', numberOfMonths: 2,
         dropdowns: { minYear: 2020, maxYear: null, months: true, years: true },
         buttonText: {
             'previousMonth': `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>`,
@@ -964,17 +998,11 @@ document.addEventListener('DOMContentLoaded', () => {
     customerDatePicker = new Litepicker({ element: document.getElementById('customerReportDateRangePicker'), ...litepickerOptions, setup: (picker) => { picker.on('selected', applyCustomerReportFilters); }});
     salesReportDatePicker = new Litepicker({ element: document.getElementById('salesReportDateRangePicker'), ...litepickerOptions, setup: (picker) => { picker.on('selected', applySalesReportFilters); }});
 
-    dashboardDatePicker.setDateRange(moment().startOf('month').toDate(), moment().endOf('month').toDate());
-    customerDatePicker.setDateRange(moment().startOf('month').toDate(), moment().endOf('month').toDate());
-    salesReportDatePicker.setDateRange(moment().subtract(6, 'days').toDate(), moment().toDate());
-
-    ['input', 'change'].forEach(evt => {
-        document.getElementById('dashboardSearchCustomer').addEventListener(evt, applyFilters);
-        document.getElementById('dashboardFilterShift').addEventListener(evt, applyFilters);
-        document.getElementById('dashboardFilterHost').addEventListener(evt, applyFilters);
-        document.getElementById('dashboardFilterAdmin').addEventListener(evt, applyFilters);
-        document.getElementById('dashboardFilterTransactionType').addEventListener(evt, applyFilters);
-    });
+    document.getElementById('dashboardSearchCustomer').addEventListener('input', applyFilters);
+    document.getElementById('dashboardFilterShift').addEventListener('change', applyFilters);
+    document.getElementById('dashboardFilterHost').addEventListener('change', applyFilters);
+    document.getElementById('dashboardFilterAdmin').addEventListener('change', applyFilters);
+    document.getElementById('dashboardFilterTransactionType').addEventListener('change', applyFilters);
     
     prevPageBtn.addEventListener('click', () => changePage('prev'));
     nextPageBtn.addEventListener('click', () => changePage('next'));
