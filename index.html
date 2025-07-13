@@ -5,17 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Laporan - infinithree.id</title>
     
-    <!-- Memanggil Library Eksternal -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css"/>
     
-    <!-- Memanggil file CSS kustom Anda -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-gray-100">
 
-    <!-- Bagian Login -->
     <div id="loginSection" class="flex items-center justify-center h-screen">
         <div class="w-full max-w-sm p-8 bg-white rounded-xl shadow-lg text-center mx-4">
             <h1 class="text-2xl font-bold text-gray-800">infinithree.id</h1>
@@ -30,7 +27,6 @@
         </div>
     </div>
     
-    <!-- Modal PIN Laporan Penjualan -->
     <div id="salesReportPinModal" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden items-center justify-center">
         <div class="w-full max-w-sm p-8 bg-white rounded-xl shadow-lg text-center mx-4">
             <h2 class="text-xl font-bold text-gray-800">Akses Terbatas</h2>
@@ -46,7 +42,6 @@
         </div>
     </div>
 
-    <!-- Modal PIN Edit Baris -->
     <div id="editRowPasswordModal" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden items-center justify-center">
         <div class="w-full max-w-sm p-8 bg-white rounded-xl shadow-lg text-center mx-4">
             <h2 class="text-xl font-bold text-gray-800">Edit Data Transaksi</h2>
@@ -62,7 +57,6 @@
         </div>
     </div>
 
-    <!-- Modal untuk menampilkan daftar customer -->
     <div id="customerListModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
         <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 flex flex-col max-h-[70vh]">
             <div class="flex justify-between items-center p-4 border-b">
@@ -72,19 +66,15 @@
                 </button>
             </div>
             <div id="customerListModalBody" class="p-6 overflow-y-auto">
-                <!-- Daftar customer akan dimasukkan di sini -->
-            </div>
+                </div>
         </div>
     </div>
 
 
-    <!-- Aplikasi Utama -->
     <div id="mainApp" class="hidden">
         <div class="relative min-h-screen lg:flex">
-            <!-- Overlay Sidebar Mobile -->
             <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden lg:hidden"></div>
 
-            <!-- Sidebar -->
             <aside id="sidebar" class="fixed inset-y-0 left-0 bg-white shadow-md w-64 z-30 transform -translate-x-full transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0">
                 <div class="flex items-center justify-between p-4 border-b">
                     <h2 class="text-xl font-bold text-pink-600">infinithree.id</h2>
@@ -112,7 +102,6 @@
                 </nav>
             </aside>
 
-            <!-- Konten Utama -->
             <main class="flex-1 lg:p-8 p-4 w-full">
                  <header class="flex items-center justify-between lg:hidden mb-4">
                     <button id="open-sidebar-btn" class="text-gray-500 hover:text-gray-800">
@@ -121,17 +110,13 @@
                     <h2 class="text-lg font-bold text-pink-600">infinithree.id</h2>
                 </header>
                 
-                <!-- Halaman Dashboard -->
                 <div id="dashboardPage" class="page active">
                     <h1 class="text-3xl font-bold text-gray-800 mb-6">Dashboard</h1>
                     <div id="dashboardContent" class="relative">
-                        <!-- === LOADER BARU UNTUK DASHBOARD === -->
                         <div id="dashboardLoader" class="absolute inset-0 bg-gray-100 bg-opacity-80 z-10 hidden items-center justify-center flex-col space-y-4">
                             <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-24 w-24"></div>
                             <p class="text-xl font-semibold text-gray-700">Mohon tunggu, sedang memuat data...</p>
                         </div>
-                        <!-- === AKHIR LOADER === -->
-
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 p-4 border rounded-lg bg-gray-50">
                              <input type="search" id="dashboardSearchCustomer" placeholder="Cari Nama Customer..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
                              <select id="dashboardFilterShift" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="">Semua Shift</option></select>
@@ -228,12 +213,10 @@
                     </div>
                 </div>
 
-                <!-- Halaman Input Transaksi Tunggal -->
                 <div id="inputTransaksiPage" class="page">
                     <h1 class="text-3xl font-bold text-gray-800 mb-6">Input Transaksi Baru</h1>
                      <form id="unifiedForm" novalidate class="max-w-md mx-auto p-6 bg-white rounded-lg shadow">
                         <div class="space-y-4">
-                            <!-- Transaction Type Selector -->
                             <div>
                                 <label for="transactionType" class="block text-sm font-bold text-gray-700 mb-1">Jenis Transaksi</label>
                                 <select id="transactionType" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
@@ -244,12 +227,10 @@
                                 </select>
                             </div>
 
-                            <!-- Fields for Penjualan -->
                             <div id="penjualanFields" class="hidden space-y-4">
                                 <div><label for="penjualanShift" class="block text-sm font-medium text-gray-700 mb-1">Shift</label><select id="penjualanShift" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="" disabled selected>-- Pilih Shift --</option><option value="Shift Pagi">Shift Pagi</option><option value="Shift Siang">Shift Siang</option></select></div>
                             </div>
 
-                            <!-- Fields for Penjualan & Return -->
                             <div id="salesReturnFields" class="hidden space-y-4">
                                 <div><label for="salesReturnHost" class="block text-sm font-medium text-gray-700 mb-1">Nama Host</label><select id="salesReturnHost" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="" disabled selected>-- Pilih Host --</option></select></div>
                                 <div id="salesReturnBackupHostContainer" class="hidden"><label for="salesReturnBackupHost" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Host Backup</label><input type="text" id="salesReturnBackupHost" placeholder="Ketik nama host pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
@@ -260,7 +241,6 @@
                                 <div><label for="salesReturnOmzet" class="block text-sm font-medium text-gray-700 mb-1">Total Omzet (Rp)</label><input type="text" id="salesReturnOmzet" placeholder="Contoh: 1.500.000" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
                             </div>
 
-                            <!-- Fields for Treatment -->
                             <div id="treatmentFields" class="hidden space-y-4">
                                 <div><label for="treatmentPerson" class="block text-sm font-medium text-gray-700 mb-1">Nama Orang Treatment</label><select id="treatmentPerson" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"><option value="" disabled selected>-- Pilih Nama --</option></select></div>
                                 <div id="treatmentBackupContainer" class="hidden"><label for="treatmentBackupPerson" class="block text-sm font-medium text-gray-700 mb-1">Isi Nama Pengganti</label><input type="text" id="treatmentBackupPerson" placeholder="Ketik nama pengganti" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500"></div>
@@ -272,16 +252,12 @@
                     </form>
                 </div>
 
-                <!-- Halaman Laporan Customer -->
                 <div id="customerReportPage" class="page relative">
-                    <!-- === LOADER BARU UNTUK LAPORAN CUSTOMER === -->
                     <div id="customerLoader" class="absolute inset-0 bg-gray-100 bg-opacity-80 z-10 hidden items-center justify-center flex-col space-y-4">
                         <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-24 w-24"></div>
                         <p class="text-xl font-semibold text-gray-700">Mohon tunggu, sedang memuat data...</p>
                     </div>
-                    <!-- === AKHIR LOADER === -->
-
-                     <h1 class="text-3xl font-bold text-gray-800 mb-6">Laporan Customer</h1>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-6">Laporan Customer</h1>
                       <div class="mb-6 p-4 border rounded-lg bg-gray-50">
                         <label for="customerReportDateRangePicker" class="block text-sm font-medium text-gray-700 mb-1">Pilih Rentang Tanggal</label>
                         <input type="text" id="customerReportDateRangePicker" placeholder="Filter data berdasarkan tanggal" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
@@ -322,37 +298,46 @@
                      </div>
                 </div>
 
-                <!-- Halaman Laporan Penjualan -->
                 <div id="salesReportPage" class="page relative">
-                    <!-- === LOADER BARU UNTUK LAPORAN PENJUALAN === -->
                     <div id="salesLoader" class="absolute inset-0 bg-gray-100 bg-opacity-80 z-10 hidden items-center justify-center flex-col space-y-4">
                         <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-24 w-24"></div>
                         <p class="text-xl font-semibold text-gray-700">Mohon tunggu, sedang memuat data...</p>
                     </div>
-                    <!-- === AKHIR LOADER === -->
-
                     <h1 class="text-3xl font-bold text-gray-800 mb-6">Sales Report (Bonus)</h1>
                      <div class="mb-6 p-4 border rounded-lg bg-gray-50">
                         <label for="salesReportDateRangePicker" class="block text-sm font-medium text-gray-700 mb-1">Pilih Rentang Tanggal</label>
                         <input type="text" id="salesReportDateRangePicker" placeholder="Filter data berdasarkan tanggal" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
                     </div>
 
-                    <div id="salesReportInsights" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    <div id="salesReportInsights" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                        <div class="stat-card">
+                            <p class="text-sm text-gray-500">Total PCS Penjualan</p>
+                            <p id="salesReportTotalPcs" class="text-2xl font-bold text-gray-900">0</p>
+                            <p id="salesReportTotalPcsComparison" class="text-sm text-gray-500 mt-1"></p>
+                        </div>
+                        <div class="stat-card">
+                            <p class="text-sm text-gray-500">Total Omzet Penjualan</p>
+                            <p id="salesReportTotalOmzet" class="text-2xl font-bold text-green-600">Rp 0</p>
+                            <p id="salesReportTotalOmzetComparison" class="text-sm text-gray-500 mt-1"></p>
+                        </div>
                         <div class="stat-card">
                             <p class="text-sm text-gray-500">Net Omzet</p>
                             <p id="salesReportNetOmzet" class="text-2xl font-bold text-blue-600">Rp 0</p>
+                            <p id="salesReportNetOmzetComparison" class="text-sm text-gray-500 mt-1"></p>
                         </div>
-                        <div class="stat-card">
-                            <p class="text-sm text-gray-500">Rasio Return (%)</p>
-                            <p id="salesReportReturnRatio" class="text-2xl font-bold text-red-600">0.00%</p>
-                        </div>
-                         <div id="uniqueCustomersCard" class="stat-card cursor-pointer hover:bg-gray-200 transition">
+                        <div id="uniqueCustomersCard" class="stat-card cursor-pointer hover:bg-gray-200 transition">
                             <p class="text-sm text-gray-500">Total Customer Unik</p>
                             <p id="salesReportUniqueCustomers" class="text-2xl font-bold text-purple-600">0</p>
+                            <p id="salesReportUniqueCustomersComparison" class="text-sm text-gray-500 mt-1"></p>
                         </div>
                         <div id="repeatCustomersCard" class="stat-card cursor-pointer hover:bg-gray-200 transition">
                             <p class="text-sm text-gray-500">Total Customer Repeat</p>
                             <p id="salesReportRepeatCustomers" class="text-2xl font-bold text-green-600">0</p>
+                            <p id="salesReportRepeatCustomersComparison" class="text-sm text-gray-500 mt-1"></p>
+                        </div>
+                         <div class="stat-card">
+                            <p class="text-sm text-gray-500">Rasio Return (%)</p>
+                            <p id="salesReportReturnRatio" class="text-2xl font-bold text-red-600">0.00%</p>
                         </div>
                     </div>
 
@@ -438,7 +423,6 @@
                     </div>
                 </div>
                 
-                <!-- Indikator Loading Global (untuk fetch awal) -->
                 <div id="pageLoader" class="hidden justify-center items-center h-40 flex-col space-y-4">
                     <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-32 w-32"></div>
                     <p class="text-xl font-semibold text-gray-700">Mohon tunggu, sedang mengambil data awal...</p>
@@ -449,12 +433,10 @@
         </div>
     </div>
     
-    <!-- Memanggil Library JavaScript Eksternal -->
     <script src="https://cdn.jsdelivr.net/npm/moment/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Memanggil file JavaScript kustom Anda -->
     <script src="app.js" defer></script>
 </body>
 </html>
