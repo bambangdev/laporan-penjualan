@@ -1,8 +1,8 @@
 // --- APP STATE & CONFIG ---
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzpSVOHsYuDXUoJqHJ4mi2bHiHVT7tqSgD1Q6iq2RKHhwIqszVCfczZUMrNB7zzoFn/exec';
 const CORRECT_PIN = '7501';
-const SALES_REPORT_PIN = 'yanto1'; 
-const EDIT_PIN = 'yanto1';
+const SALES_REPORT_PIN = '2232'; 
+const EDIT_PIN = '2232';
 const hostList = ['wafa', 'debi', 'bunga'];
 const adminList = ['Bunga', 'Teh Ros'];
 const treatmentPersonList = ['Bunda', 'Resin'];
