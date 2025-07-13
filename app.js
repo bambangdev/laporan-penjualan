@@ -615,35 +615,82 @@ function applySalesReportFilters() {
     setTimeout(() => {
         const startDate = salesReportDatePicker.getStartDate()?.toJSDate();
         const endDate = salesReportDatePicker.getEndDate()?.toJSDate();
-        if(startDate) startDate.setHours(0,0,0,0);
-        if(endDate) endDate.setHours(23,59,59,999);
-        
+        if(startDate) startDate.setHours(0, 0, 0, 0);
+        if(endDate) endDate.setHours(23, 59, 59, 999);
+
+        // --- Calculation for the previous period ---
+        const diffDays = moment(endDate).diff(moment(startDate), 'days') + 1;
+        const previousStartDate = moment(startDate).subtract(diffDays, 'days').toDate();
+        const previousEndDate = moment(endDate).subtract(diffDays, 'days').toDate();
+
         const filteredData = allData.filter(row => {
-             const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
-             return (!startDate || !rowDate) ? true : (rowDate >= startDate && rowDate <= endDate);
+            const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
+            return (!startDate || !rowDate) ? true : (rowDate >= startDate && rowDate <= endDate);
         });
 
-        const penjualanData = filteredData.filter(r => r['Jenis Transaksi'] === 'Penjualan');
-        const returnData = filteredData.filter(r => r['Jenis Transaksi'] === 'Return');
-        const treatmentData = filteredData.filter(r => r['Jenis Transaksi'] === 'Treatment');
+        const prevPeriodData = allData.filter(row => {
+            const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
+            return (!previousStartDate || !rowDate) ? true : (rowDate >= previousStartDate && rowDate <= previousEndDate);
+        });
 
-        const totalOmzetPenjualan = penjualanData.reduce((s, r) => s + parseCurrency(r['Total Omzet'] || 0), 0);
-        const totalOmzetReturn = returnData.reduce((s, r) => s + parseCurrency(r['Total Omzet'] || 0), 0);
-        salesReportNetOmzet.textContent = formatCurrency(totalOmzetPenjualan - totalOmzetReturn);
-        salesReportReturnRatio.textContent = `${(totalOmzetPenjualan > 0 ? (totalOmzetReturn / totalOmzetPenjualan) * 100 : 0).toFixed(2)}%`;
 
-        const customerPurchaseCounts = penjualanData.reduce((acc, row) => {
-            const customerName = String(row['Nama Customer'] || '').trim();
-            if (customerName && customerName !== '-') acc[customerName] = (acc[customerName] || 0) + 1;
-            return acc;
-        }, {});
+        // --- Helper function to calculate metrics ---
+        const calculateMetrics = (data) => {
+            const penjualanData = data.filter(r => r['Jenis Transaksi'] === 'Penjualan');
+            const returnData = data.filter(r => r['Jenis Transaksi'] === 'Return');
 
-        uniqueCustomerList = Object.keys(customerPurchaseCounts);
-        repeatCustomerList = Object.keys(customerPurchaseCounts).filter(name => customerPurchaseCounts[name] > 1);
+            const totalPcsPenjualan = penjualanData.reduce((s, r) => s + Number(r['Total Pcs'] || 0), 0);
+            const totalOmzetPenjualan = penjualanData.reduce((s, r) => s + parseCurrency(r['Total Omzet'] || 0), 0);
+            const totalOmzetReturn = returnData.reduce((s, r) => s + parseCurrency(r['Total Omzet'] || 0), 0);
+            const netOmzet = totalOmzetPenjualan - totalOmzetReturn;
+
+            const customerPurchaseCounts = penjualanData.reduce((acc, row) => {
+                const customerName = String(row['Nama Customer'] || '').trim();
+                if (customerName && customerName !== '-') acc[customerName] = (acc[customerName] || 0) + 1;
+                return acc;
+            }, {});
+            
+            const uniqueCustomers = Object.keys(customerPurchaseCounts).length;
+            const repeatCustomers = Object.keys(customerPurchaseCounts).filter(name => customerPurchaseCounts[name] > 1).length;
+
+            return { totalPcsPenjualan, totalOmzetPenjualan, netOmzet, uniqueCustomers, repeatCustomers, totalOmzetReturn };
+        };
         
-        salesReportUniqueCustomers.textContent = uniqueCustomerList.length.toLocaleString('id-ID');
-        salesReportRepeatCustomers.textContent = repeatCustomerList.length.toLocaleString('id-ID');
+        const currentMetrics = calculateMetrics(filteredData);
+        const previousMetrics = calculateMetrics(prevPeriodData);
 
+        // --- Render main metrics ---
+        document.getElementById('salesReportTotalPcs').textContent = currentMetrics.totalPcsPenjualan.toLocaleString('id-ID');
+        document.getElementById('salesReportTotalOmzet').textContent = formatCurrency(currentMetrics.totalOmzetPenjualan);
+        salesReportNetOmzet.textContent = formatCurrency(currentMetrics.netOmzet);
+        salesReportReturnRatio.textContent = `${(currentMetrics.totalOmzetPenjualan > 0 ? (currentMetrics.totalOmzetReturn / currentMetrics.totalOmzetPenjualan) * 100 : 0).toFixed(2)}%`;
+        salesReportUniqueCustomers.textContent = currentMetrics.uniqueCustomers.toLocaleString('id-ID');
+        salesReportRepeatCustomers.textContent = currentMetrics.repeatCustomers.toLocaleString('id-ID');
+
+        // --- Helper function for comparison rendering ---
+        const renderComparison = (elementId, currentValue, previousValue) => {
+            const element = document.getElementById(elementId);
+            if (previousValue === 0) {
+                element.innerHTML = '<span>- vs periode lalu</span>';
+                element.className = 'text-sm text-gray-500 mt-1';
+                return;
+            }
+            const percentageChange = ((currentValue - previousValue) / previousValue) * 100;
+            const arrow = percentageChange >= 0 ? '▲' : '▼';
+            const color = percentageChange >= 0 ? 'text-green-600' : 'text-red-600';
+            element.innerHTML = `<span class="${color}">${arrow} ${percentageChange.toFixed(2)}%</span> vs periode lalu`;
+        };
+        
+        // --- Render comparison metrics ---
+        renderComparison('salesReportTotalPcsComparison', currentMetrics.totalPcsPenjualan, previousMetrics.totalPcsPenjualan);
+        renderComparison('salesReportTotalOmzetComparison', currentMetrics.totalOmzetPenjualan, previousMetrics.totalOmzetPenjualan);
+        renderComparison('salesReportNetOmzetComparison', currentMetrics.netOmzet, previousMetrics.netOmzet);
+        renderComparison('salesReportUniqueCustomersComparison', currentMetrics.uniqueCustomers, previousMetrics.uniqueCustomers);
+        renderComparison('salesReportRepeatCustomersComparison', currentMetrics.repeatCustomers, previousMetrics.repeatCustomers);
+
+
+        // --- Existing code for tables and charts ---
+        const treatmentData = filteredData.filter(r => r['Jenis Transaksi'] === 'Treatment');
         const getPersonUniqueDays = (dataArray, personField) => {
             const personDays = {};
             dataArray.forEach(row => {
@@ -687,11 +734,11 @@ function applySalesReportFilters() {
             return bonusSummary;
         }
 
-        const hostDailyData = getPersonUniqueDays(penjualanData, 'Nama Host');
-        const adminDailyData = getPersonUniqueDays(penjualanData, 'Nama Admin');
+        const hostDailyData = getPersonUniqueDays(filteredData.filter(r => r['Jenis Transaksi'] === 'Penjualan'), 'Nama Host');
+        const adminDailyData = getPersonUniqueDays(filteredData.filter(r => r['Jenis Transaksi'] === 'Penjualan'), 'Nama Admin');
         const treatmentDailyData = getPersonUniqueDays(treatmentData, 'Orang Treatment');
-        const hostBonusData = getPersonBonus(penjualanData, 'Nama Host', 'Total Pcs', 'Total Omzet', 0.03, 'percentage', 40);
-        const adminBonusData = getPersonBonus(penjualanData, 'Nama Admin', 'Total Pcs', 'Total Omzet', 0.01, 'percentage', 40);
+        const hostBonusData = getPersonBonus(filteredData.filter(r => r['Jenis Transaksi'] === 'Penjualan'), 'Nama Host', 'Total Pcs', 'Total Omzet', 0.03, 'percentage', 40);
+        const adminBonusData = getPersonBonus(filteredData.filter(r => r['Jenis Transaksi'] === 'Penjualan'), 'Nama Admin', 'Total Pcs', 'Total Omzet', 0.01, 'percentage', 40);
         const treatmentBonusData = getPersonBonus(treatmentData, 'Orang Treatment', 'PCS Treatment', null, 2500, 'fixed', 30);
         const hostSalaryRate = 80000, adminSalaryRate = 60000, treatmentDailyRate = 12500;
 
@@ -724,8 +771,8 @@ function applySalesReportFilters() {
         renderCombinedSalaryBonusTable(salesReportAdminCombinedTable, adminDailyData, adminBonusData, adminSalaryRate, 'Admin');
         renderCombinedSalaryBonusTable(salesReportTreatmentCombinedTable, treatmentDailyData, treatmentBonusData, treatmentDailyRate, 'Treatment');
 
-        renderDailySalesChart(penjualanData, startDate, endDate);
-        renderTopHostSalesTable(penjualanData);
+        renderDailySalesChart(filteredData.filter(r => r['Jenis Transaksi'] === 'Penjualan'), startDate, endDate);
+        renderTopHostSalesTable(filteredData.filter(r => r['Jenis Transaksi'] === 'Penjualan'));
 
         salesLoader.classList.add('hidden');
         salesLoader.classList.remove('flex');
