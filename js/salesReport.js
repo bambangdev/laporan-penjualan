@@ -208,7 +208,7 @@ function applySalesReportFilters() {
 }
 
 /**
- * Menyiapkan event listener dan data untuk halaman Laporan Penjualan.
+ * Menyiapkan event listener dan data untuk halaman Laporan Penjualan...
  */
 export function setupSalesReportPage(data) {
     allData = data;
