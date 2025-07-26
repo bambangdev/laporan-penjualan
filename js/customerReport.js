@@ -25,16 +25,73 @@ export function renderCustomerReportHTML() {
     `;
 }
 
-function calculateAndRenderCustomerLeaderboards(data) { /* ... (fungsi lengkap dari respons sebelumnya) ... */ }
-function applyCustomerReportFilters() { /* ... (fungsi lengkap dari respons sebelumnya) ... */ }
+function calculateAndRenderCustomerLeaderboards() {
+    const topBuyersTable = document.getElementById('topBuyersTable');
+    const topReturnersTable = document.getElementById('topReturnersTable');
+    if (!topBuyersTable || !topReturnersTable) return;
+
+    const startDate = customerDatePicker.getStartDate()?.toJSDate();
+    const endDate = customerDatePicker.getEndDate()?.toJSDate();
+    if (startDate) startDate.setHours(0, 0, 0, 0);
+    if (endDate) endDate.setHours(23, 59, 59, 999);
+
+    const filteredData = allData.filter(row => {
+        const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
+        return (!startDate || !rowDate) ? true : (rowDate >= startDate && rowDate <= endDate);
+    });
+
+    const getTop10 = (sourceData, pcsField, omzetField) => {
+        if (sourceData.length === 0) return [];
+        const customerData = sourceData.reduce((acc, row) => {
+            const name = String(row['Nama Customer'] || '').trim();
+            if (!name || name === '-') return acc;
+            acc[name] = acc[name] || { name: name, pcs: 0, omzet: 0 };
+            acc[name].pcs += Number(row[pcsField] || 0);
+            acc[name].omzet += parseCurrency(row[omzetField] || 0);
+            return acc;
+        }, {});
+
+        return Object.values(customerData).sort((a, b) => b.omzet - a.omzet).slice(0, 10);
+    };
+
+    const renderLeaderboard = (tbodyElement, leaderboardData) => {
+        tbodyElement.innerHTML = '';
+        if (leaderboardData.length === 0) {
+            tbodyElement.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>`;
+            return;
+        }
+        leaderboardData.forEach((customer, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="py-2 px-3 text-sm font-medium text-gray-900">${index + 1}</td>
+                <td class="py-2 px-3 text-sm text-gray-700">${customer.name}</td>
+                <td class="py-2 px-3 text-sm font-semibold text-pink-600">${formatCurrency(customer.omzet)}</td>
+                <td class="py-2 px-3 text-sm text-gray-500">${customer.pcs.toLocaleString('id-ID')}</td>
+            `;
+            tbodyElement.appendChild(tr);
+        });
+    };
+
+    const topBuyers = getTop10(filteredData.filter(r => r['Jenis Transaksi'] === 'Penjualan'), 'Total Pcs', 'Total Omzet');
+    const topReturners = getTop10(filteredData.filter(r => r['Jenis Transaksi'] === 'Return'), 'Total Pcs', 'Total Omzet');
+
+    renderLeaderboard(topBuyersTable, topBuyers);
+    renderLeaderboard(topReturnersTable, topReturners);
+}
 
 export function setupCustomerReportPage(data) {
     allData = data;
     const datePickerElement = document.getElementById('customerReportDateRangePicker');
     if (!datePickerElement) return;
 
-    if (!customerDatePicker) {
-        customerDatePicker = new Litepicker({ element: datePickerElement, /* ... (opsi) ... */ });
+    if (!customerDatePicker || !datePickerElement.litepickerInstance) {
+        customerDatePicker = new Litepicker({
+            element: datePickerElement,
+            singleMode: false, format: 'DD MMM YY', lang: 'id-ID',
+            setup: (picker) => picker.on('selected', calculateAndRenderCustomerLeaderboards),
+        });
+        customerDatePicker.setDateRange(moment().startOf('month').toDate(), moment().endOf('month').toDate());
     }
-    applyCustomerReportFilters();
+    
+    calculateAndRenderCustomerLeaderboards();
 }
