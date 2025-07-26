@@ -113,6 +113,10 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         Sales Report
                     </a>
+                        <a href="#dataMaster" class="sidebar-link" data-page="dataMasterPage">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7l9 6 9-6"></path></svg>
+                            Data Master
+                        </a>
                 </nav>
             </aside>
 
@@ -456,7 +460,47 @@
                          </div>
                     </div>
                 </div>
-                
+                <div id="dataMasterPage" class="page">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Manajemen Data Master</h1>
+
+        <div class="max-w-md p-6 bg-white rounded-lg shadow mb-8">
+            <h2 class="text-xl font-semibold mb-4">Tambah Data Baru</h2>
+            <form id="dataMasterForm" class="space-y-4">
+                <div>
+                    <label for="masterDataType" class="block text-sm font-bold text-gray-700 mb-1">Tipe Data</label>
+                    <select id="masterDataType" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
+                        <option value="" disabled selected>-- Pilih Tipe --</option>
+                        <option value="Host">Host</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Treatment">Treatment</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="masterDataName" class="block text-sm font-bold text-gray-700 mb-1">Nama</label>
+                    <input type="text" id="masterDataName" required placeholder="Ketik nama baru" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
+                </div>
+                <button type="submit" id="saveMasterDataBtn" class="w-full bg-pink-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-pink-700 flex items-center justify-center">
+                    <span>Simpan Data</span>
+                    <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 ml-3 hidden"></div>
+                </button>
+            </form>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Daftar Host</h3>
+                <div id="hostListContainer" class="bg-white p-4 rounded-lg shadow"></div>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Daftar Admin</h3>
+                <div id="adminListContainer" class="bg-white p-4 rounded-lg shadow"></div>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Daftar Staff Treatment</h3>
+                <div id="treatmentListContainer" class="bg-white p-4 rounded-lg shadow"></div>
+            </div>
+        </div>
+    </div>
                 <div id="pageLoader" class="hidden justify-center items-center h-40 flex-col space-y-4">
                     <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-32 w-32"></div>
                     <p class="text-xl font-semibold text-gray-700">Mohon tunggu, sedang mengambil data awal...</p>
