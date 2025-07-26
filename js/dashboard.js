@@ -1,5 +1,4 @@
-
-import { SCRIPT_URL, EDIT_PIN, hostList, adminList, treatmentPersonList, formatCurrency, parseCurrency, populateDropdown } from './utils.js';
+import { SCRIPT_URL, EDIT_PIN, hostList, adminList, treatmentPersonList, formatCurrency, parseCurrency, populateDropdown, showToast } from './utils.js';
 
 let allData = [];
 let filteredDashboardData = [];
@@ -251,7 +250,6 @@ async function handleEditFormSubmit(e) {
     const saveEditTransactionBtn = document.getElementById('saveEditTransaction');
     const btnText = saveEditTransactionBtn.querySelector('span');
     const loader = saveEditTransactionBtn.querySelector('.loader');
-    const editTransactionStatus = document.getElementById('editTransactionStatus');
     
     btnText.classList.add('hidden'); 
     loader.classList.remove('hidden'); 
@@ -280,16 +278,16 @@ async function handleEditFormSubmit(e) {
         const response = await fetch(SCRIPT_URL, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(formData) });
         const result = await response.json();
         if (result.status !== 'success') throw new Error(result.message);
-        editTransactionStatus.textContent = `Data berhasil diperbarui!`;
-        editTransactionStatus.className = 'mt-4 text-center text-sm h-4 text-green-600';
+        
+        showToast(`Data berhasil diperbarui!`, 'success');
+        
         document.dispatchEvent(new CustomEvent('dataChanged'));
         setTimeout(() => {
             document.getElementById('editTransactionModal').classList.add('hidden');
             document.getElementById('editTransactionModal').classList.remove('flex');
         }, 1500);
     } catch (error) {
-        editTransactionStatus.textContent = `Error: ${error.message}`;
-        editTransactionStatus.className = 'mt-4 text-center text-sm h-4 text-red-600';
+        showToast(`Error: ${error.message}`, 'error');
     } finally {
         btnText.classList.remove('hidden'); 
         loader.classList.add('hidden'); 
@@ -324,10 +322,8 @@ export function setupDashboardPage(data) {
         dashboardDatePicker.setDateRange(moment().startOf('month').toDate(), moment().endOf('month').toDate());
     }
 
-    // Populate filters first
     populateDashboardFilters();
 
-    // Attach event listeners only once
     const searchInput = document.getElementById('dashboardSearchCustomer');
     if (!searchInput.dataset.listenerAttached) {
         searchInput.addEventListener('input', applyFilters);
@@ -339,7 +335,6 @@ export function setupDashboardPage(data) {
         document.getElementById('nextPageBtn').addEventListener('click', () => changePage('next'));
         document.getElementById('exportExcelBtn').addEventListener('click', exportDashboardToExcel);
 
-        // Edit Modal Listeners
         document.getElementById('editRowPasswordForm').addEventListener('submit', (e) => {
             e.preventDefault();
             if (document.getElementById('editRowPasswordInput').value === EDIT_PIN) {
@@ -347,18 +342,24 @@ export function setupDashboardPage(data) {
                 document.getElementById('editRowPasswordInput').value = '';
                 populateEditModal(currentRowToEdit);
                 document.getElementById('editTransactionModal').classList.add('flex');
+                document.getElementById('editTransactionModal').classList.remove('hidden');
             } else {
                 document.getElementById('editRowPasswordError').textContent = 'PIN salah.';
             }
         });
-        document.getElementById('cancelEditRow').addEventListener('click', () => document.getElementById('editRowPasswordModal').classList.add('hidden'));
+        document.getElementById('cancelEditRow').addEventListener('click', () => {
+            document.getElementById('editRowPasswordModal').classList.add('hidden');
+            document.getElementById('editRowPasswordModal').classList.remove('flex');
+        });
         document.getElementById('editTransactionForm').addEventListener('submit', handleEditFormSubmit);
-        document.getElementById('cancelEditTransaction').addEventListener('click', () => document.getElementById('editTransactionModal').classList.add('hidden'));
+        document.getElementById('cancelEditTransaction').addEventListener('click', () => {
+            document.getElementById('editTransactionModal').classList.add('hidden');
+            document.getElementById('editTransactionModal').classList.remove('flex');
+        });
 
         searchInput.dataset.listenerAttached = 'true';
     }
 
-    // Listen for global filter changes
     document.addEventListener('filterChanged', (e) => {
         if (e.detail.pageId === 'dashboardPage') {
             applyFilters();
