@@ -44,8 +44,51 @@ export function renderDataMasterHTML() {
     `;
 }
 
-function renderMasterList(containerId, list) { /* ... (fungsi lengkap dari respons sebelumnya) ... */ }
-async function handleDeleteMasterItem(event) { /* ... (fungsi lengkap dari respons sebelumnya) ... */ }
+function renderMasterList(containerId, list) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    if (list.length === 0) {
+        container.innerHTML = '<p class="text-sm text-gray-500">Tidak ada data.</p>';
+        return;
+    }
+    const ul = document.createElement('ul');
+    ul.className = 'space-y-2';
+    list.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'flex justify-between items-center bg-gray-50 p-2 rounded';
+        li.innerHTML = `
+            <span class="text-gray-800">${item.Nama}</span>
+            <button data-row-index="${item.rowIndex}" data-name="${item.Nama}" class="delete-master-item text-red-500 hover:text-red-700 text-xs">Hapus</button>
+        `;
+        ul.appendChild(li);
+    });
+    container.appendChild(ul);
+    container.querySelectorAll('.delete-master-item').forEach(button => {
+        button.addEventListener('click', handleDeleteMasterItem);
+    });
+}
+
+async function handleDeleteMasterItem(event) {
+    const button = event.target;
+    const rowIndex = button.dataset.rowIndex;
+    const name = button.dataset.name;
+    if (!confirm(`Apakah Anda yakin ingin menghapus "${name}"?`)) return;
+
+    button.disabled = true;
+    button.textContent = 'Menghapus...';
+    try {
+        const response = await fetch(SCRIPT_URL, { method: 'POST', mode: 'cors', body: JSON.stringify({ action: 'deleteMaster', rowIndex }) });
+        const result = await response.json();
+        if (result.status !== 'success') throw new Error(result.message);
+        showToast(`Data "${name}" berhasil dihapus.`, 'success');
+        document.dispatchEvent(new CustomEvent('dataChanged'));
+    } catch (error) {
+        showToast(`Error: ${error.message}`, 'error');
+        button.disabled = false;
+        button.textContent = 'Hapus';
+    }
+}
 
 export function setupDataMasterPage(masterData) {
     const dataMasterForm = document.getElementById('dataMasterForm');
@@ -60,7 +103,37 @@ export function setupDataMasterPage(masterData) {
     renderMasterList('treatmentListContainer', treatments);
 
     if (!dataMasterForm.dataset.listenerAttached) {
-        dataMasterForm.addEventListener('submit', async (e) => { /* ... (logika submit form) ... */ });
+        dataMasterForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const saveBtn = document.getElementById('saveMasterDataBtn');
+            const btnText = saveBtn.querySelector('span');
+            const loader = saveBtn.querySelector('.loader');
+            const dataType = document.getElementById('masterDataType').value;
+            const dataName = document.getElementById('masterDataName').value.trim();
+
+            if (!dataType || !dataName) {
+                showToast('Tipe dan Nama tidak boleh kosong.', 'error');
+                return;
+            }
+            btnText.classList.add('hidden');
+            loader.classList.remove('hidden');
+            saveBtn.disabled = true;
+
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', mode: 'cors', body: JSON.stringify({ action: 'addMaster', type: dataType, name: dataName }) });
+                const result = await response.json();
+                if (result.status !== 'success') throw new Error(result.message);
+                showToast(`Data "${dataName}" berhasil disimpan.`, 'success');
+                dataMasterForm.reset();
+                document.dispatchEvent(new CustomEvent('dataChanged'));
+            } catch (error) {
+                showToast(`Error: ${error.message}`, 'error');
+            } finally {
+                btnText.classList.remove('hidden');
+                loader.classList.add('hidden');
+                saveBtn.disabled = false;
+            }
+        });
         dataMasterForm.dataset.listenerAttached = 'true';
     }
 }
