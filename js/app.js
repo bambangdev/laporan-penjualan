@@ -49,7 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
             if (result.status !== 'success') throw new Error(result.message);
 
-            // Pengecekan penting untuk memastikan struktur data dari server benar
             if (typeof result.transactions === 'undefined' || typeof result.masterData === 'undefined') {
                 throw new Error("Struktur data dari server salah. Pastikan Apps Script sudah di-deploy ulang dengan benar.");
             }
@@ -89,9 +88,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!isDataFetched) {
                 fetchDataAndSetupPages();
             } else {
-                 if(pageId === 'dataMasterPage') { setupDataMasterPage(allMasterData); }
-                 if(pageId === 'inputTransaksiPage') { setupUnifiedForm(allTransactions); }
-                 document.dispatchEvent(new CustomEvent('filterChanged', { detail: { pageId: pageId } }));
+                 // PERBAIKAN LOGIKA: Hanya setup ulang halaman yang relevan, jangan panggil event filter
+                 if(pageId === 'dataMasterPage') { 
+                    setupDataMasterPage(allMasterData); 
+                 } else if(pageId === 'inputTransaksiPage') {
+                    setupUnifiedForm(allTransactions);
+                 } else {
+                    document.dispatchEvent(new CustomEvent('filterChanged', { detail: { pageId: pageId } }));
+                 }
             }
         }
     }
