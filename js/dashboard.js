@@ -320,28 +320,35 @@ async function handleDeleteTransaction() {
     btnText.classList.add('hidden');
     loader.classList.remove('hidden');
     confirmBtn.disabled = true;
+    
     const formData = {
         action: 'delete',
         rowIndex: currentRowToAction.rowIndex,
     };
+
     try {
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'cors',
-            headers: {
-                'Content-Type': 'text/plain;charset=utf-8'
-            },
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(formData)
         });
+
         const result = await response.json();
         if (result.status !== 'success') throw new Error(result.message);
+
+        // Jika server berhasil, baru update data di sisi klien
         const indexToRemove = allData.findIndex(item => item.rowIndex === currentRowToAction.rowIndex);
         if (indexToRemove > -1) {
             allData.splice(indexToRemove, 1);
         }
+        
         showToast('Transaksi berhasil dihapus!', 'success');
         document.getElementById('deleteConfirmationModal').classList.add('hidden');
+        
+        // Render ulang tabel dengan data yang sudah diupdate dari array `allData`
         applyFilters();
+
     } catch (error) {
         showToast(`Error: ${error.message}`, 'error');
     } finally {
@@ -368,12 +375,7 @@ export function setupDashboardPage(data) {
         format: 'DD MMM YY',
         lang: 'id-ID',
         numberOfMonths: 2,
-        dropdowns: {
-            minYear: 2020,
-            maxYear: null,
-            months: true,
-            years: true
-        },
+        dropdowns: { minYear: 2020, maxYear: null, months: true, years: true },
         buttonText: {
             previousMonth: `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>`,
             nextMonth: `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>`,
