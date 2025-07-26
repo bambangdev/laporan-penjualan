@@ -49,8 +49,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
             if (result.status !== 'success') throw new Error(result.message);
 
-            allTransactions = result.transactions.sort((a, b) => new Date(b['Tanggal Input']) - new Date(a['Tanggal Input']));
-            allMasterData = result.masterData;
+            // ===== PERBAIKAN UTAMA ADA DI SINI =====
+            // Pastikan result.transactions ada sebelum di-sort
+            allTransactions = (result.transactions || []).sort((a, b) => new Date(b['Tanggal Input']) - new Date(a['Tanggal Input']));
+            allMasterData = result.masterData || [];
             isDataFetched = true;
             
             updateMasterLists(allMasterData);
@@ -91,7 +93,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Pastikan pinInputs ada sebelum menambahkan event listener
     if (pinInputs && pinInputs.length > 0) {
         pinInputs.forEach((input, index) => {
             input.addEventListener('keydown', (e) => {
