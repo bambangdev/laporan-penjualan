@@ -362,6 +362,10 @@ function populateDashboardFilters() {
 }
 
 export function setupDashboardPage(data) {
+    const searchInput = document.getElementById('dashboardSearchCustomer');
+    // ===== PERBAIKAN DI SINI: Tambahkan pengecekan =====
+    if (!searchInput) return; // Jika elemen dashboard tidak ada, hentikan eksekusi
+
     allData = data;
     const litepickerOptions = {
         singleMode: false, format: 'DD MMM YY', lang: 'id-ID', numberOfMonths: 2,
@@ -383,7 +387,6 @@ export function setupDashboardPage(data) {
 
     populateDashboardFilters();
 
-    const searchInput = document.getElementById('dashboardSearchCustomer');
     if (!searchInput.dataset.listenerAttached) {
         searchInput.addEventListener('input', applyFilters);
         document.getElementById('dashboardFilterShift').addEventListener('change', applyFilters);
