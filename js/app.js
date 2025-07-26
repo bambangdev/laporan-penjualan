@@ -38,8 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (sidebarOverlay) sidebarOverlay.classList.add('hidden');
     }
 
-    async function fetchDataAndSetupPages() {
-        if (isDataFetched) return;
+    async function fetchData() {
+        if (isDataFetched) return true; // Kembalikan true jika data sudah ada
         if (pageLoader) {
             pageLoader.classList.remove('hidden');
             pageLoader.classList.add('flex');
@@ -58,25 +58,15 @@ document.addEventListener('DOMContentLoaded', () => {
             allTransactions = (result.transactions || []).sort((a, b) => new Date(b['Tanggal Input']) - new Date(a['Tanggal Input']));
             allMasterData = result.masterData || [];
             isDataFetched = true;
-            
             updateMasterLists(allMasterData);
+            return true; // Sukses mengambil data
 
-            // Panggil semua fungsi setup
-            const activePageId = document.querySelector('.page.active')?.id;
-            setupDashboardPage(allTransactions);
-            setupCustomerReportPage(allTransactions);
-            setupSalesReportPage(allTransactions);
-            setupUnifiedForm(allTransactions);
-            setupDataMasterPage(allMasterData);
-
-            if (activePageId) {
-                document.dispatchEvent(new CustomEvent('filterChanged', { detail: { pageId: activePageId } }));
-            }
         } catch (error) {
             if (pageError) {
                 pageError.textContent = `Gagal memuat data: ${error.message}.`;
                 pageError.classList.remove('hidden');
             }
+            return false; // Gagal mengambil data
         } finally {
             if (pageLoader) {
                 pageLoader.classList.add('hidden');
@@ -85,20 +75,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function switchPage(pageId) {
+    async function switchPage(pageId) {
+        // Tampilkan halaman yang dituju
         if (pages) pages.forEach(page => page.classList.toggle('active', page.id === pageId));
         if (sidebarLinks) sidebarLinks.forEach(link => link.classList.toggle('active', link.dataset.page === pageId));
         if (window.innerWidth < 1024) { closeSidebar(); }
 
-        const dataDependentPages = ['dashboardPage', 'customerReportPage', 'salesReportPage', 'dataMasterPage', 'inputTransaksiPage'];
-        if (dataDependentPages.includes(pageId)) {
-            if (!isDataFetched) {
-                fetchDataAndSetupPages();
-            } else {
-                 if (pageId === 'dataMasterPage') { setupDataMasterPage(allMasterData); }
-                 if (pageId === 'inputTransaksiPage') { setupUnifiedForm(allTransactions); }
-                 document.dispatchEvent(new CustomEvent('filterChanged', { detail: { pageId: pageId } }));
-            }
+        // Ambil data jika belum ada
+        const dataReady = await fetchData();
+        if (!dataReady) return; // Hentikan jika data gagal dimuat
+
+        // Panggil fungsi setup HANYA untuk halaman yang aktif
+        switch (pageId) {
+            case 'dashboardPage':
+                setupDashboardPage(allTransactions);
+                break;
+            case 'customerReportPage':
+                setupCustomerReportPage(allTransactions);
+                break;
+            case 'salesReportPage':
+                setupSalesReportPage(allTransactions);
+                break;
+            case 'inputTransaksiPage':
+                setupUnifiedForm(allTransactions);
+                break;
+            case 'dataMasterPage':
+                setupDataMasterPage(allMasterData);
+                break;
         }
     }
 
@@ -172,6 +175,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('dataChanged', () => { 
         isDataFetched = false; 
-        fetchDataAndSetupPages(); 
+        const activePage = document.querySelector('.page.active');
+        if (activePage) {
+            switchPage(activePage.id);
+        }
     });
 });
