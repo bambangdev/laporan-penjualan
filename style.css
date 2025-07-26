@@ -65,3 +65,101 @@ body {
     transition: opacity 0.2s ease-in-out;
     pointer-events: none; /* Mencegah interaksi saat loading */
 }
+
+/* --- Tambahan untuk Notifikasi Toast --- */
+#toast-container {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.75rem;
+}
+
+.toast {
+    max-width: 350px;
+    padding: 1rem 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    color: white;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.4s cubic-bezier(0.215, 0.610, 0.355, 1);
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast.success {
+    background-color: #16a34a; /* green-600 */
+}
+
+.toast.error {
+    background-color: #dc2626; /* red-600 */
+}
+
+/* --- Tambahan untuk Tabel Responsif --- */
+@media screen and (max-width: 768px) {
+    #dashboardTableContainer table, 
+    #dashboardTableContainer thead, 
+    #dashboardTableContainer tbody, 
+    #dashboardTableContainer th, 
+    #dashboardTableContainer td, 
+    #dashboardTableContainer tr {
+        display: block;
+    }
+
+    #dashboardTableContainer thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+
+    #dashboardTableContainer tr {
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        background-color: #ffffff;
+    }
+
+    #dashboardTableContainer td {
+        border: none;
+        border-bottom: 1px solid #f3f4f6;
+        position: relative;
+        padding-left: 50%;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+        text-align: right;
+        white-space: normal;
+    }
+
+    #dashboardTableContainer td:before {
+        position: absolute;
+        top: 0.75rem;
+        left: 0.75rem;
+        width: 45%;
+        padding-right: 0.5rem;
+        white-space: nowrap;
+        text-align: left;
+        font-weight: 600;
+        color: #1f2937; /* gray-800 */
+    }
+
+    /* Memberi label pada setiap data */
+    #dashboardTableContainer td:nth-of-type(1):before { content: "Tanggal"; }
+    #dashboardTableContainer td:nth-of-type(2):before { content: "Customer"; }
+    #dashboardTableContainer td:nth-of-type(3):before { content: "Shift"; }
+    #dashboardTableContainer td:nth-of-type(4):before { content: "Host"; }
+    #dashboardTableContainer td:nth-of-type(5):before { content: "Admin"; }
+    #dashboardTableContainer td:nth-of-type(6):before { content: "PCS"; }
+    #dashboardTableContainer td:nth-of-type(7):before { content: "Omzet"; }
+    #dashboardTableContainer td:nth-of-type(8):before { content: "Jenis"; }
+    #dashboardTableContainer td:nth-of-type(9):before { content: "PCS Treat."; }
+    #dashboardTableContainer td:nth-of-type(10) {
+        border-bottom: none;
+    }
+}
