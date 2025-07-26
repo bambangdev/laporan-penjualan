@@ -12,18 +12,21 @@ export function renderSalesReportHTML() {
         `;
 }
 
-function renderTopHostSalesTable(data) { /* ... (fungsi lengkap dari respons sebelumnya) ... */ }
-function renderDailySalesChart(data, startDate, endDate) { /* ... (fungsi lengkap dari respons sebelumnya) ... */ }
-function renderCombinedSalaryBonusTable(tbody, dataMap, bonusMap, rate, type) { /* ... (fungsi lengkap dari respons sebelumnya) ... */ }
-function applySalesReportFilters() { /* ... (fungsi lengkap dari respons sebelumnya) ... */ }
+// ... (semua fungsi lain seperti renderTopHostSalesTable, renderDailySalesChart, dll. dari file salesReport.js lama Anda) ...
 
 export function setupSalesReportPage(data) {
     allData = data;
     const datePickerElement = document.getElementById('salesReportDateRangePicker');
     if (!datePickerElement) return;
 
-    if (!salesReportDatePicker) {
-        salesReportDatePicker = new Litepicker({ element: datePickerElement, /* ... (opsi) ... */ });
+    if (!salesReportDatePicker || !datePickerElement.litepickerInstance) {
+        salesReportDatePicker = new Litepicker({
+            element: datePickerElement,
+            singleMode: false, format: 'DD MMM YY', lang: 'id-ID',
+            setup: (picker) => picker.on('selected', applySalesReportFilters),
+        });
+        salesReportDatePicker.setDateRange(moment().subtract(6, 'days').toDate(), moment().toDate());
     }
+    
     applySalesReportFilters();
 }
