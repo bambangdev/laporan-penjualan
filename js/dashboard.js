@@ -117,7 +117,6 @@ function renderDashboardTable() {
 
 function populateCustomerAutocomplete(data) {
     const customerDatalist = document.getElementById('customerSuggestions');
-    // Guard clause jika elemen tidak ditemukan (saat halaman lain aktif)
     if (!customerDatalist) return;
     const uniqueCustomers = [...new Set(data.map(item => String(item['Nama Customer'] || '').trim()).filter(Boolean))].sort();
     customerDatalist.innerHTML = '';
@@ -185,14 +184,9 @@ function exportDashboardToExcel() {
     let csvContent = headers.join(',') + '\n';
     filteredDashboardData.forEach(row => {
         const rowValues = [
-            row['Tanggal Input'] ? new Date(row['Tanggal Input']).toLocaleDateString('id-ID') : '',
-            `"${String(row['Nama Customer'] || '').replace(/"/g, '""')}"`,
-            `"${String(row['Shift'] || '').replace(/"/g, '""')}"`,
-            `"${String(row['Nama Host'] || '').replace(/"/g, '""')}"`,
-            `"${String(row['Nama Admin'] || '').replace(/"/g, '""')}"`,
+            row['Tanggal Input'] ? new Date(row['Tanggal Input']).toLocaleDateString('id-ID') : '', `"${String(row['Nama Customer'] || '').replace(/"/g, '""')}"`, `"${String(row['Shift'] || '').replace(/"/g, '""')}"`, `"${String(row['Nama Host'] || '').replace(/"/g, '""')}"`, `"${String(row['Nama Admin'] || '').replace(/"/g, '""')}"`,
             Number(row['Total Pcs'] || 0),
-            parseCurrency(row['Total Omzet'] || 0),
-            `"${String(row['Jenis Transaksi'] || '').replace(/"/g, '""')}"`,
+            parseCurrency(row['Total Omzet'] || 0), `"${String(row['Jenis Transaksi'] || '').replace(/"/g, '""')}"`,
             Number(row['PCS Treatment'] || 0)
         ];
         csvContent += rowValues.join(',') + '\n';
@@ -215,7 +209,6 @@ function populateEditModal(data) {
     document.getElementById('editOriginalTimestamp').value = data['Tanggal Input'];
     document.getElementById('editTransactionType').value = data['Jenis Transaksi'] || '';
     document.getElementById('editShift').value = data.Shift || '';
-
     const editHostInput = document.getElementById('editHost');
     const editBackupHostContainer = document.getElementById('editBackupHostContainer');
     const editBackupHostInput = document.getElementById('editBackupHost');
@@ -229,7 +222,6 @@ function populateEditModal(data) {
         editBackupHostContainer.classList.add('hidden');
         editBackupHostInput.value = '';
     }
-
     const editAdminInput = document.getElementById('editAdmin');
     const editBackupAdminContainer = document.getElementById('editBackupAdminContainer');
     const editBackupAdminInput = document.getElementById('editBackupAdmin');
@@ -243,11 +235,9 @@ function populateEditModal(data) {
         editBackupAdminContainer.classList.add('hidden');
         editBackupAdminInput.value = '';
     }
-    
     document.getElementById('editCustomer').value = data['Nama Customer'] || '';
     document.getElementById('editPcs').value = data['Total Pcs'] || '';
     document.getElementById('editOmzet').value = formatCurrency(data['Total Omzet']);
-    
     const editOrangTreatmentInput = document.getElementById('editOrangTreatment');
     const editBackupTreatmentContainer = document.getElementById('editBackupTreatmentContainer');
     const editBackupOrangTreatmentInput = document.getElementById('editBackupOrangTreatment');
@@ -262,7 +252,6 @@ function populateEditModal(data) {
         editBackupOrangTreatmentInput.value = '';
     }
     document.getElementById('editPcsTreatment').value = data['PCS Treatment'] || '';
-
     editHostInput.onchange = () => editBackupHostContainer.classList.toggle('hidden', editHostInput.value !== 'Backup');
     editAdminInput.onchange = () => editBackupAdminContainer.classList.toggle('hidden', editAdminInput.value !== 'Backup');
     editOrangTreatmentInput.onchange = () => editBackupTreatmentContainer.classList.toggle('hidden', editOrangTreatmentInput.value !== 'Backup');
@@ -274,15 +263,12 @@ async function handleEditFormSubmit(e) {
     const saveEditTransactionBtn = document.getElementById('saveEditTransaction');
     const btnText = saveEditTransactionBtn.querySelector('span');
     const loader = saveEditTransactionBtn.querySelector('.loader');
-    
-    btnText.classList.add('hidden'); 
-    loader.classList.remove('hidden'); 
+    btnText.classList.add('hidden');
+    loader.classList.remove('hidden');
     saveEditTransactionBtn.disabled = true;
-
     const finalHost = document.getElementById('editHost').value === 'Backup' ? document.getElementById('editBackupHost').value.trim() : document.getElementById('editHost').value;
     const finalAdmin = document.getElementById('editAdmin').value === 'Backup' ? document.getElementById('editBackupAdmin').value.trim() : document.getElementById('editAdmin').value;
     const finalTreatment = document.getElementById('editOrangTreatment').value === 'Backup' ? document.getElementById('editBackupOrangTreatment').value.trim() : document.getElementById('editOrangTreatment').value;
-
     const formData = {
         action: 'edit',
         rowIndex: document.getElementById('editRowIndex').value,
@@ -297,14 +283,18 @@ async function handleEditFormSubmit(e) {
         orangTreatment: finalTreatment,
         pcsTreatment: document.getElementById('editPcsTreatment').value,
     };
-    
     try {
-        const response = await fetch(SCRIPT_URL, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(formData) });
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'text/plain;charset=utf-8'
+            },
+            body: JSON.stringify(formData)
+        });
         const result = await response.json();
         if (result.status !== 'success') throw new Error(result.message);
-        
         showToast(`Data berhasil diperbarui!`, 'success');
-        
         document.dispatchEvent(new CustomEvent('dataChanged'));
         setTimeout(() => {
             document.getElementById('editTransactionModal').classList.add('hidden');
@@ -313,52 +303,45 @@ async function handleEditFormSubmit(e) {
     } catch (error) {
         showToast(`Error: ${error.message}`, 'error');
     } finally {
-        btnText.classList.remove('hidden'); 
-        loader.classList.add('hidden'); 
+        btnText.classList.remove('hidden');
+        loader.classList.add('hidden');
         saveEditTransactionBtn.disabled = false;
     }
 }
 
-// ===== FUNGSI HAPUS YANG DIPERBAIKI =====
 async function handleDeleteTransaction() {
     if (!currentRowToAction || !currentRowToAction.rowIndex) {
         showToast('Gagal menghapus: Data tidak ditemukan.', 'error');
         return;
     }
-    
     const confirmBtn = document.getElementById('confirmDeleteBtn');
     const btnText = confirmBtn.querySelector('span');
     const loader = confirmBtn.querySelector('.loader');
-
     btnText.classList.add('hidden');
     loader.classList.remove('hidden');
     confirmBtn.disabled = true;
-
     const formData = {
         action: 'delete',
         rowIndex: currentRowToAction.rowIndex,
     };
-
     try {
-        const response = await fetch(SCRIPT_URL, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(formData) });
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'text/plain;charset=utf-8'
+            },
+            body: JSON.stringify(formData)
+        });
         const result = await response.json();
         if (result.status !== 'success') throw new Error(result.message);
-
-        // --- PERBAIKAN LOGIKA ADA DI SINI ---
-        // 1. Hapus item dari array data utama
         const indexToRemove = allData.findIndex(item => item.rowIndex === currentRowToAction.rowIndex);
         if (indexToRemove > -1) {
             allData.splice(indexToRemove, 1);
         }
-
-        // 2. Tampilkan notifikasi dan tutup modal
         showToast('Transaksi berhasil dihapus!', 'success');
         document.getElementById('deleteConfirmationModal').classList.add('hidden');
-        
-        // 3. Panggil applyFilters() untuk me-render ulang tabel dengan data yang sudah diupdate
-        //    Ini lebih cepat daripada memanggil event 'dataChanged' yang memuat ulang semua dari server
         applyFilters();
-
     } catch (error) {
         showToast(`Error: ${error.message}`, 'error');
     } finally {
@@ -379,17 +362,23 @@ function populateDashboardFilters() {
 export function setupDashboardPage(data) {
     const searchInput = document.getElementById('dashboardSearchCustomer');
     if (!searchInput) return;
-
     allData = data;
     const litepickerOptions = {
-        singleMode: false, format: 'DD MMM YY', lang: 'id-ID', numberOfMonths: 2,
-        dropdowns: { minYear: 2020, maxYear: null, months: true, years: true },
+        singleMode: false,
+        format: 'DD MMM YY',
+        lang: 'id-ID',
+        numberOfMonths: 2,
+        dropdowns: {
+            minYear: 2020,
+            maxYear: null,
+            months: true,
+            years: true
+        },
         buttonText: {
             previousMonth: `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>`,
             nextMonth: `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>`,
         },
     };
-
     if (!dashboardDatePicker) {
         dashboardDatePicker = new Litepicker({
             element: document.getElementById('dashboardDateRangePicker'),
@@ -398,9 +387,7 @@ export function setupDashboardPage(data) {
         });
         dashboardDatePicker.setDateRange(moment().startOf('month').toDate(), moment().endOf('month').toDate());
     }
-
     populateDashboardFilters();
-
     if (!searchInput.dataset.listenerAttached) {
         searchInput.addEventListener('input', applyFilters);
         document.getElementById('dashboardFilterShift').addEventListener('change', applyFilters);
@@ -410,7 +397,6 @@ export function setupDashboardPage(data) {
         document.getElementById('prevPageBtn').addEventListener('click', () => changePage('prev'));
         document.getElementById('nextPageBtn').addEventListener('click', () => changePage('next'));
         document.getElementById('exportExcelBtn').addEventListener('click', exportDashboardToExcel);
-
         document.getElementById('editRowPasswordForm').addEventListener('submit', (e) => {
             e.preventDefault();
             if (document.getElementById('editRowPasswordInput').value === EDIT_PIN) {
@@ -432,12 +418,9 @@ export function setupDashboardPage(data) {
             document.getElementById('editTransactionModal').classList.add('hidden');
             document.getElementById('editTransactionModal').classList.remove('flex');
         });
-        
         document.getElementById('confirmDeleteBtn').addEventListener('click', handleDeleteTransaction);
-
         searchInput.dataset.listenerAttached = 'true';
     }
-
     document.addEventListener('filterChanged', (e) => {
         if (e.detail.pageId === 'dashboardPage') {
             applyFilters();
