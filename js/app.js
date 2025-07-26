@@ -88,7 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!isDataFetched) {
                 fetchDataAndSetupPages();
             } else {
-                 // PERBAIKAN LOGIKA: Hanya setup ulang halaman yang relevan, jangan panggil event filter
                  if(pageId === 'dataMasterPage') { 
                     setupDataMasterPage(allMasterData); 
                  } else if(pageId === 'inputTransaksiPage') {
