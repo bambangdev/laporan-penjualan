@@ -39,11 +39,11 @@ export function renderDashboardHTML() {
             </div>
             <div class="bg-white p-6 rounded-lg shadow-md mb-6">
                  <h3 class="text-lg font-semibold text-gray-800 mb-4">Top Host Berdasarkan Omzet Penjualan</h3>
-                 <div class="table-responsive border rounded-lg"><table class="min-w-full bg-white"><tbody id="dashboardTopHostTable"></tbody></table></div>
+                 <div class="table-responsive border rounded-lg"><table class="min-w-full bg-white"><thead class="bg-gray-50"><tr><th class="th-cell">Peringkat</th><th class="th-cell">Nama Host</th><th class="th-cell">Total Omzet</th><th class="th-cell">Total Pcs</th></tr></thead><tbody id="dashboardTopHostTable"></tbody></table></div>
             </div>
             <div class="mt-8">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">Data Transaksi</h3>
-                <div id="dashboardTableContainer" class="table-responsive"><table class="min-w-full bg-white"><tbody id="dashboardTableBody"></tbody></table></div>
+                <div id="dashboardTableContainer" class="table-responsive"><table class="min-w-full bg-white"><thead class="bg-gray-50"><tr><th class="th-cell">Tanggal</th><th class="th-cell">Customer</th><th class="th-cell">Shift</th><th class="th-cell">Host</th><th class="th-cell">Admin</th><th class="th-cell">Pcs</th><th class="th-cell">Omzet</th><th class="th-cell">Jenis</th><th class="th-cell">Pcs Treat.</th><th class="th-cell">Aksi</th></tr></thead><tbody id="dashboardTableBody"></tbody></table></div>
                 <div class="flex justify-between items-center mt-4">
                     <button id="prevPageBtn" class="bg-pink-500 hover:bg-pink-600 text-white py-2 px-4 rounded-lg pagination-btn">Sebelumnya</button>
                     <span>Halaman <span id="currentPageSpan">1</span> dari <span id="totalPagesSpan">1</span></span>
@@ -56,9 +56,12 @@ export function renderDashboardHTML() {
 
 function applyFilters() {
     const dashboardLoader = document.getElementById('dashboardLoader');
-    dashboardLoader.classList.remove('hidden');
-    dashboardLoader.classList.add('flex');
+    if (dashboardLoader) {
+        dashboardLoader.classList.remove('hidden');
+        dashboardLoader.classList.add('flex');
+    }
 
+    // Use a short timeout to allow the loader to render before the heavy filtering task
     setTimeout(() => {
         const searchTerm = document.getElementById('dashboardSearchCustomer').value.toLowerCase();
         const selectedShift = document.getElementById('dashboardFilterShift').value;
@@ -86,8 +89,10 @@ function applyFilters() {
         renderTopHostSalesTableForDashboard(filteredDashboardData.filter(r => r['Jenis Transaksi'] === 'Penjualan'));
         renderDashboardTable();
 
-        dashboardLoader.classList.add('hidden');
-        dashboardLoader.classList.remove('flex');
+        if (dashboardLoader) {
+            dashboardLoader.classList.add('hidden');
+            dashboardLoader.classList.remove('flex');
+        }
     }, 50);
 }
 
@@ -103,55 +108,167 @@ function calculateAndRenderStats(data) {
     document.getElementById('statPcsTreatment').textContent = treatmentData.reduce((s, r) => s + Number(r['PCS Treatment'] || 0), 0).toLocaleString('id-ID');
 }
 
+function renderTopHostSalesTableForDashboard(data) {
+    const tableBody = document.getElementById('dashboardTopHostTable');
+    if (!tableBody) return;
+
+    const hostSales = data.reduce((acc, row) => {
+        const host = row['Nama Host'];
+        if (!host) return acc;
+        acc[host] = acc[host] || { name: host, omzet: 0, pcs: 0 };
+        acc[host].omzet += parseCurrency(row['Total Omzet'] || 0);
+        acc[host].pcs += Number(row['Total Pcs'] || 0);
+        return acc;
+    }, {});
+
+    const sortedHosts = Object.values(hostSales).sort((a, b) => b.omzet - a.omzet).slice(0, 5);
+
+    tableBody.innerHTML = '';
+    if (sortedHosts.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-500">Tidak ada data penjualan untuk ditampilkan.</td></tr>';
+        return;
+    }
+
+    sortedHosts.forEach((host, index) => {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b';
+        tr.innerHTML = `
+            <td class="td-cell text-center font-bold">${index + 1}</td>
+            <td class="td-cell">${host.name}</td>
+            <td class="td-cell font-semibold text-green-600">${formatCurrency(host.omzet)}</td>
+            <td class="td-cell">${host.pcs.toLocaleString('id-ID')} pcs</td>
+        `;
+        tableBody.appendChild(tr);
+    });
+}
+
 function renderDashboardTable() {
-    // ... (Fungsi lengkap dari file dashboard.js yang Anda unggah)
+    const tableBody = document.getElementById('dashboardTableBody');
+    const currentPageSpan = document.getElementById('currentPageSpan');
+    const totalPagesSpan = document.getElementById('totalPagesSpan');
+    const prevPageBtn = document.getElementById('prevPageBtn');
+    const nextPageBtn = document.getElementById('nextPageBtn');
+
+    if (!tableBody || !currentPageSpan || !totalPagesSpan || !prevPageBtn || !nextPageBtn) return;
+    
+    const totalRows = filteredDashboardData.length;
+    const totalPages = Math.ceil(totalRows / rowsPerPage);
+    currentPage = Math.max(1, Math.min(currentPage, totalPages));
+    
+    const startRow = (currentPage - 1) * rowsPerPage;
+    const endRow = startRow + rowsPerPage;
+    const paginatedData = filteredDashboardData.slice(startRow, endRow);
+
+    tableBody.innerHTML = '';
+    if (paginatedData.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="10" class="text-center py-10 text-gray-500">Tidak ada data yang cocok dengan filter Anda.</td></tr>';
+    } else {
+        paginatedData.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.className = 'border-b hover:bg-gray-50';
+            tr.innerHTML = `
+                <td class="td-cell">${moment(row['Tanggal Input']).format('DD MMM YYYY, HH:mm')}</td>
+                <td class="td-cell">${row['Nama Customer'] || '-'}</td>
+                <td class="td-cell">${row['Shift'] || '-'}</td>
+                <td class="td-cell">${row['Nama Host'] || '-'}</td>
+                <td class="td-cell">${row['Nama Admin'] || '-'}</td>
+                <td class="td-cell">${Number(row['Total Pcs'] || 0).toLocaleString('id-ID')}</td>
+                <td class="td-cell">${row['Total Omzet'] ? formatCurrency(row['Total Omzet']) : '-'}</td>
+                <td class="td-cell"><span class="px-2 py-1 text-xs font-semibold rounded-full ${row['Jenis Transaksi'] === 'Penjualan' ? 'bg-green-100 text-green-800' : row['Jenis Transaksi'] === 'Return' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}">${row['Jenis Transaksi']}</span></td>
+                <td class="td-cell">${Number(row['PCS Treatment'] || 0).toLocaleString('id-ID')}</td>
+                <td class="td-cell">
+                    <button class="text-red-500 hover:text-red-700 delete-row-btn" data-row-index="${row.rowIndex}">Hapus</button>
+                </td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    }
+
+    currentPageSpan.textContent = totalPages === 0 ? 0 : currentPage;
+    totalPagesSpan.textContent = totalPages;
+    prevPageBtn.disabled = currentPage === 1;
+    nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
+
+    document.querySelectorAll('.delete-row-btn').forEach(button => {
+        button.addEventListener('click', handleDeleteRow);
+    });
 }
 
-function showCustomerHistory(customerName) {
-    // ... (Fungsi lengkap dari file dashboard.js yang Anda unggah)
-}
+async function handleDeleteRow(event) {
+    const button = event.target;
+    const rowIndex = button.dataset.rowIndex;
+    
+    if (!confirm(`Apakah Anda yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan.`)) return;
 
-function populateCustomerAutocomplete(data) {
-    // ... (Fungsi lengkap dari file dashboard.js yang Anda unggah)
+    const password = prompt("Masukkan PIN untuk menghapus:", "");
+    if (password !== EDIT_PIN) {
+        showToast("PIN salah.", "error");
+        return;
+    }
+
+    button.disabled = true;
+    button.textContent = 'Menghapus...';
+    
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'deleteTransaction', rowIndex: rowIndex })
+        });
+        const result = await response.json();
+        if (result.status !== 'success') throw new Error(result.message);
+        showToast('Transaksi berhasil dihapus!', 'success');
+        document.dispatchEvent(new CustomEvent('dataChanged'));
+    } catch (error) {
+        showToast(`Error: ${error.message}`, 'error');
+        button.disabled = false;
+        button.textContent = 'Hapus';
+    }
 }
 
 function changePage(direction) {
-    // ... (Fungsi lengkap dari file dashboard.js yang Anda unggah)
-}
-
-function exportDashboardToExcel() {
-    // ... (Fungsi lengkap dari file dashboard.js yang Anda unggah)
-}
-
-function populateEditModal(data) {
-    // ... (Fungsi lengkap dari file dashboard.js yang Anda unggah)
-}
-
-async function handleEditFormSubmit(e) {
-    // ... (Fungsi lengkap dari file dashboard.js yang Anda unggah)
+    if (direction === 'prev' && currentPage > 1) {
+        currentPage--;
+    } else if (direction === 'next') {
+        const totalPages = Math.ceil(filteredDashboardData.length / rowsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+        }
+    }
+    renderDashboardTable();
 }
 
 function populateDashboardFilters() {
     const getUniqueValues = (key) => [...new Set(allData.map(item => item[key]).filter(Boolean).sort())];
+    
     populateDropdown(document.getElementById('dashboardFilterShift'), getUniqueValues('Shift'), false);
-    populateDropdown(document.getElementById('dashboardFilterHost'), getUniqueValues('Nama Host'), false);
-    populateDropdown(document.getElementById('dashboardFilterAdmin'), getUniqueValues('Nama Admin'), false);
+    populateDropdown(document.getElementById('dashboardFilterHost'), hostList, false);
+    populateDropdown(document.getElementById('dashboardFilterAdmin'), adminList, false);
 }
 
 export function setupDashboardPage(data) {
     allData = data;
-    const searchInput = document.getElementById('dashboardSearchCustomer');
-    if (!searchInput) return;
+    const dashboardPage = document.getElementById('dashboardPage');
+    if (!dashboardPage || dashboardPage.innerHTML === '') return; // Don't run if page not rendered
 
     if (!dashboardDatePicker || !document.getElementById('dashboardDateRangePicker').litepickerInstance) {
         dashboardDatePicker = new Litepicker({
             element: document.getElementById('dashboardDateRangePicker'),
             singleMode: false,
-            // ... (opsi lainnya)
-            setup: (picker) => picker.on('selected', applyFilters)
+            format: 'DD MMM YYYY',
+            lang: 'id-ID',
+            tooltipText: { "one": "hari", "other": "hari" },
+            dropdowns: { "minYear": 2020, "maxYear": null, "months": true, "years": true },
+            setup: (picker) => {
+                picker.on('selected', (date1, date2) => {
+                    applyFilters();
+                });
+            }
         });
     }
 
+    const searchInput = document.getElementById('dashboardSearchCustomer');
     if (!searchInput.dataset.listenerAttached) {
         searchInput.addEventListener('input', applyFilters);
         document.getElementById('dashboardFilterShift').addEventListener('change', applyFilters);
@@ -164,5 +281,7 @@ export function setupDashboardPage(data) {
     }
     
     populateDashboardFilters();
-    applyFilters();
+    // Set initial date range to this month and apply filters
+    const today = moment();
+    dashboardDatePicker.setDateRange(today.startOf('month').toDate(), today.endOf('month').toDate());
 }
