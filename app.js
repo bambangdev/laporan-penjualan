@@ -328,6 +328,7 @@ function applyFilters() {
         currentPage = 1;
         calculateAndRenderStats(filteredDashboardData);
         renderDashboardTable();
+        renderTopHostSalesTableForDashboard(filteredDashboardData.filter(r => r['Jenis Transaksi'] === 'Penjualan'));
         
         dashboardLoader.classList.add('hidden');
         dashboardLoader.classList.remove('flex');
@@ -398,6 +399,38 @@ function renderDashboardTable() {
         });
     });
 }
+
+
+function renderTopHostSalesTableForDashboard(data) {
+    const hostSales = data.reduce((acc, row) => {
+        const hostName = row['Nama Host'] || 'Unknown';
+        acc[hostName] = acc[hostName] || { omzet: 0, pcs: 0 };
+        acc[hostName].omzet += parseCurrency(row['Total Omzet'] || 0);
+        acc[hostName].pcs += Number(row['Total Pcs'] || 0);
+        return acc;
+    }, {});
+
+    const sortedHosts = Object.keys(hostSales).sort((a, b) => hostSales[b].omzet - hostSales[a].omzet);
+    const tbody = document.getElementById('dashboardTopHostTable');
+    tbody.innerHTML = '';
+
+    if (sortedHosts.length === 0 || sortedHosts[0] === 'Unknown') {
+        tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-sm text-gray-400">Tidak ada data penjualan host.</td></tr>`;
+        return;
+    }
+
+    sortedHosts.forEach(host => {
+        if(host === 'Unknown') return;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="py-2 px-3 text-sm font-medium text-gray-900">${host}</td>
+            <td class="py-2 px-3 text-sm text-gray-500">${formatCurrency(hostSales[host].omzet)}</td>
+            <td class="py-2 px-3 text-sm text-gray-500">${hostSales[host].pcs.toLocaleString('id-ID')}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
 
 function changePage(direction) {
     const totalPages = Math.ceil(filteredDashboardData.length / rowsPerPage);
