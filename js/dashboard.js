@@ -117,6 +117,8 @@ function renderDashboardTable() {
 
 function populateCustomerAutocomplete(data) {
     const customerDatalist = document.getElementById('customerSuggestions');
+    // Guard clause jika elemen tidak ditemukan (saat halaman lain aktif)
+    if (!customerDatalist) return;
     const uniqueCustomers = [...new Set(data.map(item => String(item['Nama Customer'] || '').trim()).filter(Boolean))].sort();
     customerDatalist.innerHTML = '';
     uniqueCustomers.forEach(customer => {
@@ -317,6 +319,7 @@ async function handleEditFormSubmit(e) {
     }
 }
 
+// ===== FUNGSI HAPUS YANG DIPERBAIKI =====
 async function handleDeleteTransaction() {
     if (!currentRowToAction || !currentRowToAction.rowIndex) {
         showToast('Gagal menghapus: Data tidak ditemukan.', 'error');
@@ -341,9 +344,21 @@ async function handleDeleteTransaction() {
         const result = await response.json();
         if (result.status !== 'success') throw new Error(result.message);
 
+        // --- PERBAIKAN LOGIKA ADA DI SINI ---
+        // 1. Hapus item dari array data utama
+        const indexToRemove = allData.findIndex(item => item.rowIndex === currentRowToAction.rowIndex);
+        if (indexToRemove > -1) {
+            allData.splice(indexToRemove, 1);
+        }
+
+        // 2. Tampilkan notifikasi dan tutup modal
         showToast('Transaksi berhasil dihapus!', 'success');
         document.getElementById('deleteConfirmationModal').classList.add('hidden');
-        document.dispatchEvent(new CustomEvent('dataChanged'));
+        
+        // 3. Panggil applyFilters() untuk me-render ulang tabel dengan data yang sudah diupdate
+        //    Ini lebih cepat daripada memanggil event 'dataChanged' yang memuat ulang semua dari server
+        applyFilters();
+
     } catch (error) {
         showToast(`Error: ${error.message}`, 'error');
     } finally {
@@ -363,8 +378,7 @@ function populateDashboardFilters() {
 
 export function setupDashboardPage(data) {
     const searchInput = document.getElementById('dashboardSearchCustomer');
-    // ===== PERBAIKAN DI SINI: Tambahkan pengecekan =====
-    if (!searchInput) return; // Jika elemen dashboard tidak ada, hentikan eksekusi
+    if (!searchInput) return;
 
     allData = data;
     const litepickerOptions = {
