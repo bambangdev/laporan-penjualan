@@ -1,5 +1,5 @@
-// GANTI URL DI BAWAH INI DENGAN URL YANG BARU ANDA SALIN DARI GOOGLE APPS SCRIPT
-export const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbydMKUFTtfmkoCAQyf-5bupHr_Hk6_9y6XoooaQPZufGTX2QcFsGpd3Z3xS8hIqbKPG/exec';
+// Pastikan URL ini adalah URL deployment Web App Anda yang terakhir dan aktif
+export const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzpSVOHsYuDXUoJqHJ4mi2bHiHVT7tqSgD1Q6iq2RKHhwIqszVCfczZUMrNB7zzoFn/exec';
 
 export const CORRECT_PIN = '7501';
 export const SALES_REPORT_PIN = '2232'; 
@@ -13,7 +13,8 @@ export let treatmentPersonList = [];
 // Fungsi untuk mengisi daftar di atas dari data master
 export function updateMasterLists(masterData) {
     hostList = masterData.filter(item => item.Tipe === 'Host').map(item => item.Nama);
-    adminList = master-data.filter(item => item.Tipe === 'Admin').map(item => item.Nama);
+    // ===== PERBAIKAN ADA DI BARIS INI =====
+    adminList = masterData.filter(item => item.Tipe === 'Admin').map(item => item.Nama);
     treatmentPersonList = masterData.filter(item => item.Tipe === 'Treatment').map(item => item.Nama);
 }
 
@@ -26,7 +27,9 @@ export function populateDropdown(selectElement, listItems, includeBackup = true)
     selectElement.innerHTML = '';
     if (firstOption) selectElement.appendChild(firstOption);
 
+    // Mengurutkan daftar sebelum menampilkannya
     listItems.sort().forEach(item => selectElement.add(new Option(item, item)));
+    
     if(includeBackup) selectElement.add(new Option('Backup (Isi Manual)', 'Backup'));
 }
 
