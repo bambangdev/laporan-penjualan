@@ -5,7 +5,7 @@ let filteredDashboardData = [];
 let currentPage = 1;
 const rowsPerPage = 30;
 let dashboardDatePicker;
-let currentRowToEdit = null;
+let currentRowToAction = null;
 
 function renderTopHostSalesTableForDashboard(data) {
     const hostSales = data.reduce((acc, row) => {
@@ -81,8 +81,9 @@ function renderDashboardTable() {
                 <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${formatCurrency(row['Total Omzet'])}</td>
                 <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${row['Jenis Transaksi']}</td>
                 <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${Number(row['PCS Treatment'] || 0).toLocaleString('id-ID')}</td>
-                <td class="py-4 px-4 whitespace-nowrap text-right text-sm font-medium">
+                <td class="py-4 px-4 whitespace-nowrap text-right text-sm font-medium space-x-4">
                     <button class="text-indigo-600 hover:text-indigo-900 edit-row-btn">Edit</button>
+                    <button class="text-red-600 hover:text-red-900 delete-row-btn">Hapus</button>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -97,11 +98,31 @@ function renderDashboardTable() {
     document.querySelectorAll('.edit-row-btn').forEach(button => {
         button.addEventListener('click', (e) => {
             const tr = e.target.closest('tr');
-            currentRowToEdit = JSON.parse(tr.dataset.rowData);
+            currentRowToAction = JSON.parse(tr.dataset.rowData);
             document.getElementById('editRowPasswordModal').classList.remove('hidden');
             document.getElementById('editRowPasswordModal').classList.add('flex');
             document.getElementById('editRowPasswordInput').focus();
         });
+    });
+
+    document.querySelectorAll('.delete-row-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const tr = e.target.closest('tr');
+            currentRowToAction = JSON.parse(tr.dataset.rowData);
+            document.getElementById('deleteConfirmationModal').classList.remove('hidden');
+            document.getElementById('deleteConfirmationModal').classList.add('flex');
+        });
+    });
+}
+
+function populateCustomerAutocomplete(data) {
+    const customerDatalist = document.getElementById('customerSuggestions');
+    const uniqueCustomers = [...new Set(data.map(item => String(item['Nama Customer'] || '').trim()).filter(Boolean))].sort();
+    customerDatalist.innerHTML = '';
+    uniqueCustomers.forEach(customer => {
+        const option = document.createElement('option');
+        option.value = customer;
+        customerDatalist.appendChild(option);
     });
 }
 
@@ -135,6 +156,7 @@ function applyFilters() {
         currentPage = 1;
         calculateAndRenderStats(filteredDashboardData);
         renderTopHostSalesTableForDashboard(filteredDashboardData.filter(r => r['Jenis Transaksi'] === 'Penjualan'));
+        populateCustomerAutocomplete(allData);
         renderDashboardTable();
 
         dashboardLoader.classList.add('hidden');
@@ -295,6 +317,43 @@ async function handleEditFormSubmit(e) {
     }
 }
 
+async function handleDeleteTransaction() {
+    if (!currentRowToAction || !currentRowToAction.rowIndex) {
+        showToast('Gagal menghapus: Data tidak ditemukan.', 'error');
+        return;
+    }
+    
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    const btnText = confirmBtn.querySelector('span');
+    const loader = confirmBtn.querySelector('.loader');
+
+    btnText.classList.add('hidden');
+    loader.classList.remove('hidden');
+    confirmBtn.disabled = true;
+
+    const formData = {
+        action: 'delete',
+        rowIndex: currentRowToAction.rowIndex,
+    };
+
+    try {
+        const response = await fetch(SCRIPT_URL, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(formData) });
+        const result = await response.json();
+        if (result.status !== 'success') throw new Error(result.message);
+
+        showToast('Transaksi berhasil dihapus!', 'success');
+        document.getElementById('deleteConfirmationModal').classList.add('hidden');
+        document.dispatchEvent(new CustomEvent('dataChanged'));
+    } catch (error) {
+        showToast(`Error: ${error.message}`, 'error');
+    } finally {
+        btnText.classList.remove('hidden');
+        loader.classList.add('hidden');
+        confirmBtn.disabled = false;
+        currentRowToAction = null;
+    }
+}
+
 function populateDashboardFilters() {
     const getUniqueValues = (key) => [...new Set(allData.map(item => item[key]).filter(Boolean).sort())];
     populateDropdown(document.getElementById('dashboardFilterShift'), getUniqueValues('Shift'), false);
@@ -340,7 +399,7 @@ export function setupDashboardPage(data) {
             if (document.getElementById('editRowPasswordInput').value === EDIT_PIN) {
                 document.getElementById('editRowPasswordModal').classList.add('hidden');
                 document.getElementById('editRowPasswordInput').value = '';
-                populateEditModal(currentRowToEdit);
+                populateEditModal(currentRowToAction);
                 document.getElementById('editTransactionModal').classList.add('flex');
                 document.getElementById('editTransactionModal').classList.remove('hidden');
             } else {
@@ -356,6 +415,8 @@ export function setupDashboardPage(data) {
             document.getElementById('editTransactionModal').classList.add('hidden');
             document.getElementById('editTransactionModal').classList.remove('flex');
         });
+        
+        document.getElementById('confirmDeleteBtn').addEventListener('click', handleDeleteTransaction);
 
         searchInput.dataset.listenerAttached = 'true';
     }
