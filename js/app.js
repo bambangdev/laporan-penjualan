@@ -49,8 +49,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
             if (result.status !== 'success') throw new Error(result.message);
 
-            // ===== PERBAIKAN UTAMA ADA DI SINI =====
-            // Pastikan result.transactions ada sebelum di-sort
+            // Pengecekan penting untuk memastikan struktur data dari server benar
+            if (typeof result.transactions === 'undefined' || typeof result.masterData === 'undefined') {
+                throw new Error("Struktur data dari server salah. Pastikan Apps Script sudah di-deploy ulang dengan benar.");
+            }
+
             allTransactions = (result.transactions || []).sort((a, b) => new Date(b['Tanggal Input']) - new Date(a['Tanggal Input']));
             allMasterData = result.masterData || [];
             isDataFetched = true;
