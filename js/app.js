@@ -61,15 +61,16 @@ document.addEventListener('DOMContentLoaded', () => {
             
             updateMasterLists(allMasterData);
 
+            // Panggil semua fungsi setup
+            const activePageId = document.querySelector('.page.active')?.id;
             setupDashboardPage(allTransactions);
             setupCustomerReportPage(allTransactions);
             setupSalesReportPage(allTransactions);
             setupUnifiedForm(allTransactions);
             setupDataMasterPage(allMasterData);
 
-            const activePage = document.querySelector('.page.active');
-            if (activePage) {
-                document.dispatchEvent(new CustomEvent('filterChanged', { detail: { pageId: activePage.id } }));
+            if (activePageId) {
+                document.dispatchEvent(new CustomEvent('filterChanged', { detail: { pageId: activePageId } }));
             }
         } catch (error) {
             if (pageError) {
@@ -117,14 +118,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         if (pinError) pinError.textContent = 'PIN salah, coba lagi.';
                         pinInputs.forEach(i => i.value = '');
-                        pinInputs[0].focus();
+                        if (pinInputs[0]) pinInputs[0].focus();
                     }
                 } else {
                     if (pinError) pinError.textContent = '';
                 }
             });
         });
-        pinInputs[0].focus();
+        if (pinInputs[0]) pinInputs[0].focus();
     }
 
     if (openSidebarBtn) openSidebarBtn.addEventListener('click', openSidebar);
