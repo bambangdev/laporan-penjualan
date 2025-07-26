@@ -1,6 +1,6 @@
-import { SCRIPT_URL, parseCurrency, formatCurrency, hostList, adminList, treatmentPersonList, populateDropdown } from './utils.js';
+import { SCRIPT_URL, parseCurrency, formatCurrency, hostList, adminList, treatmentPersonList, populateDropdown, showToast } from './utils.js';
 
-let allData = []; // Akan diisi dari app.js
+let allData = [];
 
 function checkDuplicateCustomerToday(customerName, transactionType) {
     const today = moment().startOf('day');
@@ -21,7 +21,6 @@ export function setupUnifiedForm(data) {
     const salesReturnFields = document.getElementById('salesReturnFields');
     const treatmentFields = document.getElementById('treatmentFields');
     const unifiedSubmitBtn = document.getElementById('unifiedSubmitBtn');
-    const unifiedFormStatus = document.getElementById('unifiedFormStatus');
     const salesReturnHostSelect = document.getElementById('salesReturnHost');
     const salesReturnAdminSelect = document.getElementById('salesReturnAdmin');
     const treatmentPersonSelect = document.getElementById('treatmentPerson');
@@ -30,7 +29,6 @@ export function setupUnifiedForm(data) {
     const treatmentBackupContainer = document.getElementById('treatmentBackupContainer');
     const salesReturnOmzetInput = document.getElementById('salesReturnOmzet');
     
-    // Pastikan listener hanya ditambahkan sekali
     if (unifiedForm.dataset.listenerAttached) return;
 
     populateDropdown(salesReturnHostSelect, hostList);
@@ -65,12 +63,10 @@ export function setupUnifiedForm(data) {
         
         const selectedType = transactionTypeSelect.value;
         if (!selectedType) {
-            unifiedFormStatus.textContent = 'Error: Mohon pilih jenis transaksi.';
-            unifiedFormStatus.className = 'mt-4 text-center text-sm h-4 text-red-600';
+            showToast('Mohon pilih jenis transaksi.', 'error');
             return;
         }
 
-        unifiedFormStatus.textContent = '';
         const btnText = unifiedSubmitBtn.querySelector('span');
         const loader = unifiedSubmitBtn.querySelector('.loader');
         
@@ -105,8 +101,7 @@ export function setupUnifiedForm(data) {
         if (customerName && ['Penjualan', 'Return'].includes(selectedType)) {
             if (checkDuplicateCustomerToday(customerName, selectedType)) {
                 if (!confirm(`Peringatan: Nama pelanggan "${customerName}" untuk transaksi ${selectedType} sudah terinput hari ini. Lanjutkan?`)) {
-                    unifiedFormStatus.textContent = 'Pengiriman dibatalkan.';
-                    unifiedFormStatus.className = 'mt-4 text-center text-sm h-4 text-gray-600';
+                    showToast('Pengiriman dibatalkan oleh pengguna.');
                     btnText.classList.remove('hidden');
                     loader.classList.add('hidden');
                     unifiedSubmitBtn.disabled = false;
@@ -119,14 +114,14 @@ export function setupUnifiedForm(data) {
             const response = await fetch(SCRIPT_URL, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(formData) });
             const result = await response.json();
             if (result.status !== 'success') throw new Error(result.message);
-            unifiedFormStatus.textContent = `Laporan ${selectedType} berhasil dikirim!`;
-            unifiedFormStatus.className = 'mt-4 text-center text-sm h-4 text-green-600';
+            
+            showToast(`Laporan ${selectedType} berhasil dikirim!`, 'success');
+            
             unifiedForm.reset();
             allFieldsets.forEach(fs => fs.classList.add('hidden'));
             document.dispatchEvent(new CustomEvent('dataChanged'));
-        } catch (error) { // <-- PERBAIKAN DI SINI
-            unifiedFormStatus.textContent = `Error: ${error.message}`;
-            unifiedFormStatus.className = 'mt-4 text-center text-sm h-4 text-red-600';
+        } catch (error) {
+            showToast(`Error: ${error.message}`, 'error');
         } finally {
             btnText.classList.remove('hidden');
             loader.classList.add('hidden');
