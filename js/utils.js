@@ -18,7 +18,7 @@ export function populateDropdown(selectElement, listItems, includeBackup = true)
 
     listItems.forEach(item => selectElement.add(new Option(item, item)));
     if(includeBackup) selectElement.add(new Option('Backup (Isi Manual)', 'Backup'));
-    // ... (semua kode di utils.js yang sudah ada) ...
+}
 
 // --- FUNGSI BARU UNTUK NOTIFIKASI TOAST ---
 export function showToast(message, type = 'success') {
