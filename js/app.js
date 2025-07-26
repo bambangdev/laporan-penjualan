@@ -27,7 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const salesReportPinInput = document.getElementById('salesReportPinInput');
     const salesReportPinError = document.getElementById('salesReportPinError');
     const cancelSalesReportBtn = document.getElementById('cancelSalesReport');
-
+    const deleteConfirmationModal = document.getElementById('deleteConfirmationModal');
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    
     // --- MAIN APP LOGIC ---
 
     function openSidebar() {
@@ -55,13 +57,11 @@ document.addEventListener('DOMContentLoaded', () => {
             allData = result.data.sort((a, b) => new Date(b['Tanggal Input']) - new Date(a['Tanggal Input']));
             isDataFetched = true;
 
-            // Setup semua halaman dengan data yang sudah diambil
             setupDashboardPage(allData);
             setupCustomerReportPage(allData);
             setupSalesReportPage(allData);
             setupUnifiedForm(allData);
 
-            // Picu filter untuk halaman yang sedang aktif
             const activePage = document.querySelector('.page.active');
             if (activePage) {
                  document.dispatchEvent(new CustomEvent('filterChanged', { detail: { pageId: activePage.id } }));
@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Sidebar Navigation (PERBAIKAN DI SINI)
+    // Sidebar Navigation
     openSidebarBtn.addEventListener('click', openSidebar);
     closeSidebarBtn.addEventListener('click', closeSidebar);
     sidebarOverlay.addEventListener('click', closeSidebar);
@@ -155,8 +155,12 @@ document.addEventListener('DOMContentLoaded', () => {
         salesReportPinModal.classList.add('hidden');
         salesReportPinModal.classList.remove('flex');
     });
+
+    // Delete Confirmation Modal
+    cancelDeleteBtn.addEventListener('click', () => {
+        deleteConfirmationModal.classList.add('hidden');
+    });
     
-    // Listen untuk perubahan data dari form agar bisa fetch ulang
     document.addEventListener('dataChanged', () => {
         isDataFetched = false; 
         const activePage = document.querySelector('.page.active');
@@ -165,6 +169,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Initial focus
     pinInputs[0].focus();
 });
