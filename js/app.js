@@ -28,14 +28,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const salesReportPinError = document.getElementById('salesReportPinError');
     const cancelSalesReportBtn = document.getElementById('cancelSalesReport');
 
-    function openSidebar() { /* ... (sama seperti sebelumnya) ... */ }
-    function closeSidebar() { /* ... (sama seperti sebelumnya) ... */ }
+    function openSidebar() {
+        if (sidebar) sidebar.classList.remove('-translate-x-full');
+        if (sidebarOverlay) sidebarOverlay.classList.remove('hidden');
+    }
+
+    function closeSidebar() {
+        if (sidebar) sidebar.classList.add('-translate-x-full');
+        if (sidebarOverlay) sidebarOverlay.classList.add('hidden');
+    }
 
     async function fetchDataAndSetupPages() {
         if (isDataFetched) return;
-        pageLoader.classList.remove('hidden');
-        pageLoader.classList.add('flex');
-        pageError.classList.add('hidden');
+        if(pageLoader) pageLoader.classList.remove('hidden');
+        if(pageLoader) pageLoader.classList.add('flex');
+        if(pageError) pageError.classList.add('hidden');
+        
         try {
             const response = await fetch(SCRIPT_URL);
             const result = await response.json();
@@ -45,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
             allMasterData = result.masterData;
             isDataFetched = true;
             
-            updateMasterLists(allMasterData); // <-- Langkah penting!
+            updateMasterLists(allMasterData);
 
             setupDashboardPage(allTransactions);
             setupCustomerReportPage(allTransactions);
@@ -58,17 +66,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.dispatchEvent(new CustomEvent('filterChanged', { detail: { pageId: activePage.id } }));
             }
         } catch (error) {
-            pageError.textContent = `Gagal memuat data: ${error.message}.`;
-            pageError.classList.remove('hidden');
+            if(pageError) pageError.textContent = `Gagal memuat data: ${error.message}.`;
+            if(pageError) pageError.classList.remove('hidden');
         } finally {
-            pageLoader.classList.add('hidden');
-            pageLoader.classList.remove('flex');
+            if(pageLoader) pageLoader.classList.add('hidden');
+            if(pageLoader) pageLoader.classList.remove('flex');
         }
     }
 
     function switchPage(pageId) {
-        pages.forEach(page => page.classList.toggle('active', page.id === pageId));
-        sidebarLinks.forEach(link => link.classList.toggle('active', link.dataset.page === pageId));
+        if(pages) pages.forEach(page => page.classList.toggle('active', page.id === pageId));
+        if(sidebarLinks) sidebarLinks.forEach(link => link.classList.toggle('active', link.dataset.page === pageId));
         if (window.innerWidth < 1024) { closeSidebar(); }
 
         const dataDependentPages = ['dashboardPage', 'customerReportPage', 'salesReportPage', 'dataMasterPage', 'inputTransaksiPage'];
@@ -83,13 +91,71 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    pinInputs.forEach(/* ... (logika login tetap sama) ... */);
-    openSidebarBtn.addEventListener('click', openSidebar);
-    closeSidebarBtn.addEventListener('click', closeSidebar);
-    sidebarOverlay.addEventListener('click', closeSidebar);
-    sidebarLinks.forEach(/* ... (logika navigasi sidebar tetap sama) ... */);
-    salesReportPinForm.addEventListener(/* ... (logika modal sales report tetap sama) ... */);
-    cancelSalesReportBtn.addEventListener('click', () => { /* ... (sama) ... */ });
-    document.addEventListener('dataChanged', () => { isDataFetched = false; fetchDataAndSetupPages(); });
-    pinInputs[0].focus();
+    // Pastikan pinInputs ada sebelum menambahkan event listener
+    if (pinInputs && pinInputs.length > 0) {
+        pinInputs.forEach((input, index) => {
+            input.addEventListener('keydown', (e) => {
+                if (e.key === "Backspace" && !input.value && index > 0) pinInputs[index - 1].focus();
+            });
+            input.addEventListener('input', () => {
+                if (input.value && index < pinInputs.length - 1) pinInputs[index + 1].focus();
+                const enteredPin = Array.from(pinInputs).map(i => i.value).join('');
+                if (enteredPin.length === 4) {
+                    if (enteredPin === CORRECT_PIN) {
+                        if (loginSection) loginSection.classList.add('hidden');
+                        if (mainApp) mainApp.classList.remove('hidden');
+                        switchPage('dashboardPage'); 
+                    } else {
+                        if (pinError) pinError.textContent = 'PIN salah, coba lagi.';
+                        pinInputs.forEach(i => i.value = '');
+                        pinInputs[0].focus();
+                    }
+                } else {
+                    if (pinError) pinError.textContent = '';
+                }
+            });
+        });
+        pinInputs[0].focus();
+    }
+
+    if(openSidebarBtn) openSidebarBtn.addEventListener('click', openSidebar);
+    if(closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
+    if(sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
+    
+    if(sidebarLinks) sidebarLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const pageId = link.dataset.page;
+            if (pageId === 'salesReportPage') {
+                if(salesReportPinModal) salesReportPinModal.classList.remove('hidden');
+                if(salesReportPinModal) salesReportPinModal.classList.add('flex');
+                if(salesReportPinInput) salesReportPinInput.focus();
+            } else {
+                switchPage(pageId);
+            }
+        });
+    });
+
+    if(salesReportPinForm) salesReportPinForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (salesReportPinInput && salesReportPinInput.value === SALES_REPORT_PIN) {
+            if(salesReportPinModal) salesReportPinModal.classList.add('hidden');
+            if(salesReportPinModal) salesReportPinModal.classList.remove('flex');
+            switchPage('salesReportPage');
+            salesReportPinInput.value = '';
+            if(salesReportPinError) salesReportPinError.textContent = '';
+        } else {
+            if(salesReportPinError) salesReportPinError.textContent = 'PIN salah.';
+        }
+    });
+
+    if(cancelSalesReportBtn) cancelSalesReportBtn.addEventListener('click', () => {
+        if(salesReportPinModal) salesReportPinModal.classList.add('hidden');
+        if(salesReportPinModal) salesReportPinModal.classList.remove('flex');
+    });
+
+    document.addEventListener('dataChanged', () => { 
+        isDataFetched = false; 
+        fetchDataAndSetupPages(); 
+    });
 });
