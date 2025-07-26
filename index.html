@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Laporan - infinithree.id</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css"/>
+    
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-gray-100">
@@ -32,15 +36,20 @@
 
     <div id="mainApp" class="hidden">
         <div class="relative min-h-screen lg:flex">
+            
             <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden lg:hidden"></div>
+            
             <aside id="sidebar" class="fixed inset-y-0 left-0 bg-white shadow-md w-64 z-30 transform -translate-x-full lg:relative lg:translate-x-0 transition-transform duration-300 ease-in-out"></aside>
-            <main class="flex-1 lg:p-8 p-4 w-full">
+            
+            <main class="flex-1 lg:p-8 p-4 w-full overflow-y-auto">
                  <header class="flex items-center justify-between lg:hidden mb-4"></header>
-                <div id="dashboardPage" class="page"></div>
+                
+                 <div id="dashboardPage" class="page"></div>
                 <div id="inputTransaksiPage" class="page"></div>
                 <div id="customerReportPage" class="page"></div>
                 <div id="salesReportPage" class="page"></div>
                 <div id="dataMasterPage" class="page"></div>
+                
                 <div id="pageLoader" class="hidden justify-center items-center h-40 flex-col space-y-4"></div>
                 <p id="pageError" class="text-center text-red-500 hidden"></p>
             </main>
@@ -48,9 +57,12 @@
     </div>
     
     <div id="toast-container"></div>
+
     <script src="https://cdn.jsdelivr.net/npm/moment/moment.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment/locale/id.js"></script> <script>moment.locale('id');</script> <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script type="module" src="js/app.js" defer></script>
 </body>
 </html>
