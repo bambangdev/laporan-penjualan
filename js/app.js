@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function fetchData() {
-        if (isDataFetched) return true; // Kembalikan true jika data sudah ada
+        if (isDataFetched) return true;
         if (pageLoader) {
             pageLoader.classList.remove('hidden');
             pageLoader.classList.add('flex');
@@ -59,14 +59,14 @@ document.addEventListener('DOMContentLoaded', () => {
             allMasterData = result.masterData || [];
             isDataFetched = true;
             updateMasterLists(allMasterData);
-            return true; // Sukses mengambil data
+            return true;
 
         } catch (error) {
             if (pageError) {
                 pageError.textContent = `Gagal memuat data: ${error.message}.`;
                 pageError.classList.remove('hidden');
             }
-            return false; // Gagal mengambil data
+            return false;
         } finally {
             if (pageLoader) {
                 pageLoader.classList.add('hidden');
@@ -76,16 +76,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function switchPage(pageId) {
-        // Tampilkan halaman yang dituju
         if (pages) pages.forEach(page => page.classList.toggle('active', page.id === pageId));
         if (sidebarLinks) sidebarLinks.forEach(link => link.classList.toggle('active', link.dataset.page === pageId));
         if (window.innerWidth < 1024) { closeSidebar(); }
 
-        // Ambil data jika belum ada
         const dataReady = await fetchData();
-        if (!dataReady) return; // Hentikan jika data gagal dimuat
+        if (!dataReady) return;
 
-        // Panggil fungsi setup HANYA untuk halaman yang aktif
         switch (pageId) {
             case 'dashboardPage':
                 setupDashboardPage(allTransactions);
