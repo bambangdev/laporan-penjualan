@@ -286,6 +286,177 @@
                     </form>
                 </div>
 
+                <div id="customerReportPage" class="page relative">
+                    <div id="customerLoader" class="absolute inset-0 bg-gray-100 bg-opacity-80 z-10 hidden items-center justify-center flex-col space-y-4">
+                        <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-24 w-24"></div>
+                        <p class="text-xl font-semibold text-gray-700">Mohon tunggu, sedang memuat data...</p>
+                    </div>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-6">Laporan Customer</h1>
+                      <div class="mb-6 p-4 border rounded-lg bg-gray-50">
+                        <label for="customerReportDateRangePicker" class="block text-sm font-medium text-gray-700 mb-1">Pilih Rentang Tanggal</label>
+                        <input type="text" id="customerReportDateRangePicker" placeholder="Filter data berdasarkan tanggal" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
+                    </div>
+                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-800 mb-2">Top 10 Customer (Pembelian Terbanyak)</h4>
+                            <div class="table-responsive border rounded-lg">
+                                <table class="min-w-full bg-white">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Omzet</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">PCS</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="topBuyersTable" class="divide-y divide-gray-200"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-800 mb-2">Top 10 Customer (Return Terbanyak)</h4>
+                             <div class="table-responsive border rounded-lg">
+                                <table class="min-w-full bg-white">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Omzet</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">PCS</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="topReturnersTable" class="divide-y divide-gray-200"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                     </div>
+                </div>
+
+                <div id="salesReportPage" class="page relative">
+                    <div id="salesLoader" class="absolute inset-0 bg-gray-100 bg-opacity-80 z-10 hidden items-center justify-center flex-col space-y-4">
+                        <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-24 w-24"></div>
+                        <p class="text-xl font-semibold text-gray-700">Mohon tunggu, sedang memuat data...</p>
+                    </div>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-6">Sales Report (Bonus)</h1>
+                     <div class="mb-6 p-4 border rounded-lg bg-gray-50">
+                        <label for="salesReportDateRangePicker" class="block text-sm font-medium text-gray-700 mb-1">Pilih Rentang Tanggal</label>
+                        <input type="text" id="salesReportDateRangePicker" placeholder="Filter data berdasarkan tanggal" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
+                    </div>
+
+                    <div id="salesReportInsights" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                        <div class="stat-card">
+                            <p class="text-sm text-gray-500">Total PCS Penjualan</p>
+                            <p id="salesReportTotalPcs" class="text-2xl font-bold text-gray-900">0</p>
+                            <p id="salesReportTotalPcsComparison" class="text-sm text-gray-500 mt-1"></p>
+                        </div>
+                        <div class="stat-card">
+                            <p class="text-sm text-gray-500">Total Omzet Penjualan</p>
+                            <p id="salesReportTotalOmzet" class="text-2xl font-bold text-green-600">Rp 0</p>
+                            <p id="salesReportTotalOmzetComparison" class="text-sm text-gray-500 mt-1"></p>
+                        </div>
+                        <div class="stat-card">
+                            <p class="text-sm text-gray-500">Net Omzet</p>
+                            <p id="salesReportNetOmzet" class="text-2xl font-bold text-blue-600">Rp 0</p>
+                            <p id="salesReportNetOmzetComparison" class="text-sm text-gray-500 mt-1"></p>
+                        </div>
+                        <div id="uniqueCustomersCard" class="stat-card cursor-pointer hover:bg-gray-200 transition">
+                            <p class="text-sm text-gray-500">Total Customer Unik</p>
+                            <p id="salesReportUniqueCustomers" class="text-2xl font-bold text-purple-600">0</p>
+                            <p id="salesReportUniqueCustomersComparison" class="text-sm text-gray-500 mt-1"></p>
+                        </div>
+                        <div id="repeatCustomersCard" class="stat-card cursor-pointer hover:bg-gray-200 transition">
+                            <p class="text-sm text-gray-500">Total Customer Repeat</p>
+                            <p id="salesReportRepeatCustomers" class="text-2xl font-bold text-green-600">0</p>
+                            <p id="salesReportRepeatCustomersComparison" class="text-sm text-gray-500 mt-1"></p>
+                        </div>
+                         <div class="stat-card">
+                            <p class="text-sm text-gray-500">Rasio Return (%)</p>
+                            <p id="salesReportReturnRatio" class="text-2xl font-bold text-red-600">0.00%</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-8 mb-6">
+                        <div>
+                            <h4 class="font-semibold text-gray-700 mb-2">Estimasi Gaji & Bonus Host</h4>
+                            <div class="table-responsive border rounded-lg">
+                                <table class="min-w-full bg-white">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Hari Unik</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Gaji Pokok</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Bonus</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="salesReportHostCombinedTable" class="divide-y divide-gray-200">
+                                        <tr><td colspan="5" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-700 mb-2">Estimasi Gaji & Bonus Admin</h4>
+                            <div class="table-responsive border rounded-lg">
+                                <table class="min-w-full bg-white">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Hari Unik</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Gaji Pokok</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Bonus</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="salesReportAdminCombinedTable" class="divide-y divide-gray-200">
+                                        <tr><td colspan="5" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-700 mb-2">Estimasi Gaji Treatment</h4>
+                            <div class="table-responsive border rounded-lg">
+                                <table class="min-w-full bg-white">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Hari Unik</th>
+                                            <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Gaji Pokok</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="salesReportTreatmentCombinedTable" class="divide-y divide-gray-200">
+                                        <tr><td colspan="3" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-md mb-6" style="height: 400px;">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Tren Penjualan Harian</h3>
+                        <canvas id="dailySalesChart"></canvas>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Top Host Berdasarkan Omzet Penjualan</h3>
+                         <div class="table-responsive border rounded-lg">
+                             <table class="min-w-full bg-white">
+                                 <thead class="bg-gray-50">
+                                     <tr>
+                                         <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Host</th>
+                                         <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Total Omzet</th>
+                                         <th class="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase">Total PCS</th>
+                                     </tr>
+                                 </thead>
+                                 <tbody id="salesReportTopHostTable" class="divide-y divide-gray-200">
+                                     <tr><td colspan="3" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>
+                                 </tbody>
+                             </table>
+                         </div>
+                    </div>
+                </div>
+                
                 <div id="pageLoader" class="hidden justify-center items-center h-40 flex-col space-y-4">
                     <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-32 w-32"></div>
                     <p class="text-xl font-semibold text-gray-700">Mohon tunggu, sedang mengambil data awal...</p>
