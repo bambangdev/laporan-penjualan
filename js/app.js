@@ -40,9 +40,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchDataAndSetupPages() {
         if (isDataFetched) return;
-        if(pageLoader) pageLoader.classList.remove('hidden');
-        if(pageLoader) pageLoader.classList.add('flex');
-        if(pageError) pageError.classList.add('hidden');
+        if (pageLoader) {
+            pageLoader.classList.remove('hidden');
+            pageLoader.classList.add('flex');
+        }
+        if (pageError) pageError.classList.add('hidden');
         
         try {
             const response = await fetch(SCRIPT_URL);
@@ -70,17 +72,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.dispatchEvent(new CustomEvent('filterChanged', { detail: { pageId: activePage.id } }));
             }
         } catch (error) {
-            if(pageError) pageError.textContent = `Gagal memuat data: ${error.message}.`;
-            if(pageError) pageError.classList.remove('hidden');
+            if (pageError) {
+                pageError.textContent = `Gagal memuat data: ${error.message}.`;
+                pageError.classList.remove('hidden');
+            }
         } finally {
-            if(pageLoader) pageLoader.classList.add('hidden');
-            if(pageLoader) pageLoader.classList.remove('flex');
+            if (pageLoader) {
+                pageLoader.classList.add('hidden');
+                pageLoader.classList.remove('flex');
+            }
         }
     }
 
     function switchPage(pageId) {
-        if(pages) pages.forEach(page => page.classList.toggle('active', page.id === pageId));
-        if(sidebarLinks) sidebarLinks.forEach(link => link.classList.toggle('active', link.dataset.page === pageId));
+        if (pages) pages.forEach(page => page.classList.toggle('active', page.id === pageId));
+        if (sidebarLinks) sidebarLinks.forEach(link => link.classList.toggle('active', link.dataset.page === pageId));
         if (window.innerWidth < 1024) { closeSidebar(); }
 
         const dataDependentPages = ['dashboardPage', 'customerReportPage', 'salesReportPage', 'dataMasterPage', 'inputTransaksiPage'];
@@ -88,13 +94,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!isDataFetched) {
                 fetchDataAndSetupPages();
             } else {
-                 if(pageId === 'dataMasterPage') { 
-                    setupDataMasterPage(allMasterData); 
-                 } else if(pageId === 'inputTransaksiPage') {
-                    setupUnifiedForm(allTransactions);
-                 } else {
-                    document.dispatchEvent(new CustomEvent('filterChanged', { detail: { pageId: pageId } }));
-                 }
+                 if (pageId === 'dataMasterPage') { setupDataMasterPage(allMasterData); }
+                 if (pageId === 'inputTransaksiPage') { setupUnifiedForm(allTransactions); }
+                 document.dispatchEvent(new CustomEvent('filterChanged', { detail: { pageId: pageId } }));
             }
         }
     }
@@ -125,40 +127,46 @@ document.addEventListener('DOMContentLoaded', () => {
         pinInputs[0].focus();
     }
 
-    if(openSidebarBtn) openSidebarBtn.addEventListener('click', openSidebar);
-    if(closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
-    if(sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
+    if (openSidebarBtn) openSidebarBtn.addEventListener('click', openSidebar);
+    if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
+    if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
     
-    if(sidebarLinks) sidebarLinks.forEach(link => {
+    if (sidebarLinks) sidebarLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const pageId = link.dataset.page;
             if (pageId === 'salesReportPage') {
-                if(salesReportPinModal) salesReportPinModal.classList.remove('hidden');
-                if(salesReportPinModal) salesReportPinModal.classList.add('flex');
-                if(salesReportPinInput) salesReportPinInput.focus();
+                if (salesReportPinModal) {
+                    salesReportPinModal.classList.remove('hidden');
+                    salesReportPinModal.classList.add('flex');
+                }
+                if (salesReportPinInput) salesReportPinInput.focus();
             } else {
                 switchPage(pageId);
             }
         });
     });
 
-    if(salesReportPinForm) salesReportPinForm.addEventListener('submit', (e) => {
+    if (salesReportPinForm) salesReportPinForm.addEventListener('submit', (e) => {
         e.preventDefault();
         if (salesReportPinInput && salesReportPinInput.value === SALES_REPORT_PIN) {
-            if(salesReportPinModal) salesReportPinModal.classList.add('hidden');
-            if(salesReportPinModal) salesReportPinModal.classList.remove('flex');
+            if (salesReportPinModal) {
+                salesReportPinModal.classList.add('hidden');
+                salesReportPinModal.classList.remove('flex');
+            }
             switchPage('salesReportPage');
             salesReportPinInput.value = '';
-            if(salesReportPinError) salesReportPinError.textContent = '';
+            if (salesReportPinError) salesReportPinError.textContent = '';
         } else {
-            if(salesReportPinError) salesReportPinError.textContent = 'PIN salah.';
+            if (salesReportPinError) salesReportPinError.textContent = 'PIN salah.';
         }
     });
 
-    if(cancelSalesReportBtn) cancelSalesReportBtn.addEventListener('click', () => {
-        if(salesReportPinModal) salesReportPinModal.classList.add('hidden');
-        if(salesReportPinModal) salesReportPinModal.classList.remove('flex');
+    if (cancelSalesReportBtn) cancelSalesReportBtn.addEventListener('click', () => {
+        if (salesReportPinModal) {
+            salesReportPinModal.classList.add('hidden');
+            salesReportPinModal.classList.remove('flex');
+        }
     });
 
     document.addEventListener('dataChanged', () => { 
