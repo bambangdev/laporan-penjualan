@@ -1,5 +1,5 @@
 // Pastikan URL ini adalah URL deployment Web App Anda yang terakhir dan aktif
-export const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzpSVOHsYuDXUoJqHJ4mi2bHiHVT7tqSgD1Q6iq2RKHhwIqszVCfczZUMrNB7zzoFn/exec';
+export const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw_WZnzSKat7xjOpOYni1l7cLGq0zT-4Nv-mJsdwH714fiAMwrDNt9aSUMdS2lx4S_4/exec';
 
 export const CORRECT_PIN = '7501';
 export const SALES_REPORT_PIN = '2232'; 
