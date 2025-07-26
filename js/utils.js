@@ -18,4 +18,28 @@ export function populateDropdown(selectElement, listItems, includeBackup = true)
 
     listItems.forEach(item => selectElement.add(new Option(item, item)));
     if(includeBackup) selectElement.add(new Option('Backup (Isi Manual)', 'Backup'));
+    // ... (semua kode di utils.js yang sudah ada) ...
+
+// --- FUNGSI BARU UNTUK NOTIFIKASI TOAST ---
+export function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+
+    container.appendChild(toast);
+
+    // Memicu transisi
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 10);
+
+    // Menghilangkan toast setelah 4 detik
+    setTimeout(() => {
+        toast.classList.remove('show');
+        // Menghapus elemen dari DOM setelah transisi selesai
+        toast.addEventListener('transitionend', () => {
+            toast.remove();
+        });
+    }, 4000);
 }
