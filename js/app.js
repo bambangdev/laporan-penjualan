@@ -1,4 +1,4 @@
-import { CORRECT_PIN, SALES_REPORT_PIN, EDIT_PIN } from './utils.js';
+import { CORRECT_PIN, SALES_REPORT_PIN } from './utils.js';
 import { setupDashboardPage } from './dashboard.js';
 import { setupCustomerReportPage } from './customerReport.js';
 import { setupSalesReportPage } from './salesReport.js';
@@ -30,13 +30,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- MAIN APP LOGIC ---
 
+    function openSidebar() {
+        sidebar.classList.remove('-translate-x-full');
+        sidebarOverlay.classList.remove('hidden');
+    }
+
     function closeSidebar() {
         sidebar.classList.add('-translate-x-full');
         sidebarOverlay.classList.add('hidden');
     }
 
     async function fetchDataAndSetupPages() {
-        if (isDataFetched) return; // Don't refetch if data is already there
+        if (isDataFetched) return; 
 
         pageLoader.classList.remove('hidden');
         pageLoader.classList.add('flex');
@@ -50,13 +55,13 @@ document.addEventListener('DOMContentLoaded', () => {
             allData = result.data.sort((a, b) => new Date(b['Tanggal Input']) - new Date(a['Tanggal Input']));
             isDataFetched = true;
 
-            // Setup all pages with the fetched data
+            // Setup semua halaman dengan data yang sudah diambil
             setupDashboardPage(allData);
             setupCustomerReportPage(allData);
             setupSalesReportPage(allData);
             setupUnifiedForm(allData);
 
-            // Trigger filter for the currently active page
+            // Picu filter untuk halaman yang sedang aktif
             const activePage = document.querySelector('.page.active');
             if (activePage) {
                  document.dispatchEvent(new CustomEvent('filterChanged', { detail: { pageId: activePage.id } }));
@@ -83,7 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!isDataFetched) {
                 fetchDataAndSetupPages();
             } else {
-                 // Trigger filter for the new page
                  document.dispatchEvent(new CustomEvent('filterChanged', { detail: { pageId: pageId } }));
             }
         }
@@ -115,8 +119,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Sidebar Navigation
-    [openSidebarBtn, closeSidebarBtn, sidebarOverlay].forEach(el => el.addEventListener('click', closeSidebar));
+    // Sidebar Navigation (PERBAIKAN DI SINI)
+    openSidebarBtn.addEventListener('click', openSidebar);
+    closeSidebarBtn.addEventListener('click', closeSidebar);
+    sidebarOverlay.addEventListener('click', closeSidebar);
+
     sidebarLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
@@ -149,9 +156,9 @@ document.addEventListener('DOMContentLoaded', () => {
         salesReportPinModal.classList.remove('flex');
     });
     
-    // Listen for data changes from forms to refetch
+    // Listen untuk perubahan data dari form agar bisa fetch ulang
     document.addEventListener('dataChanged', () => {
-        isDataFetched = false; // Mark data as stale
+        isDataFetched = false; 
         const activePage = document.querySelector('.page.active');
         if (activePage && ['dashboardPage', 'customerReportPage', 'salesReportPage'].includes(activePage.id)) {
             fetchDataAndSetupPages();
