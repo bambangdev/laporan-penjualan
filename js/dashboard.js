@@ -83,8 +83,7 @@ function renderDashboardTable() {
                 <td class="py-4 px-4 whitespace-nowrap text-sm text-gray-500">${Number(row['PCS Treatment'] || 0).toLocaleString('id-ID')}</td>
                 <td class="py-4 px-4 whitespace-nowrap text-right text-sm font-medium space-x-4">
                     <button class="text-indigo-600 hover:text-indigo-900 edit-row-btn">Edit</button>
-                    <button class="text-red-600 hover:text-red-900 delete-row-btn">Hapus</button>
-                </td>
+                    </td>
             `;
             tbody.appendChild(tr);
         });
@@ -105,6 +104,8 @@ function renderDashboardTable() {
         });
     });
 
+    // DINONAKTIFKAN: Event listener untuk tombol hapus
+    /*
     document.querySelectorAll('.delete-row-btn').forEach(button => {
         button.addEventListener('click', (e) => {
             const tr = e.target.closest('tr');
@@ -113,6 +114,7 @@ function renderDashboardTable() {
             document.getElementById('deleteConfirmationModal').classList.add('flex');
         });
     });
+    */
 }
 
 function populateCustomerAutocomplete(data) {
@@ -337,17 +339,10 @@ async function handleDeleteTransaction() {
         const result = await response.json();
         if (result.status !== 'success') throw new Error(result.message);
 
-        // Jika server berhasil, baru update data di sisi klien
-        const indexToRemove = allData.findIndex(item => item.rowIndex === currentRowToAction.rowIndex);
-        if (indexToRemove > -1) {
-            allData.splice(indexToRemove, 1);
-        }
-        
         showToast('Transaksi berhasil dihapus!', 'success');
         document.getElementById('deleteConfirmationModal').classList.add('hidden');
         
-        // Render ulang tabel dengan data yang sudah diupdate dari array `allData`
-        applyFilters();
+        document.dispatchEvent(new CustomEvent('dataChanged'));
 
     } catch (error) {
         showToast(`Error: ${error.message}`, 'error');
@@ -357,13 +352,6 @@ async function handleDeleteTransaction() {
         confirmBtn.disabled = false;
         currentRowToAction = null;
     }
-}
-
-function populateDashboardFilters() {
-    const getUniqueValues = (key) => [...new Set(allData.map(item => item[key]).filter(Boolean).sort())];
-    populateDropdown(document.getElementById('dashboardFilterShift'), getUniqueValues('Shift'), false);
-    populateDropdown(document.getElementById('dashboardFilterHost'), getUniqueValues('Nama Host'), false);
-    populateDropdown(document.getElementById('dashboardFilterAdmin'), getUniqueValues('Nama Admin'), false);
 }
 
 export function setupDashboardPage(data) {
@@ -420,7 +408,10 @@ export function setupDashboardPage(data) {
             document.getElementById('editTransactionModal').classList.add('hidden');
             document.getElementById('editTransactionModal').classList.remove('flex');
         });
-        document.getElementById('confirmDeleteBtn').addEventListener('click', handleDeleteTransaction);
+        
+        // DINONAKTIFKAN: Event listener untuk konfirmasi hapus
+        // document.getElementById('confirmDeleteBtn').addEventListener('click', handleDeleteTransaction);
+        
         searchInput.dataset.listenerAttached = 'true';
     }
     document.addEventListener('filterChanged', (e) => {
