@@ -2,7 +2,7 @@
 export const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw_WZnzSKat7xjOpOYni1l7cLGq0zT-4Nv-mJsdwH714fiAMwrDNt9aSUMdS2lx4S_4/exec';
 
 export const CORRECT_PIN = '7501';
-export const SALES_REPORT_PIN = '2232';
+export const SALES_REPORT_PIN = '2232'; 
 export const EDIT_PIN = '2232';
 
 // Variabel global untuk menampung daftar dari server
