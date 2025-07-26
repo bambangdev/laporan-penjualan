@@ -30,6 +30,9 @@ export function setupUnifiedForm(data) {
     const treatmentBackupContainer = document.getElementById('treatmentBackupContainer');
     const salesReturnOmzetInput = document.getElementById('salesReturnOmzet');
     
+    // Pastikan listener hanya ditambahkan sekali
+    if (unifiedForm.dataset.listenerAttached) return;
+
     populateDropdown(salesReturnHostSelect, hostList);
     populateDropdown(salesReturnAdminSelect, adminList);
     populateDropdown(treatmentPersonSelect, treatmentPersonList);
@@ -120,9 +123,8 @@ export function setupUnifiedForm(data) {
             unifiedFormStatus.className = 'mt-4 text-center text-sm h-4 text-green-600';
             unifiedForm.reset();
             allFieldsets.forEach(fs => fs.classList.add('hidden'));
-            // Dispatch event to notify app.js that data has changed
             document.dispatchEvent(new CustomEvent('dataChanged'));
-        } catch (error) => {
+        } catch (error) { // <-- PERBAIKAN DI SINI
             unifiedFormStatus.textContent = `Error: ${error.message}`;
             unifiedFormStatus.className = 'mt-4 text-center text-sm h-4 text-red-600';
         } finally {
@@ -131,4 +133,6 @@ export function setupUnifiedForm(data) {
             unifiedSubmitBtn.disabled = false;
         }
     });
+
+    unifiedForm.dataset.listenerAttached = 'true';
 }
