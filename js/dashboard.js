@@ -103,18 +103,6 @@ function renderDashboardTable() {
             document.getElementById('editRowPasswordInput').focus();
         });
     });
-
-    // DINONAKTIFKAN: Event listener untuk tombol hapus
-    /*
-    document.querySelectorAll('.delete-row-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const tr = e.target.closest('tr');
-            currentRowToAction = JSON.parse(tr.dataset.rowData);
-            document.getElementById('deleteConfirmationModal').classList.remove('hidden');
-            document.getElementById('deleteConfirmationModal').classList.add('flex');
-        });
-    });
-    */
 }
 
 function populateCustomerAutocomplete(data) {
@@ -311,6 +299,7 @@ async function handleEditFormSubmit(e) {
     }
 }
 
+// FUNGSI INI TETAP ADA, TAPI TIDAK DIPANGGIL KARENA TOMBOLNYA DINONAKTIFKAN
 async function handleDeleteTransaction() {
     if (!currentRowToAction || !currentRowToAction.rowIndex) {
         showToast('Gagal menghapus: Data tidak ditemukan.', 'error');
@@ -341,7 +330,6 @@ async function handleDeleteTransaction() {
 
         showToast('Transaksi berhasil dihapus!', 'success');
         document.getElementById('deleteConfirmationModal').classList.add('hidden');
-        
         document.dispatchEvent(new CustomEvent('dataChanged'));
 
     } catch (error) {
@@ -352,6 +340,14 @@ async function handleDeleteTransaction() {
         confirmBtn.disabled = false;
         currentRowToAction = null;
     }
+}
+
+// ===== FUNGSI YANG HILANG, DIKEMBALIKAN DI SINI =====
+function populateDashboardFilters() {
+    const getUniqueValues = (key) => [...new Set(allData.map(item => item[key]).filter(Boolean).sort())];
+    populateDropdown(document.getElementById('dashboardFilterShift'), getUniqueValues('Shift'), false);
+    populateDropdown(document.getElementById('dashboardFilterHost'), getUniqueValues('Nama Host'), false);
+    populateDropdown(document.getElementById('dashboardFilterAdmin'), getUniqueValues('Nama Admin'), false);
 }
 
 export function setupDashboardPage(data) {
@@ -377,7 +373,9 @@ export function setupDashboardPage(data) {
         });
         dashboardDatePicker.setDateRange(moment().startOf('month').toDate(), moment().endOf('month').toDate());
     }
-    populateDashboardFilters();
+    
+    populateDashboardFilters(); // <-- Memanggil fungsi yang sudah dikembalikan
+
     if (!searchInput.dataset.listenerAttached) {
         searchInput.addEventListener('input', applyFilters);
         document.getElementById('dashboardFilterShift').addEventListener('change', applyFilters);
