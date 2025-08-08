@@ -123,6 +123,54 @@ const salesLoader = document.getElementById('salesLoader');
 const parseCurrency = (value) => Number(String(value).replace(/[^0-9]/g, '')) || 0;
 const formatCurrency = (value) => `Rp ${new Intl.NumberFormat('id-ID').format(value || 0)}`;
 
+function calculatePeriodTotals(start, end) {
+    if (start) start.setHours(0, 0, 0, 0);
+    if (end) end.setHours(23, 59, 59, 999);
+
+    const searchTerm = document.getElementById('dashboardSearchCustomer').value.toLowerCase();
+    const selectedShift = document.getElementById('dashboardFilterShift').value;
+    const selectedHost = document.getElementById('dashboardFilterHost').value;
+    const selectedAdmin = document.getElementById('dashboardFilterAdmin').value;
+    const selectedTransactionType = document.getElementById('dashboardFilterTransactionType').value;
+
+    const periodData = allData.filter(row => {
+        const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
+        const customerMatch = String(row['Nama Customer'] || '').toLowerCase().includes(searchTerm);
+        const shiftMatch = selectedShift ? row.Shift === selectedShift : true;
+        const hostMatch = selectedHost ? row['Nama Host'] === selectedHost : true;
+        const adminMatch = selectedAdmin ? row['Nama Admin'] === selectedAdmin : true;
+        const transactionTypeMatch = selectedTransactionType ? row['Jenis Transaksi'] === selectedTransactionType : true;
+        const dateMatch = (!start || !rowDate) ? true : (rowDate >= start && rowDate <= end);
+        return customerMatch && shiftMatch && hostMatch && adminMatch && transactionTypeMatch && dateMatch;
+    });
+
+    const totals = {
+        pcsPenjualan: 0,
+        omzetPenjualan: 0,
+        pcsReturn: 0,
+        omzetReturn: 0,
+        pcsTreatment: 0
+    };
+
+    periodData.forEach(r => {
+        switch (r['Jenis Transaksi']) {
+            case 'Penjualan':
+                totals.pcsPenjualan += Number(r['Total Pcs'] || 0);
+                totals.omzetPenjualan += parseCurrency(r['Total Omzet'] || 0);
+                break;
+            case 'Return':
+                totals.pcsReturn += Number(r['Total Pcs'] || 0);
+                totals.omzetReturn += parseCurrency(r['Total Omzet'] || 0);
+                break;
+            case 'Treatment':
+                totals.pcsTreatment += Number(r['PCS Treatment'] || 0);
+                break;
+        }
+    });
+
+    return totals;
+}
+
 function populateDropdown(selectElement, listItems, includeBackup = true) {
     const firstOption = selectElement.options[0];
     selectElement.innerHTML = '';
@@ -328,7 +376,7 @@ function applyFilters() {
         });
         
         currentPage = 1;
-        calculateAndRenderStats(filteredDashboardData);
+        calculateAndRenderStats();
         renderDashboardTable();
         
         dashboardLoader.classList.add('hidden');
@@ -336,16 +384,48 @@ function applyFilters() {
     }, 50); // Jeda agar browser render loader
 }
 
-function calculateAndRenderStats(data) {
-    const penjualanData = data.filter(r => r['Jenis Transaksi'] === 'Penjualan');
-    const returnData = data.filter(r => r['Jenis Transaksi'] === 'Return');
-    const treatmentData = data.filter(r => r['Jenis Transaksi'] === 'Treatment');
+function calculateAndRenderStats() {
+    const startDate = dashboardDatePicker.getStartDate()?.toJSDate();
+    const endDate = dashboardDatePicker.getEndDate()?.toJSDate();
 
-    document.getElementById('statPcsPenjualan').textContent = penjualanData.reduce((s, r) => s + Number(r['Total Pcs'] || 0), 0).toLocaleString('id-ID');
-    document.getElementById('statOmzetPenjualan').textContent = formatCurrency(penjualanData.reduce((s, r) => s + parseCurrency(r['Total Omzet'] || 0), 0));
-    document.getElementById('statPcsReturn').textContent = returnData.reduce((s, r) => s + Number(r['Total Pcs'] || 0), 0).toLocaleString('id-ID');
-    document.getElementById('statOmzetReturn').textContent = formatCurrency(returnData.reduce((s, r) => s + parseCurrency(r['Total Omzet'] || 0), 0));
-    statPcsTreatment.textContent = treatmentData.reduce((s, r) => s + Number(r['PCS Treatment'] || 0), 0).toLocaleString('id-ID');
+    const currentTotals = calculatePeriodTotals(startDate ? new Date(startDate) : null, endDate ? new Date(endDate) : null);
+
+    let prevStart = null, prevEnd = null;
+    if (startDate && endDate) {
+        const rangeLength = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+        prevEnd = new Date(startDate.getTime() - 1);
+        prevStart = new Date(prevEnd.getTime() - (rangeLength - 1) * 24 * 60 * 60 * 1000);
+    }
+
+    const previousTotals = calculatePeriodTotals(prevStart, prevEnd);
+
+    document.getElementById('statPcsPenjualan').textContent = currentTotals.pcsPenjualan.toLocaleString('id-ID');
+    document.getElementById('statOmzetPenjualan').textContent = formatCurrency(currentTotals.omzetPenjualan);
+    document.getElementById('statPcsReturn').textContent = currentTotals.pcsReturn.toLocaleString('id-ID');
+    document.getElementById('statOmzetReturn').textContent = formatCurrency(currentTotals.omzetReturn);
+    statPcsTreatment.textContent = currentTotals.pcsTreatment.toLocaleString('id-ID');
+
+    const updateDelta = (elId, current, previous, isCurrency = false) => {
+        const el = document.getElementById(elId);
+        if (!el) return;
+        const diff = current - previous;
+        const arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '';
+        const percent = previous ? (diff / previous) * 100 : null;
+        const diffText = isCurrency ? formatCurrency(Math.abs(diff)) : Math.abs(diff).toLocaleString('id-ID');
+        const percentText = percent === null ? 'N/A' : `${Math.abs(percent).toFixed(2)}%`;
+        const text = diff === 0 ? `${diffText} (0%)` : `${arrow} ${diffText} (${percentText})`;
+        el.textContent = text.trim();
+        el.classList.remove('delta-positive', 'delta-negative', 'delta-neutral', 'text-green-600', 'text-red-600', 'text-gray-600');
+        if (diff > 0) el.classList.add('delta-positive');
+        else if (diff < 0) el.classList.add('delta-negative');
+        else el.classList.add('delta-neutral');
+    };
+
+    updateDelta('statPcsPenjualanDelta', currentTotals.pcsPenjualan, previousTotals.pcsPenjualan);
+    updateDelta('statOmzetPenjualanDelta', currentTotals.omzetPenjualan, previousTotals.omzetPenjualan, true);
+    updateDelta('statPcsReturnDelta', currentTotals.pcsReturn, previousTotals.pcsReturn);
+    updateDelta('statOmzetReturnDelta', currentTotals.omzetReturn, previousTotals.omzetReturn, true);
+    updateDelta('statPcsTreatmentDelta', currentTotals.pcsTreatment, previousTotals.pcsTreatment);
 }
 
 function renderDashboardTable() {

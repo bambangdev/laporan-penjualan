@@ -65,3 +65,16 @@ body {
     transition: opacity 0.2s ease-in-out;
     pointer-events: none; /* Mencegah interaksi saat loading */
 }
+
+/* Delta styling */
+.delta-positive {
+    color: #16a34a; /* green-600 */
+}
+
+.delta-negative {
+    color: #dc2626; /* red-600 */
+}
+
+.delta-neutral {
+    color: #4b5563; /* gray-600 */
+}
