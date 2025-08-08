@@ -73,6 +73,8 @@ const salesReportNetOmzet = document.getElementById('salesReportNetOmzet');
 const salesReportReturnRatio = document.getElementById('salesReportReturnRatio');
 const salesReportUniqueCustomers = document.getElementById('salesReportUniqueCustomers');
 const salesReportRepeatCustomers = document.getElementById('salesReportRepeatCustomers');
+const salesReportTotalTransactions = document.getElementById('salesReportTotalTransactions');
+const salesReportAvgOrderValue = document.getElementById('salesReportAvgOrderValue');
 const salesReportTopHostTable = document.getElementById('salesReportTopHostTable');
 const salesReportHostCombinedTable = document.getElementById('salesReportHostCombinedTable');
 const salesReportAdminCombinedTable = document.getElementById('salesReportAdminCombinedTable');
@@ -631,6 +633,11 @@ function applySalesReportFilters() {
         const totalOmzetReturn = returnData.reduce((s, r) => s + parseCurrency(r['Total Omzet'] || 0), 0);
         salesReportNetOmzet.textContent = formatCurrency(totalOmzetPenjualan - totalOmzetReturn);
         salesReportReturnRatio.textContent = `${(totalOmzetPenjualan > 0 ? (totalOmzetReturn / totalOmzetPenjualan) * 100 : 0).toFixed(2)}%`;
+
+        const totalTransactions = penjualanData.length;
+        const avgOrderValue = totalTransactions > 0 ? totalOmzetPenjualan / totalTransactions : 0;
+        salesReportTotalTransactions.textContent = totalTransactions.toLocaleString('id-ID');
+        salesReportAvgOrderValue.textContent = formatCurrency(avgOrderValue);
 
         const customerPurchaseCounts = penjualanData.reduce((acc, row) => {
             const customerName = String(row['Nama Customer'] || '').trim();
