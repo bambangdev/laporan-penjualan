@@ -112,6 +112,9 @@ const salesReturnBackupHostContainer = document.getElementById('salesReturnBacku
 const salesReturnBackupAdminContainer = document.getElementById('salesReturnBackupAdminContainer');
 const treatmentBackupContainer = document.getElementById('treatmentBackupContainer');
 const salesReturnOmzetInput = document.getElementById('salesReturnOmzet');
+const fab = document.getElementById('fab');
+const fabMain = document.getElementById('fabMain');
+const fabOptions = document.querySelectorAll('#fabOptions .fab-option');
 
 // --- NEW LOADER ELEMENTS ---
 const dashboardLoader = document.getElementById('dashboardLoader');
@@ -204,6 +207,10 @@ function switchPage(pageId) {
     sidebarLinks.forEach(link => link.classList.toggle('active', link.dataset.page === pageId));
     if (window.innerWidth < 1024) {
         closeSidebar();
+    }
+    if (fab) {
+        fab.classList.remove('open');
+        fab.classList.toggle('hidden', pageId === 'inputTransaksiPage');
     }
     if (['dashboardPage', 'customerReportPage', 'salesReportPage'].includes(pageId)) {
         if (!isDataFetched) {
@@ -1053,7 +1060,21 @@ document.addEventListener('DOMContentLoaded', () => {
     populateDropdown(editOrangTreatmentInput, treatmentPersonList);
 
     setupUnifiedForm();
-    
+
+    fabMain.addEventListener('click', () => {
+        fab.classList.toggle('open');
+    });
+
+    fabOptions.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const type = btn.dataset.type;
+            switchPage('inputTransaksiPage');
+            transactionTypeSelect.value = type;
+            transactionTypeSelect.dispatchEvent(new Event('change'));
+            fab.classList.remove('open');
+        });
+    });
+
     const litepickerOptions = {
         singleMode: false, format: 'DD MMM YY', lang: 'id-ID', numberOfMonths: 2,
         dropdowns: { minYear: 2020, maxYear: null, months: true, years: true },
