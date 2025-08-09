@@ -1,8 +1,11 @@
 // --- APP STATE & CONFIG ---
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzpSVOHsYuDXUoJqHJ4mi2bHiHVT7tqSgD1Q6iq2RKHhwIqszVCfczZUMrNB7zzoFn/exec';
-const CORRECT_PIN = '7501';
-const SALES_REPORT_PIN = '2232'; 
 const EDIT_PIN = '2232';
+const users = {
+    admin: { password: 'admin123', role: 'admin' },
+    staff: { password: 'staff123', role: 'staff' }
+};
+let currentUser = JSON.parse(localStorage.getItem('currentUser'));
 const hostList = ['wafa', 'debi', 'bunga'];
 const adminList = ['Bunga', 'Teh Ros'];
 const treatmentPersonList = ['Bunda', 'Resin'];
@@ -24,21 +27,19 @@ const rowsPerPage = 30;
 // --- DOM ELEMENTS ---
 const loginSection = document.getElementById('loginSection');
 const mainApp = document.getElementById('mainApp');
-const pinInputs = document.querySelectorAll('#pin-inputs input');
-const pinError = document.getElementById('pinError');
+const loginForm = document.getElementById('loginForm');
+const usernameInput = document.getElementById('username');
+const passwordInput = document.getElementById('password');
+const loginError = document.getElementById('loginError');
 const sidebar = document.getElementById('sidebar');
 const sidebarLinks = document.querySelectorAll('.sidebar-link');
+const salesReportLink = document.querySelector('a[data-page="salesReportPage"]');
 const pages = document.querySelectorAll('.page');
 const pageLoader = document.getElementById('pageLoader');
 const pageError = document.getElementById('pageError');
 const openSidebarBtn = document.getElementById('open-sidebar-btn');
 const closeSidebarBtn = document.getElementById('close-sidebar-btn');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
-const salesReportPinModal = document.getElementById('salesReportPinModal');
-const salesReportPinForm = document.getElementById('salesReportPinForm');
-const salesReportPinInput = document.getElementById('salesReportPinInput');
-const salesReportPinError = document.getElementById('salesReportPinError');
-const cancelSalesReportBtn = document.getElementById('cancelSalesReport');
 
 const editRowPasswordModal = document.getElementById('editRowPasswordModal');
 const editRowPasswordForm = document.getElementById('editRowPasswordForm');
@@ -152,6 +153,10 @@ function closeSidebar() {
 }
 
 function switchPage(pageId) {
+    if (pageId === 'salesReportPage' && (!currentUser || currentUser.role !== 'admin')) {
+        alert('Akses ditolak.');
+        return;
+    }
     pages.forEach(page => page.classList.toggle('active', page.id === pageId));
     sidebarLinks.forEach(link => link.classList.toggle('active', link.dataset.page === pageId));
     if (window.innerWidth < 1024) {
@@ -169,47 +174,30 @@ function switchPage(pageId) {
 }
 
 // --- LOGIN & MODAL LOGIC ---
-pinInputs.forEach((input, index) => {
-    input.addEventListener('keydown', (e) => {
-        if (e.key === "Backspace" && !input.value && index > 0) pinInputs[index - 1].focus();
-    });
-    input.addEventListener('input', () => {
-        if (input.value && index < pinInputs.length - 1) pinInputs[index + 1].focus();
-        const enteredPin = Array.from(pinInputs).map(i => i.value).join('');
-        if (enteredPin.length === 4) {
-            if (enteredPin === CORRECT_PIN) {
-                loginSection.classList.add('hidden');
-                mainApp.classList.remove('hidden');
-                switchPage('dashboardPage');
-            } else {
-                pinError.textContent = 'PIN salah, coba lagi.';
-                pinInputs.forEach(i => i.value = '');
-                pinInputs[0].focus();
-            }
-        } else {
-             pinError.textContent = '';
-        }
-    });
-});
-
-salesReportPinForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    if (salesReportPinInput.value === SALES_REPORT_PIN) {
-        salesReportPinModal.classList.add('hidden');
-        salesReportPinModal.classList.remove('flex');
-        switchPage('salesReportPage');
-        salesReportPinInput.value = '';
-        salesReportPinError.textContent = '';
+function updateAccess() {
+    if (currentUser && currentUser.role === 'admin') {
+        salesReportLink.classList.remove('hidden');
     } else {
-        salesReportPinError.textContent = 'PIN salah.';
+        salesReportLink.classList.add('hidden');
     }
-});
+}
 
-cancelSalesReportBtn.addEventListener('click', () => {
-    salesReportPinModal.classList.add('hidden');
-    salesReportPinModal.classList.remove('flex');
-    salesReportPinInput.value = '';
-    salesReportPinError.textContent = '';
+loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value.trim();
+    const user = users[username];
+    if (user && user.password === password) {
+        currentUser = { username, role: user.role };
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        loginError.textContent = '';
+        loginSection.classList.add('hidden');
+        mainApp.classList.remove('hidden');
+        updateAccess();
+        switchPage('dashboardPage');
+    } else {
+        loginError.textContent = 'Username atau password salah.';
+    }
 });
 
 editRowPasswordForm.addEventListener('submit', (e) => {
@@ -954,13 +942,11 @@ document.addEventListener('DOMContentLoaded', () => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const pageId = link.dataset.page;
-            if (pageId === 'salesReportPage') {
-                salesReportPinModal.classList.remove('hidden');
-                salesReportPinModal.classList.add('flex');
-                salesReportPinInput.focus();
-            } else {
-                switchPage(pageId);
+            if (pageId === 'salesReportPage' && (!currentUser || currentUser.role !== 'admin')) {
+                alert('Akses ditolak.');
+                return;
             }
+            switchPage(pageId);
         });
     });
 
@@ -1004,5 +990,13 @@ document.addEventListener('DOMContentLoaded', () => {
     uniqueCustomersCard.addEventListener('click', () => showCustomerListModal('Daftar Customer Unik', uniqueCustomerList));
     repeatCustomersCard.addEventListener('click', () => showCustomerListModal('Daftar Customer Repeat', repeatCustomerList));
 
-    pinInputs[0].focus();
+    updateAccess();
+
+    if (currentUser) {
+        loginSection.classList.add('hidden');
+        mainApp.classList.remove('hidden');
+        switchPage('dashboardPage');
+    } else {
+        usernameInput.focus();
+    }
 });

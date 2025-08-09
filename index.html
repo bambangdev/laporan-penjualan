@@ -19,29 +19,12 @@
     <div id="loginSection" class="flex items-center justify-center h-screen">
         <div class="w-full max-w-sm p-8 bg-white rounded-xl shadow-lg text-center mx-4">
             <h1 class="text-2xl font-bold text-gray-800">infinithree.id</h1>
-            <p class="text-gray-500 mb-6">Masukkan PIN untuk melanjutkan</p>
-            <div id="pin-inputs" class="flex justify-center space-x-3 mb-4">
-                <input type="password" maxlength="1" class="w-12 h-14 text-center text-2xl font-semibold border-2 border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
-                <input type="password" maxlength="1" class="w-12 h-14 text-center text-2xl font-semibold border-2 border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
-                <input type="password" maxlength="1" class="w-12 h-14 text-center text-2xl font-semibold border-2 border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
-                <input type="password" maxlength="1" class="w-12 h-14 text-center text-2xl font-semibold border-2 border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500">
-            </div>
-            <p id="pinError" class="text-red-500 text-sm h-4"></p>
-        </div>
-    </div>
-    
-    <!-- Modal PIN Laporan Penjualan -->
-    <div id="salesReportPinModal" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden items-center justify-center">
-        <div class="w-full max-w-sm p-8 bg-white rounded-xl shadow-lg text-center mx-4">
-            <h2 class="text-xl font-bold text-gray-800">Akses Terbatas</h2>
-            <p class="text-gray-500 mb-6 mt-1">Masukkan PIN untuk melihat laporan penjualan.</p>
-            <form id="salesReportPinForm">
-                <input type="password" id="salesReportPinInput" class="w-full px-4 py-2 text-center border-2 border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500" placeholder="••••••">
-                <p id="salesReportPinError" class="text-red-500 text-sm h-4 mt-2"></p>
-                <div class="flex space-x-4 mt-6">
-                    <button type="button" id="cancelSalesReport" class="w-full py-2 px-4 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300">Batal</button>
-                    <button type="submit" class="w-full py-2 px-4 bg-pink-600 text-white font-semibold rounded-lg hover:bg-pink-700">Buka</button>
-                </div>
+            <p class="text-gray-500 mb-6">Masukkan username dan password untuk melanjutkan</p>
+            <form id="loginForm" class="space-y-4">
+                <input type="text" id="username" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500" placeholder="Username">
+                <input type="password" id="password" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500" placeholder="Password">
+                <p id="loginError" class="text-red-500 text-sm h-4"></p>
+                <button type="submit" class="w-full py-2 px-4 bg-pink-600 text-white font-semibold rounded-lg hover:bg-pink-700">Masuk</button>
             </form>
         </div>
     </div>
