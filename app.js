@@ -32,7 +32,7 @@ const usernameInput = document.getElementById('username');
 const passwordInput = document.getElementById('password');
 const loginError = document.getElementById('loginError');
 const sidebar = document.getElementById('sidebar');
-const sidebarLinks = document.querySelectorAll('.sidebar-link');
+const sidebarLinks = document.querySelectorAll('.sidebar-link[data-page]');
 const salesReportLink = document.querySelector('a[data-page="salesReportPage"]');
 const pages = document.querySelectorAll('.page');
 const pageLoader = document.getElementById('pageLoader');
@@ -40,6 +40,7 @@ const pageError = document.getElementById('pageError');
 const openSidebarBtn = document.getElementById('open-sidebar-btn');
 const closeSidebarBtn = document.getElementById('close-sidebar-btn');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
+const logoutBtn = document.getElementById('logoutBtn');
 
 const editRowPasswordModal = document.getElementById('editRowPasswordModal');
 const editRowPasswordForm = document.getElementById('editRowPasswordForm');
@@ -948,6 +949,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             switchPage(pageId);
         });
+    });
+
+    logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('currentUser');
+        currentUser = null;
+        updateAccess();
+        mainApp.classList.add('hidden');
+        loginSection.classList.remove('hidden');
+        loginForm.reset();
+        closeSidebar();
+        usernameInput.focus();
     });
 
     populateDropdown(salesReturnHostSelect, hostList);
