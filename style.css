@@ -78,3 +78,55 @@ body {
 .delta-neutral {
     color: #4b5563; /* gray-600 */
 }
+
+/* Floating Action Button */
+#fab {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 1000;
+}
+
+#fabMain {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: #db2777; /* pink-600 */
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    line-height: 0;
+}
+
+#fabOptions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    margin-bottom: 0.5rem;
+}
+
+#fabOptions .fab-option {
+    margin-top: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    background-color: #db2777;
+    color: #fff;
+    border: none;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+    white-space: nowrap;
+}
+
+#fab.open #fabOptions .fab-option {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
