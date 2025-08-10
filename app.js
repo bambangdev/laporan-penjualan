@@ -707,14 +707,27 @@ function applySalesReportFilters() {
         if(startDate) startDate.setHours(0,0,0,0);
         if(endDate) endDate.setHours(23,59,59,999);
         
+        let prevStart = null, prevEnd = null;
+        if (startDate && endDate) {
+            const rangeLength = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+            prevEnd = new Date(startDate.getTime() - 1);
+            prevStart = new Date(prevEnd.getTime() - (rangeLength - 1) * 24 * 60 * 60 * 1000);
+        }
+
         const filteredData = allData.filter(row => {
-             const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
-             return (!startDate || !rowDate) ? true : (rowDate >= startDate && rowDate <= endDate);
+            const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
+            return (!startDate || !rowDate) ? true : (rowDate >= startDate && rowDate <= endDate);
+        });
+        const prevFilteredData = allData.filter(row => {
+            const rowDate = row['Tanggal Input'] ? new Date(row['Tanggal Input']) : null;
+            return (!prevStart || !rowDate) ? true : (rowDate >= prevStart && rowDate <= prevEnd);
         });
 
         const penjualanData = filteredData.filter(r => r['Jenis Transaksi'] === 'Penjualan');
         const returnData = filteredData.filter(r => r['Jenis Transaksi'] === 'Return');
         const treatmentData = filteredData.filter(r => r['Jenis Transaksi'] === 'Treatment');
+        const prevPenjualanData = prevFilteredData.filter(r => r['Jenis Transaksi'] === 'Penjualan');
+        const prevTreatmentData = prevFilteredData.filter(r => r['Jenis Transaksi'] === 'Treatment');
 
         const totalOmzetPenjualan = penjualanData.reduce((s, r) => s + parseCurrency(r['Total Omzet'] || 0), 0);
         const totalOmzetReturn = returnData.reduce((s, r) => s + parseCurrency(r['Total Omzet'] || 0), 0);
@@ -784,18 +797,28 @@ function applySalesReportFilters() {
         const hostDailyData = getPersonUniqueDays(penjualanData, 'Nama Host');
         const adminDailyData = getPersonUniqueDays(penjualanData, 'Nama Admin');
         const treatmentDailyData = getPersonUniqueDays(treatmentData, 'Orang Treatment');
+        const prevHostDailyData = getPersonUniqueDays(prevPenjualanData, 'Nama Host');
+        const prevAdminDailyData = getPersonUniqueDays(prevPenjualanData, 'Nama Admin');
+        const prevTreatmentDailyData = getPersonUniqueDays(prevTreatmentData, 'Orang Treatment');
         const hostBonusData = getPersonBonus(penjualanData, 'Nama Host', 'Total Pcs', 'Total Omzet', 0.03, 'percentage', 40);
         const adminBonusData = getPersonBonus(penjualanData, 'Nama Admin', 'Total Pcs', 'Total Omzet', 0.01, 'percentage', 40);
         const treatmentBonusData = getPersonBonus(treatmentData, 'Orang Treatment', 'PCS Treatment', null, 2500, 'fixed', 30);
+        const prevHostBonusData = getPersonBonus(prevPenjualanData, 'Nama Host', 'Total Pcs', 'Total Omzet', 0.03, 'percentage', 40);
+        const prevAdminBonusData = getPersonBonus(prevPenjualanData, 'Nama Admin', 'Total Pcs', 'Total Omzet', 0.01, 'percentage', 40);
+        const prevTreatmentBonusData = getPersonBonus(prevTreatmentData, 'Orang Treatment', 'PCS Treatment', null, 2500, 'fixed', 30);
         const hostSalaryRate = 80000, adminSalaryRate = 60000, treatmentDailyRate = 12500;
-
-        const renderCombinedSalaryBonusTable = (tbody, dataMap, bonusMap, rate, type) => {
+        const renderCombinedSalaryBonusTable = (tbody, dataMap, bonusMap, prevDataMap, prevBonusMap, rate, type) => {
             tbody.innerHTML = '';
-            const allNames = new Set([...Object.keys(dataMap), ...Object.keys(bonusMap)]);
+            const allNames = new Set([
+                ...Object.keys(dataMap),
+                ...Object.keys(bonusMap),
+                ...Object.keys(prevDataMap || {}),
+                ...Object.keys(prevBonusMap || {})
+            ]);
             const sortedNames = Array.from(allNames).sort();
 
             if (sortedNames.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="${type === 'Treatment' ? 3 : 5}" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="${type === 'Treatment' ? 4 : 6}" class="text-center py-4 text-sm text-gray-400">Tidak ada data.</td></tr>`;
                 return;
             }
 
@@ -804,19 +827,34 @@ function applySalesReportFilters() {
                 const basicSalary = uniqueDays * rate;
                 const bonus = bonusMap[name] ? bonusMap[name].totalBonus : 0;
                 const total = basicSalary + bonus;
+
+                const prevUniqueDays = prevDataMap[name] ? prevDataMap[name].size : 0;
+                const prevBasicSalary = prevUniqueDays * rate;
+                const prevBonus = prevBonusMap[name] ? prevBonusMap[name].totalBonus : 0;
+                const prevTotal = prevBasicSalary + prevBonus;
+
+                const diff = type === 'Treatment' ? (basicSalary - prevBasicSalary) : (total - prevTotal);
+                const percent = (type === 'Treatment' ? prevBasicSalary : prevTotal) ? (diff / (type === 'Treatment' ? prevBasicSalary : prevTotal)) * 100 : null;
+                const arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '';
+                const diffText = formatCurrency(Math.abs(diff));
+                const percentText = percent === null ? 'N/A' : `${Math.abs(percent).toFixed(2)}%`;
+                const trendText = diff === 0 ? `${diffText} (0%)` : `${arrow} ${diffText} (${percentText})`;
+                const trendClass = diff > 0 ? 'delta-positive' : diff < 0 ? 'delta-negative' : 'delta-neutral';
+
+                const trendCell = `<td class="py-2 px-3 text-sm ${trendClass}">${trendText.trim()}</td>`;
                 const tr = document.createElement('tr');
                 if (type === 'Treatment') {
-                    tr.innerHTML = `<td class="py-2 px-3 text-sm font-medium text-gray-900">${name}</td><td class="py-2 px-3 text-sm text-gray-500">${uniqueDays} Hari</td><td class="py-2 px-3 text-sm font-semibold text-gray-800">${formatCurrency(basicSalary)}</td>`;
+                    tr.innerHTML = `<td class="py-2 px-3 text-sm font-medium text-gray-900">${name}</td><td class="py-2 px-3 text-sm text-gray-500">${uniqueDays} Hari</td><td class="py-2 px-3 text-sm font-semibold text-gray-800">${formatCurrency(basicSalary)}</td>${trendCell}`;
                 } else {
-                    tr.innerHTML = `<td class="py-2 px-3 text-sm font-medium text-gray-900">${name}</td><td class="py-2 px-3 text-sm text-gray-500">${uniqueDays} Hari</td><td class="py-2 px-3 text-sm text-gray-500">${formatCurrency(basicSalary)}</td><td class="py-2 px-3 text-sm text-green-600">${formatCurrency(bonus)}</td><td class="py-2 px-3 text-sm font-semibold text-blue-600">${formatCurrency(total)}</td>`;
+                    tr.innerHTML = `<td class="py-2 px-3 text-sm font-medium text-gray-900">${name}</td><td class="py-2 px-3 text-sm text-gray-500">${uniqueDays} Hari</td><td class="py-2 px-3 text-sm text-gray-500">${formatCurrency(basicSalary)}</td><td class="py-2 px-3 text-sm text-green-600">${formatCurrency(bonus)}</td><td class="py-2 px-3 text-sm font-semibold text-blue-600">${formatCurrency(total)}</td>${trendCell}`;
                 }
                 tbody.appendChild(tr);
             });
         };
 
-        renderCombinedSalaryBonusTable(salesReportHostCombinedTable, hostDailyData, hostBonusData, hostSalaryRate, 'Host');
-        renderCombinedSalaryBonusTable(salesReportAdminCombinedTable, adminDailyData, adminBonusData, adminSalaryRate, 'Admin');
-        renderCombinedSalaryBonusTable(salesReportTreatmentCombinedTable, treatmentDailyData, treatmentBonusData, treatmentDailyRate, 'Treatment');
+        renderCombinedSalaryBonusTable(salesReportHostCombinedTable, hostDailyData, hostBonusData, prevHostDailyData, prevHostBonusData, hostSalaryRate, 'Host');
+        renderCombinedSalaryBonusTable(salesReportAdminCombinedTable, adminDailyData, adminBonusData, prevAdminDailyData, prevAdminBonusData, adminSalaryRate, 'Admin');
+        renderCombinedSalaryBonusTable(salesReportTreatmentCombinedTable, treatmentDailyData, treatmentBonusData, prevTreatmentDailyData, prevTreatmentBonusData, treatmentDailyRate, 'Treatment');
 
         renderDailySalesChart(penjualanData, startDate, endDate);
         renderTopHostSalesTable(penjualanData);
